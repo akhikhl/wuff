@@ -1,0 +1,6 @@
+build
+.gradle
+.groovy
+.settings
+.directory
+.nb-gradle*
