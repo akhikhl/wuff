@@ -26,7 +26,7 @@ class EclipseConfigReaderTest extends Specification {
     EclipseConfig config = reader.readFromResource('emptyConfig.groovy')
   then:
     config.defaultVersion == null
-    config.eclipseVersionConfigs.isEmpty()
+    config.versionConfigs.isEmpty()
   }
 
   def 'should read default eclipse version'() {
@@ -34,57 +34,57 @@ class EclipseConfigReaderTest extends Specification {
     EclipseConfig config = reader.readFromResource('defaultEclipseVersionConfig.groovy')
   then:
     config.defaultVersion == '4.3'
-    config.eclipseVersionConfigs.isEmpty()
+    config.versionConfigs.isEmpty()
   }
 
   def 'should read eclipse versions configuration'() {
   when:
     EclipseConfig config = reader.readFromResource('eclipseVersionsConfig.groovy')
   then:
-    config.eclipseVersionConfigs.size() == 3
-    config.eclipseVersionConfigs.containsKey('3.7')
-    config.eclipseVersionConfigs['3.7'].eclipseGroup == 'eclipse-indigo'
-    config.eclipseVersionConfigs.containsKey('4.2')
-    config.eclipseVersionConfigs['4.2'].eclipseGroup == 'eclipse-juno'
-    config.eclipseVersionConfigs.containsKey('4.3')
-    config.eclipseVersionConfigs['4.3'].eclipseGroup == 'eclipse-kepler'
+    config.versionConfigs.size() == 3
+    config.versionConfigs.containsKey('3.7')
+    config.versionConfigs['3.7'].eclipseGroup == 'eclipse-indigo'
+    config.versionConfigs.containsKey('4.2')
+    config.versionConfigs['4.2'].eclipseGroup == 'eclipse-juno'
+    config.versionConfigs.containsKey('4.3')
+    config.versionConfigs['4.3'].eclipseGroup == 'eclipse-kepler'
   }
 
   def 'should read eclipse modules configuration'() {
   when:
     EclipseConfig config = reader.readFromResource('eclipseModulesConfig.groovy')
   then:
-    config.eclipseVersionConfigs.size() == 3
-    config.eclipseVersionConfigs['3.7'].moduleConfigs.size() == 2
-    config.eclipseVersionConfigs['3.7'].moduleConfigs.containsKey('moduleA')
-    config.eclipseVersionConfigs['3.7'].moduleConfigs.containsKey('moduleB')
-    config.eclipseVersionConfigs['4.2'].moduleConfigs.size() == 2
-    config.eclipseVersionConfigs['4.2'].moduleConfigs.containsKey('moduleC')
-    config.eclipseVersionConfigs['4.2'].moduleConfigs.containsKey('moduleD')
-    config.eclipseVersionConfigs['4.3'].moduleConfigs.size() == 2
-    config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleE')
-    config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleF')
+    config.versionConfigs.size() == 3
+    config.versionConfigs['3.7'].moduleConfigs.size() == 2
+    config.versionConfigs['3.7'].moduleConfigs.containsKey('moduleA')
+    config.versionConfigs['3.7'].moduleConfigs.containsKey('moduleB')
+    config.versionConfigs['4.2'].moduleConfigs.size() == 2
+    config.versionConfigs['4.2'].moduleConfigs.containsKey('moduleC')
+    config.versionConfigs['4.2'].moduleConfigs.containsKey('moduleD')
+    config.versionConfigs['4.3'].moduleConfigs.size() == 2
+    config.versionConfigs['4.3'].moduleConfigs.containsKey('moduleE')
+    config.versionConfigs['4.3'].moduleConfigs.containsKey('moduleF')
   }
 
   def 'should read eclipse module details configuration'() {
   when:
     EclipseConfig config = reader.readFromResource('eclipseModuleDetailsConfig.groovy')
   then:
-    config.eclipseVersionConfigs.size() == 1
-    config.eclipseVersionConfigs['4.3'].moduleConfigs.size() == 2
-    config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleA')
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'] instanceof EclipseModuleConfig
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].common.size() == 1
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].common[0] instanceof Closure
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].platformSpecific.size() == 0
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].platformAndLanguageSpecific.size() == 0
-    config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleB')
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'] instanceof EclipseModuleConfig
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].common.size() == 1
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].common[0] instanceof Closure
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific.size() == 1
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific[0] instanceof Closure
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific.size() == 1
-    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific[0] instanceof Closure
+    config.versionConfigs.size() == 1
+    config.versionConfigs['4.3'].moduleConfigs.size() == 2
+    config.versionConfigs['4.3'].moduleConfigs.containsKey('moduleA')
+    config.versionConfigs['4.3'].moduleConfigs['moduleA'] instanceof EclipseModuleConfig
+    config.versionConfigs['4.3'].moduleConfigs['moduleA'].configure.size() == 1
+    config.versionConfigs['4.3'].moduleConfigs['moduleA'].configure[0] instanceof Closure
+    config.versionConfigs['4.3'].moduleConfigs['moduleA'].platformSpecific.size() == 0
+    config.versionConfigs['4.3'].moduleConfigs['moduleA'].platformAndLanguageSpecific.size() == 0
+    config.versionConfigs['4.3'].moduleConfigs.containsKey('moduleB')
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'] instanceof EclipseModuleConfig
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].configure.size() == 1
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].configure[0] instanceof Closure
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific.size() == 1
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific[0] instanceof Closure
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific.size() == 1
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific[0] instanceof Closure
   }
 }

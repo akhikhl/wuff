@@ -12,7 +12,8 @@ package org.akhikhl.liftup
  * @author akhikhl
  */
 class EclipseModuleConfig {
-  List<Closure> common = []
+  List<Closure> preConfigure = []
+  List<Closure> configure = []
   List<Closure> platformSpecific = []
   List<Closure> platformAndLanguageSpecific = []
 }

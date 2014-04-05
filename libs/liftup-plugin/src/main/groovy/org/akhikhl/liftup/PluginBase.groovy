@@ -14,19 +14,19 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class PluginBase implements Plugin<Project> {
+abstract class PluginBase implements Plugin<Project> {
 
-  private static EclipseConfig defaultConfig
+  Project project
+  String eclipseVersion
+  EclipseConfig defaultConfig
 
   void apply(final Project project) {
 
-    if(defaultConfig == null)
-      defaultConfig = new EclipseConfigReader().readFromResource('defaultEclipseConfig.groovy')
+    this.project = project
+    defaultConfig = new EclipseConfigReader().readFromResource('defaultEclipseConfig.groovy')
 
     project.apply plugin: 'osgi'
     project.extensions.create('eclipse', EclipseConfig)
-
-    String eclipseVersion
 
     if(project.hasProperty('eclipseVersion'))
       // project properties are inherently hierarchical, so parent's eclipseVersion will be inherited
@@ -37,6 +37,45 @@ class PluginBase implements Plugin<Project> {
       if(eclipseVersion == null)
         eclipseVersion = defaultConfig.defaultVersion
     }
+
+    project.eclipse.defaultVersion = eclipseVersion
+
+    configure { EclipseModuleConfig moduleConfig ->
+      for(Closure preConfigure in moduleConfig.preConfigure)
+        preConfigure(project)
+    }
   }
+
+  void configure(Closure moduleAction) {
+
+    def applyConfigs = { EclipseConfig eclipseConfig ->
+      EclipseVersionConfig versionConfig = eclipseConfig.versionConfigs[eclipseVersion]
+      if(versionConfig != null) {
+        if(versionConfig.eclipseGroup != null)
+          project.ext.eclipseGroup = versionConfig.eclipseGroup
+        EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
+        moduleConfig.properties.each { key, value ->
+          if(value instanceof Collection)
+            value.each { item ->
+              if(item instanceof Closure) {
+                item.delegate = PlatformConfig
+                item.resolveStrategy = Closure.DELEGATE_FIRST
+              }
+            }
+        }
+        moduleAction(moduleConfig)
+      }
+    }
+
+    applyConfigs(defaultConfig)
+
+    ProjectUtils.collectWithAllAncestors(project).each { Project p ->
+      EclipseConfig config = p.extensions.findByName('eclipse')
+      if(config)
+        applyConfigs(config)
+    }
+  }
+
+  abstract String getModuleName()
 }
 

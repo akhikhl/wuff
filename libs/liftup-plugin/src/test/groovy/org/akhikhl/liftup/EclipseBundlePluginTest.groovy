@@ -30,6 +30,7 @@ class EclipseBundlePluginTest extends Specification {
     plugin.apply(project)
   then:
     project.extensions.findByName('eclipse')
+    project.eclipse.defaultVersion == '4.3'
   }
 }
 

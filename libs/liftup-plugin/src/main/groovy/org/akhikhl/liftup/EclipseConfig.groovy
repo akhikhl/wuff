@@ -15,13 +15,13 @@ class EclipseConfig {
 
   String defaultVersion = null
 
-  Map<String, EclipseVersionConfig> eclipseVersionConfigs = [:]
+  Map<String, EclipseVersionConfig> versionConfigs = [:]
 
   void version(String versionString, Closure versionDef) {
-    if(eclipseVersionConfigs[versionString] == null)
-      eclipseVersionConfigs[versionString] = new EclipseVersionConfig()
+    if(versionConfigs[versionString] == null)
+      versionConfigs[versionString] = new EclipseVersionConfig()
     versionDef.resolveStrategy = Closure.DELEGATE_FIRST
-    versionDef.delegate = eclipseVersionConfigs[versionString]
+    versionDef.delegate = versionConfigs[versionString]
     versionDef()
   }
 }

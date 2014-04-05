@@ -8,7 +8,7 @@ eclipse {
     moduleA {
     }
 
-    moduleB common: {
+    moduleB configure: {
     }, platformSpecific: {
     }, platformAndLanguageSpecific: {
     }

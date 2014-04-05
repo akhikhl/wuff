@@ -27,17 +27,14 @@ class EclipseVersionConfig {
   def methodMissing(String moduleName, args) {
     if(moduleConfigs[moduleName] == null)
       moduleConfigs[moduleName] = new EclipseModuleConfig()
-    args.each {
-      if(it instanceof Closure)
-        moduleConfigs[moduleName].common.add(it)
-      else if (it instanceof Map) {
-        if(it.common instanceof Closure)
-          moduleConfigs[moduleName].common.add(it.common)
-        if(it.platformSpecific instanceof Closure)
-          moduleConfigs[moduleName].platformSpecific.add(it.platformSpecific)
-        if(it.platformAndLanguageSpecific instanceof Closure)
-          moduleConfigs[moduleName].platformAndLanguageSpecific.add(it.platformAndLanguageSpecific)
-      }
+    args.each { arg ->
+      if(arg instanceof Closure)
+        moduleConfigs[moduleName].configure.add(arg)
+      else if (arg instanceof Map)
+        ['preConfigure', 'configure', 'platformSpecific', 'platformAndLanguageSpecific'].each { key ->
+          if(arg[key] instanceof Closure)
+            moduleConfigs[moduleName][key].add(arg[key])
+        }
     }
   }
 }

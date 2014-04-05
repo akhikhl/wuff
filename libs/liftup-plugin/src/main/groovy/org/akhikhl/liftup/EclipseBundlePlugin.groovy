@@ -13,5 +13,9 @@ package org.akhikhl.liftup
  */
 class EclipseBundlePlugin extends PluginBase {
 
+  @Override
+  String getModuleName() {
+    'eclipseBundle'
+  }
 }
 
