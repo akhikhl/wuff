@@ -1,1 +1,3 @@
-defaultEclipseVersion = '4.3'
+eclipse {
+  defaultVersion = '4.3'
+}

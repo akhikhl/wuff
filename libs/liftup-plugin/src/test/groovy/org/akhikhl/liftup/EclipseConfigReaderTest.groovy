@@ -25,7 +25,7 @@ class EclipseConfigReaderTest extends Specification {
   when:
     EclipseConfig config = reader.readFromResource('emptyConfig.groovy')
   then:
-    config.defaultEclipseVersion == null
+    config.defaultVersion == null
     config.eclipseVersionConfigs.isEmpty()
   }
 
@@ -33,7 +33,7 @@ class EclipseConfigReaderTest extends Specification {
   when:
     EclipseConfig config = reader.readFromResource('defaultEclipseVersionConfig.groovy')
   then:
-    config.defaultEclipseVersion == '4.3'
+    config.defaultVersion == '4.3'
     config.eclipseVersionConfigs.isEmpty()
   }
 
@@ -43,11 +43,11 @@ class EclipseConfigReaderTest extends Specification {
   then:
     config.eclipseVersionConfigs.size() == 3
     config.eclipseVersionConfigs.containsKey('3.7')
-    config.eclipseVersionConfigs['3.7'].mavenGroup == 'eclipse-indigo'
+    config.eclipseVersionConfigs['3.7'].eclipseGroup == 'eclipse-indigo'
     config.eclipseVersionConfigs.containsKey('4.2')
-    config.eclipseVersionConfigs['4.2'].mavenGroup == 'eclipse-juno'
+    config.eclipseVersionConfigs['4.2'].eclipseGroup == 'eclipse-juno'
     config.eclipseVersionConfigs.containsKey('4.3')
-    config.eclipseVersionConfigs['4.3'].mavenGroup == 'eclipse-kepler'
+    config.eclipseVersionConfigs['4.3'].eclipseGroup == 'eclipse-kepler'
   }
 
   def 'should read eclipse modules configuration'() {

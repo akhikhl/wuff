@@ -13,11 +13,11 @@ package org.akhikhl.liftup
  */
 class EclipseConfig {
 
-  String defaultEclipseVersion = null
-  
+  String defaultVersion = null
+
   Map<String, EclipseVersionConfig> eclipseVersionConfigs = [:]
 
-  void eclipseVersion(String versionString, Closure versionDef) {
+  void version(String versionString, Closure versionDef) {
     if(eclipseVersionConfigs[versionString] == null)
       eclipseVersionConfigs[versionString] = new EclipseVersionConfig()
     versionDef.resolveStrategy = Closure.DELEGATE_FIRST

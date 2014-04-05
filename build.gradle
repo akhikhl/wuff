@@ -12,8 +12,8 @@ ext {
   group = 'org.akhikhl.liftup'
   version = '0.0.1'
   description = 'Gradle plugin for assembling eclipse applications'
-  groovy_version = '2.2.2'
-  spock_version = '0.7-groovy-2.0'
+  groovy_version = '1.8.6'
+  spock_version = '0.7-groovy-1.8'
   logback_version = '1.1.1'
   slf4j_version = '1.7.6'
 }
@@ -48,7 +48,7 @@ subprojects {
     mavenLocal()
     jcenter()
   }
-    
+
   group = rootProject.ext.group
   version = rootProject.ext.version
 
@@ -75,19 +75,19 @@ subprojects {
       from groovydoc.destinationDir
     }
   }
-  
+
   artifacts {
     archives sourcesJar, javadocJar
   }
 
   if(project.hasProperty('publishToSonatype')) {
-    
+
     assert project.hasProperty('signing.keyId')
     assert project.hasProperty('signing.password')
     assert project.hasProperty('signing.secretKeyRingFile')
     assert project.hasProperty('sonatypeUsername')
     assert project.hasProperty('sonatypePassword')
-    
+
     signing {
       sign configurations.archives
     }
@@ -149,7 +149,7 @@ subprojects {
       }
     }
   } // publishing
-      
+
   def rootProj = rootProject
   bintray {
     user = project.hasProperty('bintrayUser') ? project.bintrayUser : ''

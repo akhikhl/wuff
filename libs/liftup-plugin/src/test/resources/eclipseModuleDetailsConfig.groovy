@@ -1,14 +1,16 @@
-defaultEclipseVersion = '4.3'
+eclipse {
+  defaultVersion = '4.3'
 
-eclipseVersion('4.3') {
+  version('4.3') {
 
-  mavenGroup = 'eclipse-kepler'
+    eclipseGroup = 'eclipse-kepler'
 
-  moduleA {
-  }
+    moduleA {
+    }
 
-  moduleB common: {
-  }, platformSpecific: {
-  }, platformAndLanguageSpecific: {
+    moduleB common: {
+    }, platformSpecific: {
+    }, platformAndLanguageSpecific: {
+    }
   }
 }

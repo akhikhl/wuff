@@ -16,17 +16,17 @@ import org.codehaus.groovy.control.CompilerConfiguration
 class EclipseConfigReader {
 
   EclipseConfig readFromResource(String resourceName) {
-    CompilerConfiguration cc = new CompilerConfiguration()
-    cc.setScriptBaseClass(DelegatingScript.class.name)
-    def classLoader = this.getClass().getClassLoader()
-    GroovyShell shell = new GroovyShell(classLoader, new Binding(), cc)
-    DelegatingScript script
-    classLoader.getResourceAsStream(resourceName).withReader('UTF-8') {
-      script = shell.parse(it)
-    }
     EclipseConfig config = new EclipseConfig()
-    script.setDelegate(config)
-    script.run()
+    Binding binding = new Binding()
+    binding.eclipse = { Closure closure ->
+      closure.resolveStrategy = Closure.DELEGATE_FIRST
+      closure.delegate = config
+      closure()
+    }
+    GroovyShell shell = new GroovyShell(binding)
+    this.getClass().getClassLoader().getResourceAsStream(resourceName).withReader('UTF-8') {
+      shell.evaluate(it)
+    }
     return config
   }
 }

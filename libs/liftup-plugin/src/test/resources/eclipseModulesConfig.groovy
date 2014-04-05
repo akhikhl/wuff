@@ -1,34 +1,36 @@
-defaultEclipseVersion = '4.3'
+eclipse {
+  defaultVersion = '4.3'
 
-eclipseVersion('3.7') {
+  version('3.7') {
 
-  mavenGroup = 'eclipse-indigo'
+    eclipseGroup = 'eclipse-indigo'
 
-  moduleA {
+    moduleA {
+    }
+
+    moduleB {
+    }
   }
 
-  moduleB {
-  }
-}
+  version('4.2') {
 
-eclipseVersion('4.2') {
+    eclipseGroup = 'eclipse-juno'
 
-  mavenGroup = 'eclipse-juno'
+    moduleC {
+    }
 
-  moduleC {
-  }
-
-  moduleD {
-  }
-}
-
-eclipseVersion('4.3') {
-
-  mavenGroup = 'eclipse-kepler'
-
-  moduleE {
+    moduleD {
+    }
   }
 
-  moduleF {
+  version('4.3') {
+
+    eclipseGroup = 'eclipse-kepler'
+
+    moduleE {
+    }
+
+    moduleF {
+    }
   }
 }

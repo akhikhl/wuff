@@ -13,11 +13,14 @@ package org.akhikhl.liftup
  */
 class EclipseVersionConfig {
 
-  String mavenGroup
+  /**
+   * maven group containing artifacts of this eclipse version.
+   */
+  String eclipseGroup
 
   /**
-   * key - module name
-   * value - list of module configurations
+   * module configurations of this eclipse version.
+   * Key is module name, value is module configuration.
    */
   Map<String, EclipseModuleConfig> moduleConfigs = [:]
 
