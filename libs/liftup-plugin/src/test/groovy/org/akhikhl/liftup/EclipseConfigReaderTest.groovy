@@ -13,17 +13,17 @@ import spock.lang.Specification
  *
  * @author akhikhl
  */
-class ConfigReaderTest extends Specification {
+class EclipseConfigReaderTest extends Specification {
 
-  ConfigReader reader
+  EclipseConfigReader reader
 
   def setup() {
-    reader = new ConfigReader()
+    reader = new EclipseConfigReader()
   }
 
   def 'should read empty configuration'() {
   when:
-    Config config = reader.readFromResource('emptyConfig.groovy')
+    EclipseConfig config = reader.readFromResource('emptyConfig.groovy')
   then:
     config.defaultEclipseVersion == null
     config.eclipseVersionConfigs.isEmpty()
@@ -31,7 +31,7 @@ class ConfigReaderTest extends Specification {
 
   def 'should read default eclipse version'() {
   when:
-    Config config = reader.readFromResource('defaultEclipseVersionConfig.groovy')
+    EclipseConfig config = reader.readFromResource('defaultEclipseVersionConfig.groovy')
   then:
     config.defaultEclipseVersion == '4.3'
     config.eclipseVersionConfigs.isEmpty()
@@ -39,7 +39,7 @@ class ConfigReaderTest extends Specification {
 
   def 'should read eclipse versions configuration'() {
   when:
-    Config config = reader.readFromResource('eclipseVersionsConfig.groovy')
+    EclipseConfig config = reader.readFromResource('eclipseVersionsConfig.groovy')
   then:
     config.eclipseVersionConfigs.size() == 3
     config.eclipseVersionConfigs.containsKey('3.7')
@@ -52,7 +52,7 @@ class ConfigReaderTest extends Specification {
 
   def 'should read eclipse modules configuration'() {
   when:
-    Config config = reader.readFromResource('eclipseModulesConfig.groovy')
+    EclipseConfig config = reader.readFromResource('eclipseModulesConfig.groovy')
   then:
     config.eclipseVersionConfigs.size() == 3
     config.eclipseVersionConfigs['3.7'].moduleConfigs.size() == 2
@@ -68,7 +68,7 @@ class ConfigReaderTest extends Specification {
 
   def 'should read eclipse module details configuration'() {
   when:
-    Config config = reader.readFromResource('eclipseModuleDetailsConfig.groovy')
+    EclipseConfig config = reader.readFromResource('eclipseModuleDetailsConfig.groovy')
   then:
     config.eclipseVersionConfigs.size() == 1
     config.eclipseVersionConfigs['4.3'].moduleConfigs.size() == 2

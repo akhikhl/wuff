@@ -11,8 +11,10 @@ package org.akhikhl.liftup
  * Holds plugin configuration.
  * @author akhikhl
  */
-class Config {
+class EclipseConfig {
+
   String defaultEclipseVersion = null
+  
   Map<String, EclipseVersionConfig> eclipseVersionConfigs = [:]
 
   void eclipseVersion(String versionString, Closure versionDef) {

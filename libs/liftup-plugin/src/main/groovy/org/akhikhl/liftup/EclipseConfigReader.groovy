@@ -13,9 +13,9 @@ import org.codehaus.groovy.control.CompilerConfiguration
  * Reads plugin configuration from the specified groovy script.
  * @author akhikhl
  */
-class ConfigReader {
+class EclipseConfigReader {
 
-  Config readFromResource(String resourceName) {
+  EclipseConfig readFromResource(String resourceName) {
     CompilerConfiguration cc = new CompilerConfiguration()
     cc.setScriptBaseClass(DelegatingScript.class.name)
     def classLoader = this.getClass().getClassLoader()
@@ -24,7 +24,7 @@ class ConfigReader {
     classLoader.getResourceAsStream(resourceName).withReader('UTF-8') {
       script = shell.parse(it)
     }
-    Config config = new Config()
+    EclipseConfig config = new EclipseConfig()
     script.setDelegate(config)
     script.run()
     return config
