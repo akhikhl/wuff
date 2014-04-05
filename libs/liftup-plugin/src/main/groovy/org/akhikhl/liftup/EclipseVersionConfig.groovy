@@ -19,16 +19,22 @@ class EclipseVersionConfig {
    * key - module name
    * value - list of module configurations
    */
-  Map<String, List<EclipseModuleConfig>> moduleConfigs = [:]
+  Map<String, EclipseModuleConfig> moduleConfigs = [:]
 
   def methodMissing(String moduleName, args) {
     if(moduleConfigs[moduleName] == null)
-      moduleConfigs[moduleName] = []
+      moduleConfigs[moduleName] = new EclipseModuleConfig()
     args.each {
       if(it instanceof Closure)
-        moduleConfigs[moduleName].add(new EclipseModuleConfig(common: it))
-      else if (it instanceof Map)
-        moduleConfigs[moduleName].add(new EclipseModuleConfig(common: it.common, platformSpecific: it.platformSpecific, platformAndLanguageSpecific: it.platformAndLanguageSpecific))
+        moduleConfigs[moduleName].common.add(it)
+      else if (it instanceof Map) {
+        if(it.common instanceof Closure)
+          moduleConfigs[moduleName].common.add(it.common)
+        if(it.platformSpecific instanceof Closure)
+          moduleConfigs[moduleName].platformSpecific.add(it.platformSpecific)
+        if(it.platformAndLanguageSpecific instanceof Closure)
+          moduleConfigs[moduleName].platformAndLanguageSpecific.add(it.platformAndLanguageSpecific)
+      }
     }
   }
 }

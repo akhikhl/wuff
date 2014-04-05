@@ -12,8 +12,8 @@ package org.akhikhl.liftup
  * @author akhikhl
  */
 class EclipseModuleConfig {
-  def common
-  def platformSpecific
-  def platformAndLanguageSpecific
+  List<Closure> common = []
+  List<Closure> platformSpecific = []
+  List<Closure> platformAndLanguageSpecific = []
 }
 

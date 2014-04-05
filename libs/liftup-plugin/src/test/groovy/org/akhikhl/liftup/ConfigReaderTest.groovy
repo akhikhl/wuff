@@ -65,4 +65,26 @@ class ConfigReaderTest extends Specification {
     config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleE')
     config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleF')
   }
+
+  def 'should read eclipse module details configuration'() {
+  when:
+    Config config = reader.readFromResource('eclipseModuleDetailsConfig.groovy')
+  then:
+    config.eclipseVersionConfigs.size() == 1
+    config.eclipseVersionConfigs['4.3'].moduleConfigs.size() == 2
+    config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleA')
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'] instanceof EclipseModuleConfig
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].common.size() == 1
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].common[0] instanceof Closure
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].platformSpecific.size() == 0
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleA'].platformAndLanguageSpecific.size() == 0
+    config.eclipseVersionConfigs['4.3'].moduleConfigs.containsKey('moduleB')
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'] instanceof EclipseModuleConfig
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].common.size() == 1
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].common[0] instanceof Closure
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific.size() == 1
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific[0] instanceof Closure
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific.size() == 1
+    config.eclipseVersionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific[0] instanceof Closure
+  }
 }
