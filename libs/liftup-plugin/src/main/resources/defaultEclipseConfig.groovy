@@ -29,10 +29,6 @@ eclipse {
     }
 
     eclipseBundle { project ->
-      project.configurations {
-        privateLib
-        compile.extendsFrom privateLib
-      }
       project.dependencies {
         compile "${eclipseGroup}:javax.annotation:+"
         compile "${eclipseGroup}:javax.inject:+"

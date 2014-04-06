@@ -28,6 +28,10 @@ class EclipseBundlePluginTest extends Specification {
   def 'supports eclipse bundle definition'() {
   when:
     project.apply(plugin: 'java')
+    project.repositories {
+      mavenLocal()
+      mavenCentral()
+    }
     plugin.apply(project)
     project.evaluate()
   then:
@@ -35,6 +39,10 @@ class EclipseBundlePluginTest extends Specification {
     project.eclipse.defaultVersion == '4.3'
     project.configurations.findByName('privateLib')
     project.configurations.findByName('compile')
+    project.configurations.compile.files.find { it.name.startsWith('org.eclipse.swt') }
+    project.configurations.compile.files.find { it.name.startsWith("org.eclipse.swt.${PlatformConfig.current_os_suffix}.${PlatformConfig.current_arch_suffix}") }
+    project.configurations.compile.files.find { it.name.startsWith('org.eclipse.jface') }
+    project.configurations.compile.files.find { it.name.startsWith('org.eclipse.ui') }
   }
 }
 

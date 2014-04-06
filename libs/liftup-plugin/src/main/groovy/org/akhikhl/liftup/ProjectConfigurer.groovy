@@ -80,6 +80,10 @@ class ProjectConfigurer {
   }
 
   void preConfigure() {
+    project.configurations {
+      privateLib
+      compile.extendsFrom privateLib
+    }
     apply { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.preConfigure)
         closure(project)
