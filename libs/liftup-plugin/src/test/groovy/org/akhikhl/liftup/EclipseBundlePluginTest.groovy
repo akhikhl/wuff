@@ -27,10 +27,14 @@ class EclipseBundlePluginTest extends Specification {
 
   def 'supports eclipse bundle definition'() {
   when:
+    project.apply(plugin: 'java')
     plugin.apply(project)
+    project.evaluate()
   then:
     project.extensions.findByName('eclipse')
     project.eclipse.defaultVersion == '4.3'
+    project.configurations.findByName('privateLib')
+    project.configurations.findByName('compile')
   }
 }
 

@@ -7,22 +7,23 @@
  */
 package org.akhikhl.liftup
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
  *
  * @author akhikhl
  */
-abstract class PluginBase implements Plugin<Project> {
+class ProjectConfigurer {
 
   Project project
-  String eclipseVersion
+  String moduleName
   EclipseConfig defaultConfig
+  String eclipseVersion
 
-  void apply(final Project project) {
+  ProjectConfigurer(Project project, String moduleName) {
 
     this.project = project
+    this.moduleName = moduleName
     defaultConfig = new EclipseConfigReader().readFromResource('defaultEclipseConfig.groovy')
 
     project.apply plugin: 'osgi'
@@ -39,14 +40,9 @@ abstract class PluginBase implements Plugin<Project> {
     }
 
     project.eclipse.defaultVersion = eclipseVersion
-
-    configure { EclipseModuleConfig moduleConfig ->
-      for(Closure preConfigure in moduleConfig.preConfigure)
-        preConfigure(project)
-    }
   }
 
-  void configure(Closure moduleAction) {
+  private void apply(Closure closure) {
 
     def applyConfigs = { EclipseConfig eclipseConfig ->
       EclipseVersionConfig versionConfig = eclipseConfig.versionConfigs[eclipseVersion]
@@ -63,7 +59,7 @@ abstract class PluginBase implements Plugin<Project> {
               }
             }
         }
-        moduleAction(moduleConfig)
+        closure(moduleConfig)
       }
     }
 
@@ -76,6 +72,18 @@ abstract class PluginBase implements Plugin<Project> {
     }
   }
 
-  abstract String getModuleName()
+  void configure() {
+    apply { EclipseModuleConfig moduleConfig ->
+      for(Closure closure in moduleConfig.configure)
+        closure(project)
+    }
+  }
+
+  void preConfigure() {
+    apply { EclipseModuleConfig moduleConfig ->
+      for(Closure closure in moduleConfig.preConfigure)
+        closure(project)
+    }
+  }
 }
 

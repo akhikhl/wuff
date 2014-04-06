@@ -7,15 +7,21 @@
  */
 package org.akhikhl.liftup
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
 /**
  *
  * @author akhikhl
  */
-class EclipseBundlePlugin extends PluginBase {
+class EclipseBundlePlugin implements Plugin<Project> {
 
-  @Override
-  String getModuleName() {
-    'eclipseBundle'
+  void apply(final Project project) {
+    ProjectConfigurer configurer = new ProjectConfigurer(project, 'eclipseBundle')
+    configurer.preConfigure()
+    project.afterEvaluate {
+      configurer.configure()
+    }
   }
 }
 
