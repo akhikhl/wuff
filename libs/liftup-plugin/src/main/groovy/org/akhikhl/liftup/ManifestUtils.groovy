@@ -18,7 +18,7 @@ import org.gradle.api.plugins.*
  */
 class ManifestUtils {
 
-  public static java.util.jar.Manifest getManifest(Project project, File file) {
+  static java.util.jar.Manifest getManifest(Project project, File file) {
     String checksum
     file.withInputStream {
       checksum = DigestUtils.md5Hex(it)
@@ -53,7 +53,7 @@ class ManifestUtils {
     return libManifest
   }
 
-  public static String getManifestEntry(java.util.jar.Manifest manifest, String entryName) {
+  static String getManifestEntry(java.util.jar.Manifest manifest, String entryName) {
     if(manifest != null)
       for (def key in manifest.getMainAttributes().keySet()) {
         String attrName = key.toString()
@@ -63,31 +63,62 @@ class ManifestUtils {
     return null
   }
 
-  public static boolean isBundle(java.util.jar.Manifest m) {
+  static boolean isBundle(java.util.jar.Manifest m) {
     return getManifestEntry(m, 'Bundle-SymbolicName') != null || getManifestEntry(m, 'Bundle-Name') != null
   }
 
-  public static boolean isBundle(Project project, File file) {
+  static boolean isBundle(Project project, File file) {
     return isBundle(getManifest(project, file))
   }
 
-  public static boolean isFragmentBundle(Project project, File file) {
+  static boolean isFragmentBundle(Project project, File file) {
     return isFragmentBundle(getManifest(project, file))
   }
 
-  public static boolean isFragmentBundle(java.util.jar.Manifest m) {
+  static boolean isFragmentBundle(java.util.jar.Manifest m) {
     return getManifestEntry(m, 'Fragment-Host') != null
   }
 
-  public static boolean isWrapperBundle(java.util.jar.Manifest m) {
+  static boolean isWrapperBundle(java.util.jar.Manifest m) {
     return getManifestEntry(m, 'Wrapped-Library') != null
   }
 
-  public static String packagesToString(Map packages) {
+  static String mergePackageList(String baseValue, String mergeValue) {
+    Map packages
+    if(baseValue) {
+      packages = ManifestUtils.parsePackages(baseValue)
+      if(mergeValue)
+        ManifestUtils.parsePackages(mergeValue).each {
+          if(it.key.startsWith('!'))
+            packages.remove(it.key.substring(1))
+          else
+            packages[it.key] = it.value
+        }
+    }
+    else if(mergeValue)
+      packages = ManifestUtils.parsePackages(mergeValue).findAll { !it.key.startsWith('!') }
+    else
+      packages = [:]
+    /*
+     * Here we fix the problem with eclipse 4.X bundles:
+     * if 'org.eclipse.xxx' are imported via 'Import-Package',
+     * the application throws ClassNotFoundException.
+     */
+    packages = packages.findAll { !it.key.startsWith('org.eclipse') }
+    return ManifestUtils.packagesToString(packages)
+  }
+
+  static String mergeRequireBundle(String baseValue, String mergeValue) {
+    if(baseValue && mergeValue)
+      return ((baseValue.split(',') as Set) + (mergeValue.split(',') as Set)).join(',')
+    return mergeValue ?: baseValue
+  }
+
+  static String packagesToString(Map packages) {
     return packages.collect({ it.key + it.value }).join(',')
   }
 
-  public static Map parsePackages(packagesString) {
+  static Map parsePackages(packagesString) {
     def packages = [:]
     if(packagesString)
       packagesString.eachMatch '(\\!?[\\w\\-\\.]+)(((;[\\w\\-\\.]+((:?)=((("[^"]*")|([\\w\\-\\.]+))))?)*),?)', {

@@ -5,6 +5,7 @@ buildscript {
   }
 
   dependencies {
+    classpath 'org.akhikhl.liftup:liftup-plugin:0.0.1'
   }
 }
 

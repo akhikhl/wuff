@@ -9,11 +9,16 @@ package org.akhikhl.liftup
 
 import org.gradle.api.Project
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 /**
  *
  * @author akhikhl
  */
 class ProjectConfigurer {
+
+  private static final Logger log = LoggerFactory.getLogger(ProjectConfigurer)
 
   Project project
   String moduleName
@@ -58,6 +63,8 @@ class ProjectConfigurer {
   }
 
   void configure() {
+    if(project.version == 'unspecified')
+      project.version = '1.0.0.0'
     apply { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.configure)
         closure(project)
@@ -85,7 +92,7 @@ class ProjectConfigurer {
       privateLib
       compile.extendsFrom privateLib
     }
-    
+
     apply { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.preConfigure)
         closure(project)

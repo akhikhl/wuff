@@ -20,9 +20,9 @@ class TaskUtils {
 
   static void defineEclipseBundleTasks(Project project) {
 
-    File manifestFile = new File("${project.buildDir}/tmp/manifests/extendedManifest/MANIFEST.MF")
+    File manifestFile = new File("${project.buildDir}/bundleManifest/MANIFEST.MF")
 
-    project.task('extendManifest') {
+    project.task('createBundleManifest') {
       dependsOn project.tasks.classes
       inputs.files { project.configurations.runtime }
       outputs.files manifestFile
@@ -101,21 +101,21 @@ class TaskUtils {
         manifestFile.parentFile.mkdirs()
         manifestFile.withWriter { m.writeTo it }
       } // doLast
-    } // extendManifest task
+    } // createBundleManifest task
 
     project.jar {
-      dependsOn project.tasks.extendManifest
+      dependsOn project.tasks.createBundleManifest
       inputs.files project.files(manifestFile)
       from { project.configurations.privateLib }
       manifest {
         from(manifestFile.absolutePath) {
           eachEntry { details ->
             def newValue
-            if(details.key == 'Require-Bundle') {
-              newValue = mergeRequireBundle(details.baseValue, details.mergeValue)
-            } else if(details.key == 'Import-Package' || details.key == 'Export-Package') {
-              newValue = mergePackageList(details.baseValue, details.mergeValue)
-            } else
+            if(details.key == 'Require-Bundle')
+              newValue = ManifestUtils.mergeRequireBundle(details.baseValue, details.mergeValue)
+            else if(details.key == 'Import-Package' || details.key == 'Export-Package')
+              newValue = ManifestUtils.mergePackageList(details.baseValue, details.mergeValue)
+            else
               newValue = details.mergeValue ?: details.baseValue
             if(newValue)
               details.value = newValue
@@ -127,35 +127,4 @@ class TaskUtils {
     } // jar task
 
   } // defineEclipseBundleTasks
-
-  private static String mergePackageList(String baseValue, String mergeValue) {
-    Map packages
-    if(baseValue) {
-      packages = ManifestUtils.parsePackages(baseValue)
-      if(mergeValue)
-        ManifestUtils.parsePackages(mergeValue).each {
-          if(it.key.startsWith('!'))
-            packages.remove(it.key.substring(1))
-          else
-            packages[it.key] = it.value
-        }
-    }
-    else if(mergeValue)
-      packages = ManifestUtils.parsePackages(mergeValue).findAll { !it.key.startsWith('!') }
-    else
-      packages = [:]
-    /*
-     * Here we fix the problem with eclipse 4.X bundles:
-     * if 'org.eclipse.xxx' are imported via 'Import-Package',
-     * the application throws ClassNotFoundException.
-     */
-    packages = packages.findAll { !it.key.startsWith('org.eclipse') }
-    return ManifestUtils.packagesToString(packages)
-  }
-
-  private static String mergeRequireBundle(String baseValue, String mergeValue) {
-    if(baseValue && mergeValue)
-      return ((baseValue.split(',') as Set) + (mergeValue.split(',') as Set)).join(',')
-    return mergeValue ?: baseValue
-  }
 }
