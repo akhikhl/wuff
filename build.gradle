@@ -9,7 +9,7 @@ buildscript {
 }
 
 ext {
-  group = 'org.akhikhl.liftup'
+  group = 'org.akhikhl.wuff'
   version = '0.0.1'
   description = 'Gradle plugin for assembling eclipse applications'
   groovy_version = '1.8.6'
@@ -105,18 +105,18 @@ subprojects {
             name project.name
             packaging 'jar'
             description rootProject.ext.description
-            url 'https://github.com/akhikhl/liftup'
+            url 'https://github.com/akhikhl/wuff'
 
             scm {
-              url 'scm:git@github.com:akhikhl/liftup.git'
-              connection 'scm:git@github.com:akhikhl/liftup.git'
-              developerConnection 'scm:git@github.com:akhikhl/liftup.git'
+              url 'scm:git@github.com:akhikhl/wuff.git'
+              connection 'scm:git@github.com:akhikhl/wuff.git'
+              developerConnection 'scm:git@github.com:akhikhl/wuff.git'
             }
 
             licenses {
               license {
                 name 'The MIT License'
-                url 'https://raw.github.com/akhikhl/liftup/master/license.txt'
+                url 'https://raw.github.com/akhikhl/wuff/master/license.txt'
                 distribution 'repo'
               }
             }
@@ -157,7 +157,7 @@ subprojects {
     publications = ['mavenAll'] // When uploading Maven-based publication files
     pkg {
       repo = 'maven'
-      name = 'liftup'
+      name = 'wuff'
       desc = rootProj.ext.description
       licenses = ['MIT']
       labels = ['gradle', 'plugin', 'eclipse', 'rcp', 'osgi']

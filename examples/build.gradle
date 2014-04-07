@@ -5,7 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org.akhikhl.liftup:liftup-plugin:0.0.1'
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.1'
   }
 }
 
