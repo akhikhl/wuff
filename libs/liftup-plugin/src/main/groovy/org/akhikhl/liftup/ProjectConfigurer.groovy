@@ -25,21 +25,6 @@ class ProjectConfigurer {
     this.project = project
     this.moduleName = moduleName
     defaultConfig = new EclipseConfigReader().readFromResource('defaultEclipseConfig.groovy')
-
-    project.apply plugin: 'osgi'
-    project.extensions.create('eclipse', EclipseConfig)
-
-    if(project.hasProperty('eclipseVersion'))
-      // project properties are inherently hierarchical, so parent's eclipseVersion will be inherited
-      eclipseVersion = project.eclipseVersion
-    else {
-      Project p = ProjectUtils.findUpAncestorChain(project, { it.extensions.findByName('eclipse')?.defaultVersion != null })
-      eclipseVersion = p != null ? p.eclipse.defaultVersion : defaultConfig.defaultVersion
-      if(eclipseVersion == null)
-        eclipseVersion = defaultConfig.defaultVersion
-    }
-
-    project.eclipse.defaultVersion = eclipseVersion
   }
 
   private void apply(Closure closure) {
@@ -80,10 +65,27 @@ class ProjectConfigurer {
   }
 
   void preConfigure() {
+
+    project.apply plugin: 'osgi'
+    project.extensions.create('eclipse', EclipseConfig)
+
+    if(project.hasProperty('eclipseVersion'))
+      // project properties are inherently hierarchical, so parent's eclipseVersion will be inherited
+      eclipseVersion = project.eclipseVersion
+    else {
+      Project p = ProjectUtils.findUpAncestorChain(project, { it.extensions.findByName('eclipse')?.defaultVersion != null })
+      eclipseVersion = p != null ? p.eclipse.defaultVersion : defaultConfig.defaultVersion
+      if(eclipseVersion == null)
+        eclipseVersion = defaultConfig.defaultVersion
+    }
+
+    project.eclipse.defaultVersion = eclipseVersion
+
     project.configurations {
       privateLib
       compile.extendsFrom privateLib
     }
+    
     apply { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.preConfigure)
         closure(project)
