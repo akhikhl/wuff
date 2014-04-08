@@ -21,7 +21,7 @@ class SwtAppPlugin implements Plugin<Project> {
   void apply(final Project project) {
 
     def configurer = new ProjectConfigurer(project, 'swtapp')
-    configurer.preConfigure()
+    configurer.configure()
 
     project.apply plugin: 'onejar'
     project.extensions.create('swtapp', SwtAppPluginExtension)
@@ -30,24 +30,7 @@ class SwtAppPlugin implements Plugin<Project> {
     // before onejar starts to generate products.
     project.onejar.beforeProductGeneration {
 
-      configurer.configure()
-
-      PlatformConfig.supported_oses.each { platform ->
-        PlatformConfig.supported_archs.each { arch ->
-
-          configurer.apply { EclipseModuleConfig moduleConfig ->
-            for(Closure closure in moduleConfig.platformSpecific)
-              closure(project, platform, arch)
-          }
-
-          PlatformConfig.supported_languages.each { language ->
-            configurer.apply { EclipseModuleConfig moduleConfig ->
-              for(Closure closure in moduleConfig.platformAndLanguageSpecific)
-                closure(project, platform, arch, language)
-            }
-          }
-        }
-      }
+      configurer.postConfigure()
 
       def products = project.swtapp.products ?: [[]]
 
@@ -56,9 +39,9 @@ class SwtAppPlugin implements Plugin<Project> {
         def arch = product.arch ?: PlatformConfig.current_arch
         def language = product.language ?: ''
         if(language)
-          project.onejar.product name: "swt_${platform}_${arch}_${language}", launcher: launchers[platform], suffix: "${platform}-${arch}-${language}", platform: platform, arch: arch, language: language
+          project.onejar.product name: "swtapp_${platform}_${arch}_${language}", launcher: launchers[platform], suffix: "${platform}-${arch}-${language}", platform: platform, arch: arch, language: language
         else
-          project.onejar.product name: "swt_${platform}_${arch}", launcher: launchers[platform], suffix: "${platform}-${arch}", platform: platform, arch: arch
+          project.onejar.product name: "swtapp_${platform}_${arch}", launcher: launchers[platform], suffix: "${platform}-${arch}", platform: platform, arch: arch
       }
     }
   }

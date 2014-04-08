@@ -25,16 +25,17 @@ class EclipseVersionConfig {
   Map<String, EclipseModuleConfig> moduleConfigs = [:]
 
   def methodMissing(String moduleName, args) {
-    if(moduleConfigs[moduleName] == null)
-      moduleConfigs[moduleName] = new EclipseModuleConfig()
+    EclipseModuleConfig moduleConfig = moduleConfigs[moduleName]
+    if(moduleConfig == null)
+      moduleConfig = moduleConfigs[moduleName] = new EclipseModuleConfig()
     args.each { arg ->
-      if(arg instanceof Closure)
-        moduleConfigs[moduleName].configure.add(arg)
-      else if (arg instanceof Map)
-        ['preConfigure', 'configure', 'platformSpecific', 'platformAndLanguageSpecific'].each { key ->
-          if(arg[key] instanceof Closure)
-            moduleConfigs[moduleName][key].add(arg[key])
-        }
+      if(!(arg instanceof Closure))
+        throw new RuntimeException("Argument to ${moduleName} is expected to be a closure")
+      if(arg instanceof Closure) {
+        arg.resolveStrategy = Closure.DELEGATE_FIRST
+        arg.delegate = moduleConfig
+        arg()
+      }
     }
   }
 }

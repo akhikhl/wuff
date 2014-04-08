@@ -63,15 +63,6 @@ class ProjectConfigurer {
   }
 
   void configure() {
-    if(project.version == 'unspecified')
-      project.version = '1.0.0.0'
-    apply { EclipseModuleConfig moduleConfig ->
-      for(Closure closure in moduleConfig.configure)
-        closure(project)
-    }
-  }
-
-  void preConfigure() {
 
     project.apply plugin: 'osgi'
     project.extensions.create('eclipse', EclipseConfig)
@@ -94,7 +85,16 @@ class ProjectConfigurer {
     }
 
     apply { EclipseModuleConfig moduleConfig ->
-      for(Closure closure in moduleConfig.preConfigure)
+      for(Closure closure in moduleConfig.configure)
+        closure(project)
+    }
+  }
+
+  void postConfigure() {
+    if(project.version == 'unspecified')
+      project.version = '1.0.0.0'
+    apply { EclipseModuleConfig moduleConfig ->
+      for(Closure closure in moduleConfig.postConfigure)
         closure(project)
     }
   }

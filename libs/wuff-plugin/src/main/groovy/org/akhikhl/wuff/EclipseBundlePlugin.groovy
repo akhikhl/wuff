@@ -18,9 +18,9 @@ class EclipseBundlePlugin implements Plugin<Project> {
 
   void apply(final Project project) {
     ProjectConfigurer configurer = new ProjectConfigurer(project, 'eclipseBundle')
-    configurer.preConfigure()
+    configurer.configure()
     project.afterEvaluate {
-      configurer.configure()
+      configurer.postConfigure()
       TaskUtils.defineEclipseBundleTasks(project)
     }
   }

@@ -12,9 +12,16 @@ package org.akhikhl.wuff
  * @author akhikhl
  */
 class EclipseModuleConfig {
-  List<Closure> preConfigure = []
+
   List<Closure> configure = []
-  List<Closure> platformSpecific = []
-  List<Closure> platformAndLanguageSpecific = []
+  List<Closure> postConfigure = []
+
+  void configure(Closure closure) {
+    this.configure.add(closure)
+  }
+
+  void postConfigure(Closure closure) {
+    this.postConfigure.add(closure)
+  }
 }
 
