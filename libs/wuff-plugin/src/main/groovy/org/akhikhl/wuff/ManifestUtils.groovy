@@ -32,18 +32,8 @@ class ManifestUtils {
     return manifest
   }
 
-  static String getManifestEntry(Manifest manifest, String entryName) {
-    if(manifest != null)
-      for (def key in manifest.getMainAttributes().keySet()) {
-        String attrName = key.toString()
-        if(attrName == entryName)
-          return manifest.getMainAttributes().getValue(attrName)
-      }
-    return null
-  }
-
-  static boolean isBundle(Manifest m) {
-    return getManifestEntry(m, 'Bundle-SymbolicName') != null || getManifestEntry(m, 'Bundle-Name') != null
+  static boolean isBundle(Manifest manifest) {
+    return manifest.mainAttributes.getValue('Bundle-SymbolicName') != null || manifest.mainAttributes.getValue('Bundle-Name') != null
   }
 
   static boolean isBundle(Project project, File file) {
@@ -54,12 +44,12 @@ class ManifestUtils {
     return isFragmentBundle(getManifest(project, file))
   }
 
-  static boolean isFragmentBundle(Manifest m) {
-    return getManifestEntry(m, 'Fragment-Host') != null
+  static boolean isFragmentBundle(Manifest manifest) {
+    return manifest.mainAttributes.getValue('Fragment-Host') != null
   }
 
-  static boolean isWrapperBundle(Manifest m) {
-    return getManifestEntry(m, 'Wrapped-Library') != null
+  static boolean isWrapperBundle(Manifest manifest) {
+    return manifest.mainAttributes.getValue('Wrapped-Library') != null
   }
 
   private static Manifest loadManifest(Project project, File file) {
