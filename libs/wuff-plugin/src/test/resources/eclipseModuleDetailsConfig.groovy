@@ -6,11 +6,12 @@ eclipse {
     eclipseGroup = 'eclipse-kepler'
 
     moduleA {
+      configure {}
     }
 
-    moduleB configure: {
-    }, platformSpecific: {
-    }, platformAndLanguageSpecific: {
+    moduleB {
+      configure {}
+      postConfigure {}
     }
   }
 }

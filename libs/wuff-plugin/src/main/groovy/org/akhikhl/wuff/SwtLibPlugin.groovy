@@ -18,9 +18,9 @@ class SwtLibPlugin implements Plugin<Project> {
 
   void apply(final Project project) {
     ProjectConfigurer configurer = new ProjectConfigurer(project, 'swtlib')
-    configurer.preConfigure()
+    configurer.configure()
     project.afterEvaluate {
-      configurer.configure()
+      configurer.postConfigure()
     }
   }
 }

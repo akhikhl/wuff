@@ -76,15 +76,12 @@ class EclipseConfigReaderTest extends Specification {
     config.versionConfigs['4.3'].moduleConfigs['moduleA'] instanceof EclipseModuleConfig
     config.versionConfigs['4.3'].moduleConfigs['moduleA'].configure.size() == 1
     config.versionConfigs['4.3'].moduleConfigs['moduleA'].configure[0] instanceof Closure
-    config.versionConfigs['4.3'].moduleConfigs['moduleA'].platformSpecific.size() == 0
-    config.versionConfigs['4.3'].moduleConfigs['moduleA'].platformAndLanguageSpecific.size() == 0
+    config.versionConfigs['4.3'].moduleConfigs['moduleA'].postConfigure.size() == 0
     config.versionConfigs['4.3'].moduleConfigs.containsKey('moduleB')
     config.versionConfigs['4.3'].moduleConfigs['moduleB'] instanceof EclipseModuleConfig
     config.versionConfigs['4.3'].moduleConfigs['moduleB'].configure.size() == 1
     config.versionConfigs['4.3'].moduleConfigs['moduleB'].configure[0] instanceof Closure
-    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific.size() == 1
-    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformSpecific[0] instanceof Closure
-    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific.size() == 1
-    config.versionConfigs['4.3'].moduleConfigs['moduleB'].platformAndLanguageSpecific[0] instanceof Closure
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].postConfigure.size() == 1
+    config.versionConfigs['4.3'].moduleConfigs['moduleB'].postConfigure[0] instanceof Closure
   }
 }
