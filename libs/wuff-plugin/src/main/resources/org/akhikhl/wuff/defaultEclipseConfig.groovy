@@ -103,7 +103,7 @@ eclipse {
             }
           }
         }
-      }
+      } // configure
 
       postConfigure { project ->
 

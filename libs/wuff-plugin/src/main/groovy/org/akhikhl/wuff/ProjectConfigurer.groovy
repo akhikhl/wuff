@@ -18,21 +18,21 @@ import org.slf4j.LoggerFactory
  */
 class ProjectConfigurer {
 
-  private static final Logger log = LoggerFactory.getLogger(ProjectConfigurer)
+  protected static final Logger log = LoggerFactory.getLogger(ProjectConfigurer)
 
-  Project project
-  String moduleName
-  EclipseConfig defaultConfig
-  String eclipseVersion
+  protected final Project project
+  protected final String moduleName
+  protected final EclipseConfig defaultConfig
+  protected String eclipseVersion
 
   ProjectConfigurer(Project project, String moduleName) {
 
     this.project = project
     this.moduleName = moduleName
-    defaultConfig = new EclipseConfigReader().readFromResource('org/akhikhl/wuff/defaultEclipseConfig.groovy')
+    this.defaultConfig = new EclipseConfigReader().readFromResource('org/akhikhl/wuff/defaultEclipseConfig.groovy')
   }
 
-  private void apply(Closure closure) {
+  protected final void apply(Closure closure) {
 
     def applyConfigs = { EclipseConfig eclipseConfig ->
       EclipseVersionConfig versionConfig = eclipseConfig.versionConfigs[eclipseVersion]

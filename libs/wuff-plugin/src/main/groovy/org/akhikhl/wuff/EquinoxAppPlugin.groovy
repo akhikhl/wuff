@@ -24,211 +24,23 @@ class EquinoxAppPlugin implements Plugin<Project> {
   private static final String osgiFrameworkPluginName = 'org.eclipse.osgi'
   private static final String equinoxLauncherPluginName = 'org.eclipse.equinox.launcher'
 
-  private static String getEclipseApplicationId(Project project) {
-    String result
-    project.sourceSets.main.resources.srcDirs.each { File srcDir ->
-      File pluginConfigFile = new File(srcDir, 'plugin.xml')
-      if(pluginConfigFile.exists()) {
-        def pluginConfig = new XmlParser().parse(pluginConfigFile)
-        result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
-      }
-    }
-    if(result)
-      result = "${project.name}.$result"
-    return result
-  }
-
-  private static String getEclipseProductId(Project project) {
-    String result
-    project.sourceSets.main.resources.srcDirs.each { File srcDir ->
-      File pluginConfigFile = new File(srcDir, 'plugin.xml')
-      if(pluginConfigFile.exists()) {
-        def pluginConfig = new XmlParser().parse(pluginConfigFile)
-        result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
-      }
-    }
-    if(result)
-      result = "${project.name}.$result"
-    return result
-  }
-
-  private static String getPluginName(String fileName) {
-    return fileName.replaceAll(eclipsePluginMask, '$1')
-  }
-
   void apply(final Project project) {
 
     def configurer = new ProjectConfigurer(project, 'equinoxApp')
     configurer.configure()
 
-    project.extensions.create('run', RunExtension)
-    project.extensions.create('equinox', EquinoxAppPluginExtension)
-
-    PlatformConfig.supported_oses.each { platform ->
-      PlatformConfig.supported_archs.each { arch ->
-        String configName = "product_equinox_${platform}_${arch}"
-        project.configurations.create configName
-        addEquinoxDependencies project, configName, platform, arch
-      }
-    }
-
-    project.task 'run', type: JavaExec
-    project.task 'debug', type: JavaExec
-
     project.afterEvaluate {
 
-      TaskUtils.defineEclipseBundleTasks project
+      configurer.postConfigure()
+
+      TaskUtils.defineTask_createBundleManifest(project)
 
       project.equinox.beforeProductGeneration.each { obj ->
         if(obj instanceof Closure)
           obj()
       }
 
-      def wrappedLibsDir = new File("${project.buildDir}/wrappedLibs")
-
-      project.task('wrapLibs') {
-        inputs.files project.configurations.runtime
-        outputs.dir wrappedLibsDir
-        doLast {
-          wrappedLibsDir.mkdirs()
-          inputs.files.each { lib ->
-            def libManifest = ManifestUtils.getManifest(project, lib)
-            if(ManifestUtils.isBundle(libManifest))
-              return
-            String baseLibName = FilenameUtils.getBaseName(lib.name)
-            def bundleName
-            def bundleVersion = ManifestUtils.getManifestEntry(libManifest, 'Implementation-Version')
-            if(bundleVersion) {
-              def match = baseLibName =~ '(.+)-' + bundleVersion.replaceAll(/\./, /\\./)
-              if(match)
-                bundleName = match[0][1]
-            }
-            if(!bundleName) {
-              bundleVersion = ManifestUtils.getManifestEntry(libManifest, 'Specification-Version')
-              if(bundleVersion) {
-                def match = baseLibName =~ '(.+)-' + bundleVersion.replaceAll(/\./, /\\./)
-                if(match)
-                  bundleName = match[0][1]
-              }
-            }
-            if(!bundleName) {
-              def match = baseLibName =~ /(.+)-([\d+\.]*\d+[a-zA-Z_-]*)/
-              if(match) {
-                bundleName = match[0][1]
-                bundleVersion = match[0][2]
-              }
-            }
-            if(bundleVersion) {
-              // check for too long version numbers, replace to valid bundle version if needed
-              def match = bundleVersion =~ /(\d+\.)(\d+\.)(\d+\.)(([\w-]+\.)+[\w-]+)/
-              if(match)
-                bundleVersion = match[0][1] + match[0][2] + match[0][3] + match[0][4].replaceAll(/\./, '-')
-            }
-            String fragmentHost
-            if(bundleVersion) {
-              def match = bundleVersion =~ /([\d+\.]*\d+)([a-zA-Z_-]+)/
-              if(match) {
-                def suffix = match[0][2]
-                if(suffix.startsWith('-'))
-                  suffix = suffix.substring(1)
-                if(suffix) {
-                  if(suffix != 'patch')
-                    fragmentHost = bundleName
-                  bundleName += '-' + suffix
-                }
-                bundleVersion = match[0][1]
-              }
-            }
-            bundleName = bundleName ?: baseLibName
-            bundleVersion = bundleVersion ?: '1.0'
-            String bundlePackageName = "${bundleName}-bundle-${bundleVersion}"
-            File manifestFile = new File("${wrappedLibsDir}/${bundlePackageName}-MANIFEST.MF")
-            def m = project.osgiManifest {
-              setName bundleName
-              setSymbolicName bundleName
-              setVersion bundleVersion
-              setClassesDir lib
-              setClasspath project.files(lib)
-              instruction 'Bundle-Classpath', lib.name
-              instruction 'Wrapped-Library', lib.name
-              if(fragmentHost)
-                instruction 'Fragment-Host', fragmentHost
-            }
-            m = m.effectiveManifest
-            def packages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
-            // workarounds for dynamically referenced classes
-            if(bundleName.startsWith('ant-optional'))
-              packages.remove 'COM.ibm.netrexx.process'
-            else if(bundleName.startsWith('commons-logging'))
-              packages = packages.findAll { !it.key.startsWith('org.apache.log') && !it.key.startsWith('org.apache.avalon.framework.logger') }
-            else if(bundleName.startsWith('avalon-framework'))
-              packages = packages.findAll { !it.key.startsWith('org.apache.log') && !it.key.startsWith('org.apache.avalon.framework.parameters') }
-            else if(bundleName == 'batik-js')
-              packages.remove 'org.apache.xmlbeans'
-            else if(bundleName == 'batik-script')
-              packages.remove 'org.mozilla.javascript'
-            else if(bundleName == 'fop') {
-              packages.remove 'javax.media.jai'
-              packages = packages.findAll { !it.key.startsWith('org.apache.tools.ant') }
-            }
-            else if(bundleName.startsWith('jaxb-impl')) {
-              packages = packages.findAll { !it.key.startsWith('com.sun.xml.fastinfoset') }
-              packages.remove 'org.jvnet.fastinfoset'
-              packages.remove 'org.jvnet.staxex'
-            }
-            else if(bundleName == 'jdom' || bundleName == 'jdom-b8') {
-              packages.remove 'oracle.xml.parser'
-              packages.remove 'oracle.xml.parser.v2'
-              packages.remove 'org.apache.xerces.dom'
-              packages.remove 'org.apache.xerces.parsers'
-              packages.remove 'org.jaxen.jdom'
-              packages.remove 'org.jaxen'
-            }
-            else if(bundleName == 'jdom2') {
-              packages.remove 'oracle.xml.parser'
-              packages.remove 'oracle.xml.parser.v2'
-              packages.remove 'org.apache.xerces.dom'
-              packages.remove 'org.apache.xerces.parsers'
-            }
-            else if(bundleName.startsWith('ojdbc')) {
-              packages.remove 'javax.resource'
-              packages.remove 'javax.resource.spi'
-              packages.remove 'javax.resource.spi.endpoint'
-              packages.remove 'javax.resource.spi.security'
-              packages.remove 'oracle.i18n.text.converter'
-              packages.remove 'oracle.ons'
-              packages.remove 'oracle.security.pki'
-            }
-            else if(bundleName.startsWith('saxon'))
-              packages.remove 'com.saxonica.validate'
-            else if(bundleName.startsWith('svnkit')) {
-              packages = packages.findAll { !it.key.startsWith('org.tmatesoft.sqljet') }
-              packages.remove 'org.tigris.subversion.javahl'
-            }
-            else if(bundleName == 'xalan')
-              packages.remove 'sun.io'
-            else if(bundleName == 'xmlgraphics-commons')
-              packages = packages.findAll { !it.key.startsWith('com.sun.image.codec') }
-            else if(bundleName == 'jaxen') {
-              packages.remove 'nu.xom'
-              packages = packages.findAll { !it.key.startsWith('org.jdom') && !it.key.startsWith('org.dom4j') }
-            } else if(bundleName == 'xercesImpl')
-              packages.remove 'sun.io'
-            else if(bundleName == 'commons-jxpath')
-              packages.remove 'ant-optional'
-            m.attributes.remove 'Import-Package'
-            if(packages)
-              m.attributes(['Import-Package': ManifestUtils.packagesToString(packages)])
-
-            m.attributes.remove 'Class-Path'
-
-            manifestFile.withWriter { m.writeTo it }
-
-            ant.jar(destFile: "${wrappedLibsDir}/${bundlePackageName}.jar", manifest: manifestFile) { fileset(file: lib) }
-            manifestFile.delete()
-          }
-        }
-      } // task wrapLibs
+      defineTask_wrapLibs(project)
 
       File equinoxLauncherFile = project.configurations.runtime.find({ getPluginName(it.name) == equinoxLauncherPluginName })
       File frameworkFile = project.configurations.runtime.find({ getPluginName(it.name) == osgiFrameworkPluginName })
@@ -316,7 +128,7 @@ class EquinoxAppPlugin implements Plugin<Project> {
             rename eclipsePluginMask, '$1_$2'
           }
         }
-      }
+      } // task prepareRunConfig
 
       List programArgs = [
         '-configuration',
@@ -607,4 +419,185 @@ class EquinoxAppPlugin implements Plugin<Project> {
       } // each product
     } // project.afterEvaluate
   } // apply
+
+  private static String getEclipseApplicationId(Project project) {
+    String result
+    project.sourceSets.main.resources.srcDirs.each { File srcDir ->
+      File pluginConfigFile = new File(srcDir, 'plugin.xml')
+      if(pluginConfigFile.exists()) {
+        def pluginConfig = new XmlParser().parse(pluginConfigFile)
+        result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
+      }
+    }
+    if(result)
+      result = "${project.name}.$result"
+    return result
+  }
+
+  private static String getEclipseProductId(Project project) {
+    String result
+    project.sourceSets.main.resources.srcDirs.each { File srcDir ->
+      File pluginConfigFile = new File(srcDir, 'plugin.xml')
+      if(pluginConfigFile.exists()) {
+        def pluginConfig = new XmlParser().parse(pluginConfigFile)
+        result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
+      }
+    }
+    if(result)
+      result = "${project.name}.$result"
+    return result
+  }
+
+  private static String getPluginName(String fileName) {
+    return fileName.replaceAll(eclipsePluginMask, '$1')
+  }
+
+  private static void defineTask_wrapLibs(Project project) {
+
+    File wrappedLibsDir = ProjectUtils.getWrappedLibsDir(project)
+
+    project.task('wrapLibs') {
+      inputs.files project.configurations.runtime
+      outputs.dir wrappedLibsDir
+      doLast {
+        wrappedLibsDir.mkdirs()
+        inputs.files.each { lib ->
+          def libManifest = ManifestUtils.getManifest(project, lib)
+          if(ManifestUtils.isBundle(libManifest))
+            return
+          String baseLibName = FilenameUtils.getBaseName(lib.name)
+          def bundleName
+          def bundleVersion = ManifestUtils.getManifestEntry(libManifest, 'Implementation-Version')
+          if(bundleVersion) {
+            def match = baseLibName =~ '(.+)-' + bundleVersion.replaceAll(/\./, /\\./)
+            if(match)
+              bundleName = match[0][1]
+          }
+          if(!bundleName) {
+            bundleVersion = ManifestUtils.getManifestEntry(libManifest, 'Specification-Version')
+            if(bundleVersion) {
+              def match = baseLibName =~ '(.+)-' + bundleVersion.replaceAll(/\./, /\\./)
+              if(match)
+                bundleName = match[0][1]
+            }
+          }
+          if(!bundleName) {
+            def match = baseLibName =~ /(.+)-([\d+\.]*\d+[a-zA-Z_-]*)/
+            if(match) {
+              bundleName = match[0][1]
+              bundleVersion = match[0][2]
+            }
+          }
+          if(bundleVersion) {
+            // check for too long version numbers, replace to valid bundle version if needed
+            def match = bundleVersion =~ /(\d+\.)(\d+\.)(\d+\.)(([\w-]+\.)+[\w-]+)/
+            if(match)
+              bundleVersion = match[0][1] + match[0][2] + match[0][3] + match[0][4].replaceAll(/\./, '-')
+          }
+          String fragmentHost
+          if(bundleVersion) {
+            def match = bundleVersion =~ /([\d+\.]*\d+)([a-zA-Z_-]+)/
+            if(match) {
+              def suffix = match[0][2]
+              if(suffix.startsWith('-'))
+                suffix = suffix.substring(1)
+              if(suffix) {
+                if(suffix != 'patch')
+                  fragmentHost = bundleName
+                bundleName += '-' + suffix
+              }
+              bundleVersion = match[0][1]
+            }
+          }
+          bundleName = bundleName ?: baseLibName
+          bundleVersion = bundleVersion ?: '1.0'
+          String bundlePackageName = "${bundleName}-bundle-${bundleVersion}"
+          File manifestFile = new File("${wrappedLibsDir}/${bundlePackageName}-MANIFEST.MF")
+          def m = project.osgiManifest {
+            setName bundleName
+            setSymbolicName bundleName
+            setVersion bundleVersion
+            setClassesDir lib
+            setClasspath project.files(lib)
+            instruction 'Bundle-Classpath', lib.name
+            instruction 'Wrapped-Library', lib.name
+            if(fragmentHost)
+              instruction 'Fragment-Host', fragmentHost
+          }
+          m = m.effectiveManifest
+          def packages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
+          // workarounds for dynamically referenced classes
+          if(bundleName.startsWith('ant-optional'))
+            packages.remove 'COM.ibm.netrexx.process'
+          else if(bundleName.startsWith('commons-logging'))
+            packages = packages.findAll { !it.key.startsWith('org.apache.log') && !it.key.startsWith('org.apache.avalon.framework.logger') }
+          else if(bundleName.startsWith('avalon-framework'))
+            packages = packages.findAll { !it.key.startsWith('org.apache.log') && !it.key.startsWith('org.apache.avalon.framework.parameters') }
+          else if(bundleName == 'batik-js')
+            packages.remove 'org.apache.xmlbeans'
+          else if(bundleName == 'batik-script')
+            packages.remove 'org.mozilla.javascript'
+          else if(bundleName == 'fop') {
+            packages.remove 'javax.media.jai'
+            packages = packages.findAll { !it.key.startsWith('org.apache.tools.ant') }
+          }
+          else if(bundleName.startsWith('jaxb-impl')) {
+            packages = packages.findAll { !it.key.startsWith('com.sun.xml.fastinfoset') }
+            packages.remove 'org.jvnet.fastinfoset'
+            packages.remove 'org.jvnet.staxex'
+          }
+          else if(bundleName == 'jdom' || bundleName == 'jdom-b8') {
+            packages.remove 'oracle.xml.parser'
+            packages.remove 'oracle.xml.parser.v2'
+            packages.remove 'org.apache.xerces.dom'
+            packages.remove 'org.apache.xerces.parsers'
+            packages.remove 'org.jaxen.jdom'
+            packages.remove 'org.jaxen'
+          }
+          else if(bundleName == 'jdom2') {
+            packages.remove 'oracle.xml.parser'
+            packages.remove 'oracle.xml.parser.v2'
+            packages.remove 'org.apache.xerces.dom'
+            packages.remove 'org.apache.xerces.parsers'
+          }
+          else if(bundleName.startsWith('ojdbc')) {
+            packages.remove 'javax.resource'
+            packages.remove 'javax.resource.spi'
+            packages.remove 'javax.resource.spi.endpoint'
+            packages.remove 'javax.resource.spi.security'
+            packages.remove 'oracle.i18n.text.converter'
+            packages.remove 'oracle.ons'
+            packages.remove 'oracle.security.pki'
+          }
+          else if(bundleName.startsWith('saxon'))
+            packages.remove 'com.saxonica.validate'
+          else if(bundleName.startsWith('svnkit')) {
+            packages = packages.findAll { !it.key.startsWith('org.tmatesoft.sqljet') }
+            packages.remove 'org.tigris.subversion.javahl'
+          }
+          else if(bundleName == 'xalan')
+            packages.remove 'sun.io'
+          else if(bundleName == 'xmlgraphics-commons')
+            packages = packages.findAll { !it.key.startsWith('com.sun.image.codec') }
+          else if(bundleName == 'jaxen') {
+            packages.remove 'nu.xom'
+            packages = packages.findAll { !it.key.startsWith('org.jdom') && !it.key.startsWith('org.dom4j') }
+          } else if(bundleName == 'xercesImpl')
+            packages.remove 'sun.io'
+          else if(bundleName == 'commons-jxpath')
+            packages.remove 'ant-optional'
+          m.attributes.remove 'Import-Package'
+          if(packages)
+            m.attributes(['Import-Package': ManifestUtils.packagesToString(packages)])
+
+          m.attributes.remove 'Class-Path'
+
+          manifestFile.withWriter { m.writeTo it }
+
+          ant.jar(destFile: "${wrappedLibsDir}/${bundlePackageName}.jar", manifest: manifestFile) { fileset(file: lib) }
+          manifestFile.delete()
+        }
+      }
+    } // task wrapLibs
+  }
 }

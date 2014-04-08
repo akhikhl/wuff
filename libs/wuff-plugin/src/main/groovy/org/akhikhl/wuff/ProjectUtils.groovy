@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory
 import org.xml.sax.InputSource
 
 /**
- * Project utilities
+ * Project-centric utilities
  *
  * @author akhikhl
  */
@@ -184,5 +184,9 @@ final class ProjectUtils {
     while(p != null && !condition(p))
       p = p.parent
     return p
+  }
+
+  static File getWrappedLibsDir(Project project) {
+    new File(project.buildDir, 'wrappedLibs')
   }
 }

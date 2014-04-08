@@ -18,7 +18,7 @@ import org.gradle.api.tasks.bundling.*
  */
 class TaskUtils {
 
-  static void defineEclipseBundleTasks(Project project) {
+  static void defineTask_createBundleManifest(Project project) {
 
     File manifestFile = new File("${project.buildDir}/bundleManifest/MANIFEST.MF")
 
@@ -126,5 +126,5 @@ class TaskUtils {
       }
     } // jar task
 
-  } // defineEclipseBundleTasks
+  } // defineTask_createBundleManifest
 }
