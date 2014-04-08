@@ -24,7 +24,7 @@ class EclipseConfigReader {
       closure()
     }
     GroovyShell shell = new GroovyShell(binding)
-    this.getClass().getClassLoader().getResourceAsStream(resourceName).withReader('UTF-8') {
+    EclipseConfigReader.getClassLoader().getResourceAsStream(resourceName).withReader('UTF-8') {
       shell.evaluate(it)
     }
     return config

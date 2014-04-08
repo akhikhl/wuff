@@ -29,7 +29,7 @@ class ProjectConfigurer {
 
     this.project = project
     this.moduleName = moduleName
-    defaultConfig = new EclipseConfigReader().readFromResource('defaultEclipseConfig.groovy')
+    defaultConfig = new EclipseConfigReader().readFromResource('org/akhikhl/wuff/defaultEclipseConfig.groovy')
   }
 
   private void apply(Closure closure) {
@@ -99,4 +99,3 @@ class ProjectConfigurer {
     }
   }
 }
-

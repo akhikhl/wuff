@@ -1,3 +1,4 @@
 dependencies {
   compile gradleApi()
+  compile 'org.akhikhl.gradle-onejar:gradle-onejar:0.0.5'
 }

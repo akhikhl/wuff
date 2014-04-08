@@ -1,0 +1,19 @@
+apply plugin: 'java'
+apply plugin: 'swt-app'
+
+dependencies {
+  compile project(':swtlib-1')
+}
+
+jar {
+  manifest { attributes 'Main-Class': 'swtapp1.Main' }
+}
+
+onejar {
+  archiveProducts true
+}
+
+swtapp {
+  product platform: 'linux', arch: 'x86_64', language: 'de'
+  product platform: 'windows', arch: 'x86_32'
+}
