@@ -50,6 +50,15 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
   }
 
   @Override
+  protected void configure() {
+    super.configure()
+    // these tasks need to be configured early (not in configureTasks),
+    // so that netbeans recognizes them and uses them.
+    project.task 'run', type: JavaExec
+    project.task 'debug', type: JavaExec
+  }
+
+  @Override
   protected void configureProducts() {
 
     project.equinox.beforeProductGeneration.each { obj ->
@@ -588,8 +597,6 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
     equinoxLauncherFile = project.configurations.runtime.find { getPluginName(it.name) == equinoxLauncherPluginName }
     osgiFrameworkFile = project.configurations.runtime.find { getPluginName(it.name) == osgiFrameworkPluginName }
 
-    project.task 'run', type: JavaExec
-    project.task 'debug', type: JavaExec
     configureTask_wrapLibs()
     configureRunTasks()
   }
