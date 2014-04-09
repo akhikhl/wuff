@@ -1,6 +1,0 @@
-apply plugin: 'java'
-apply plugin: 'eclipse-bundle'
-
-dependencies {
-  compile project(':eclipse-bundle-1')
-}

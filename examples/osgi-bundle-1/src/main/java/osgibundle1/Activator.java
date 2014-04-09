@@ -1,4 +1,4 @@
-package eclipsebundle1;
+package osgibundle1;
 
 import java.util.HashMap;
 import java.util.Map;

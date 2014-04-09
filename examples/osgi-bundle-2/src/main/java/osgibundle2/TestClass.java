@@ -1,6 +1,6 @@
-package eclipsebundle2;
+package osgibundle2;
 
-import eclipsebundle1.HelloClass;
+import osgibundle1.HelloClass;
 
 public class TestClass {
 

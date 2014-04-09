@@ -49,16 +49,18 @@ class Configurer {
         if(versionConfig.eclipseGroup != null)
           project.ext.eclipseGroup = versionConfig.eclipseGroup
         EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
-        moduleConfig.properties.each { key, value ->
-          if(value instanceof Collection)
-            value.each { item ->
-              if(item instanceof Closure && item.delegate != PlatformConfig) {
-                item.delegate = PlatformConfig
-                item.resolveStrategy = Closure.DELEGATE_FIRST
+        if(moduleConfig) {
+          moduleConfig.properties.each { key, value ->
+            if(value instanceof Collection)
+              value.each { item ->
+                if(item instanceof Closure && item.delegate != PlatformConfig) {
+                  item.delegate = PlatformConfig
+                  item.resolveStrategy = Closure.DELEGATE_FIRST
+                }
               }
-            }
+          }
+          closure(moduleConfig)
         }
-        closure(moduleConfig)
       }
     }
 

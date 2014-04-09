@@ -2,5 +2,14 @@ apply plugin: 'java'
 apply plugin: 'eclipse-equinox-app'
 
 dependencies {
-  compile project(':eclipse-bundle-2')
+  compile project(':osgi-bundle-2')
+}
+
+equinox {
+  product platform: 'linux', arch: 'x86_64'
+  product platform: 'linux', arch: 'x86_64', language: 'de'
+  product platform: 'windows', arch: 'x86_32'
+  product platform: 'windows', arch: 'x86_32', language: 'de'
+  product platform: 'windows', arch: 'x86_64'
+  product platform: 'windows', arch: 'x86_64', language: 'de'
 }

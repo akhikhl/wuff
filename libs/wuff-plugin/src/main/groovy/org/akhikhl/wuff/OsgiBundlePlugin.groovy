@@ -7,16 +7,18 @@
  */
 package org.akhikhl.wuff
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
  *
  * @author akhikhl
  */
-class EclipseBundleConfigurer extends OsgiBundleConfigurer {
+class OsgiBundlePlugin implements Plugin<Project> {
 
-  EclipseBundleConfigurer(Project project) {
-    super(project, 'eclipseBundle')
+  void apply(final Project project) {
+    def configurer = new OsgiBundleConfigurer(project)
+    configurer.apply()
   }
 }
 

@@ -6,7 +6,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 
-import eclipsebundle2.TestClass;
+import osgibundle2.TestClass;
 
 public class Application implements IApplication {
 

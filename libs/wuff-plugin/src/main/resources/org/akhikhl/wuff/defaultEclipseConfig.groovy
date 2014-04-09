@@ -58,6 +58,16 @@ eclipse {
       }
     }
 
+    osgiBundle {
+
+      postConfigure { project ->
+
+        project.dependencies {
+          compile "${eclipseGroup}:org.eclipse.osgi:+"
+        }
+      }
+    }
+
     eclipseBundle {
 
       postConfigure { project ->
@@ -69,6 +79,7 @@ eclipse {
           compile "${eclipseGroup}:org.eclipse.swt:+"
           compile "${eclipseGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
           compile "${eclipseGroup}:org.eclipse.ui:+"
+          compile "${eclipseGroup}:org.eclipse.osgi:+"
         }
 
         project.tasks.jar.manifest {

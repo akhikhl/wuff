@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'eclipse-bundle'
+apply plugin: 'osgi-bundle'
 
 dependencies {
   compile 'org.apache.commons:commons-lang3:3.1'

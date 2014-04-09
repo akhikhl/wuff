@@ -1,4 +1,4 @@
-package eclipsebundle2;
+package osgibundle2;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;

@@ -16,7 +16,7 @@ import org.gradle.api.tasks.JavaExec
  *
  * @author akhikhl
  */
-class EquinoxAppConfigurer extends EclipseBundleConfigurer {
+class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   private static final String eclipsePluginMask = /([\da-zA-Z_.-]+?)-((\d+\.)+[\da-zA-Z_.-]*)/
   private static final String osgiFrameworkPluginName = 'org.eclipse.osgi'
@@ -71,11 +71,20 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
     project.equinox.products.each { product ->
 
       String platform = product.platform ?: PlatformConfig.current_os
-      String arch = product.arch ?: PlatformConfig.current_arch
-      String language = product.language ?: ''
-      String productName = product.name ?: (language ? "equinox_${platform}_${arch}_${language}" : "equinox_${platform}_${arch}")
+      if(!PlatformConfig.supported_oses.contains(platform))
+        log.error 'Platform {} is not supported', platform
 
-      def productConfig = project.configurations.findByName("product_${productName}")
+      String arch = product.arch ?: PlatformConfig.current_arch
+      if(!PlatformConfig.supported_archs.contains(arch))
+        log.error 'Architecture {} is not supported', arch
+
+      String language = product.language ?: ''
+      if(language && !PlatformConfig.supported_languages.contains(language))
+        log.error 'Language {} is not supported', language
+
+      String productName = product.name ?: (language ? "${platform}_${arch}_${language}" : "${platform}_${arch}")
+
+      def productConfig = project.configurations.findByName("product_equinox_${productName}")
 
       String suffix = ''
       if(productName != 'default')
@@ -111,8 +120,8 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
         productOutputDir += '-' + suffix
 
       String buildTaskName = 'buildProduct'
-      if(product.name != 'default')
-        buildTaskName += '_' + product.name
+      if(productName != 'default')
+        buildTaskName += '_' + productName
 
       project.task(buildTaskName) { task ->
 
@@ -260,8 +269,8 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
 
       if(project.equinox.archiveProducts) {
         def archiveTaskName = 'archiveProduct'
-        if(product.name != 'default')
-          archiveTaskName += '_' + product.name
+        if(productName != 'default')
+          archiveTaskName += '_' + productName
 
         def archiveType = launchers.contains('windows') ? Zip : Tar
 
