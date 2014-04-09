@@ -40,13 +40,10 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
 
     String eclipseApplicationId
     String eclipseProductId
-    project.sourceSets.main.resources.srcDirs.each { File srcDir ->
-      File pluginConfigFile = new File(srcDir, 'plugin.xml')
-      if(pluginConfigFile.exists()) {
-        def pluginConfig = new XmlParser().parse(pluginConfigFile)
-        eclipseApplicationId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
-        eclipseProductId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
-      }
+    def pluginConfig = ProjectUtils.findPluginConfig(project)
+    if(pluginConfig) {
+      eclipseApplicationId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
+      eclipseProductId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
     }
     this.eclipseApplicationId = eclipseApplicationId ? "${project.name}.${eclipseApplicationId}" : null
     this.eclipseProductId = eclipseProductId ? "${project.name}.${eclipseProductId}" : null
@@ -173,9 +170,11 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
             configWriter.println "osgi.framework=file\\:plugins/${osgiFrameworkFile.name}"
             configWriter.println 'osgi.bundles.defaultStartLevel=4'
             configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
-            project.sourceSets.main.resources.srcDirs.each { File srcDir ->
-              if(new File(srcDir, 'splash.bmp').exists())
+            ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
+              if(new File(srcDir, 'splash.bmp').exists()) {
                 configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
+                true
+              }
             }
           }
 
@@ -189,10 +188,12 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
 
           def launchParameters = project.equinox.launchParameters.clone()
 
-          project.sourceSets.main.resources.srcDirs.each { File srcDir ->
+          ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
             File splashFile = new File(srcDir, 'splash.bmp')
-            if(splashFile.exists())
+            if(splashFile.exists()) {
               launchParameters.add '-showSplash'
+              true
+            }
           }
 
           if(language) {
@@ -370,10 +371,12 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
             configWriter.println "eclipse.application=$eclipseApplicationId"
           if(eclipseProductId)
             configWriter.println "eclipse.product=$eclipseProductId"
-          project.sourceSets.main.resources.srcDirs.each { File srcDir ->
+          ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
             File splashFile = new File(srcDir, 'splash.bmp')
-            if(splashFile.exists())
+            if(splashFile.exists()) {
               configWriter.println "osgi.splashLocation=${splashFile.absolutePath}"
+              true
+            }
           }
           configWriter.println "osgi.framework=file\\:${osgiFrameworkFile.absolutePath}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
@@ -397,10 +400,12 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
       '-consoleLog'
     ]
 
-    project.sourceSets.main.resources.srcDirs.each { File srcDir ->
+    ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
       File splashFile = new File(srcDir, 'splash.bmp')
-      if(splashFile.exists())
+      if(splashFile.exists()) {
         programArgs.add '-showSplash'
+        true
+      }
     }
 
     programArgs.addAll project.run.args

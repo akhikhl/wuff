@@ -9,6 +9,8 @@ package org.akhikhl.wuff
 
 import java.nio.file.Paths
 
+import groovy.util.XmlParser
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
@@ -141,7 +143,7 @@ final class ProjectUtils {
     List importPackages = []
     packages.each { String packageName ->
       String packagePath = packageName.replaceAll(/\./, '/')
-      if(project.sourceSets.main.resources.srcDirs.find { new File(it, packagePath).exists() })
+      if(project.sourceSets.all.allSource.srcDirs.find { new File(it, packagePath).exists() })
         log.info 'Found package {} within {}, no import needed', packageName, project.name
       else {
         log.info 'Did not find package {} within {}, will be imported', packageName, project.name
