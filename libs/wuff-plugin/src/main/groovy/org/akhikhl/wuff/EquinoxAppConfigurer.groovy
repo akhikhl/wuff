@@ -61,15 +61,16 @@ class EquinoxAppConfigurer extends EclipseBundleConfigurer {
 
     project.equinox.products.each { product ->
 
-      def productConfig = project.configurations.findByName("product_${product.name}")
-
       String platform = product.platform ?: PlatformConfig.current_os
       String arch = product.arch ?: PlatformConfig.current_arch
       String language = product.language ?: ''
+      String productName = product.name ?: (language ? "equinox_${platform}_${arch}_${language}" : "equinox_${platform}_${arch}")
+
+      def productConfig = project.configurations.findByName("product_${productName}")
 
       String suffix = ''
-      if(product.name != 'default')
-        suffix = product.suffix ?: product.name
+      if(productName != 'default')
+        suffix = product.suffix ?: productName
 
       def launchers
       if(product.launchers)
