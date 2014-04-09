@@ -31,7 +31,7 @@ class ManifestUtilsTest extends Specification {
 
   def 'should read manifest from file'() {
   when:
-    Manifest manifest = ManifestUtils.getManifest(project, new File(projectDir, 'src/test/resources/eclipse-bundle-1-1.0.0.0.jar'))
+    Manifest manifest = ManifestUtils.getManifest(project, new File(projectDir, 'src/test/resources/org/akhikhl/wuff/eclipse-bundle-1-1.0.0.0.jar'))
   then:
     manifest.mainAttributes.getValue('Bundle-SymbolicName') == 'eclipse-bundle-1'
     manifest.mainAttributes.getValue('Bundle-Version') == '1.0.0.0'

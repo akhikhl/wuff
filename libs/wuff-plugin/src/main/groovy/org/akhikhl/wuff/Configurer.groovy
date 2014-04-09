@@ -29,7 +29,7 @@ class Configurer {
 
     this.project = project
     this.moduleName = moduleName
-    this.defaultConfig = new EclipseConfigReader().readFromResource('org/akhikhl/wuff/defaultEclipseConfig.groovy')
+    this.defaultConfig = new EclipseConfigReader().readFromResource('defaultEclipseConfig.groovy')
   }
 
   protected void afterEvaluate(Closure closure) {
