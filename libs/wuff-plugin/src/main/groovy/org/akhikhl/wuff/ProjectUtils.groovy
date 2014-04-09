@@ -143,7 +143,7 @@ final class ProjectUtils {
     List importPackages = []
     packages.each { String packageName ->
       String packagePath = packageName.replaceAll(/\./, '/')
-      if(project.sourceSets.all.allSource.srcDirs.find { new File(it, packagePath).exists() })
+      if(project.sourceSets.main.allSource.srcDirs.find { new File(it, packagePath).exists() })
         log.info 'Found package {} within {}, no import needed', packageName, project.name
       else {
         log.info 'Did not find package {} within {}, will be imported', packageName, project.name
