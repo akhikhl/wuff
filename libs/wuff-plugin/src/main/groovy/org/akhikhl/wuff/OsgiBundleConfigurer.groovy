@@ -46,30 +46,30 @@ class OsgiBundleConfigurer extends Configurer {
 
         m = m.effectiveManifest
 
-        String activator = ProjectUtils.findBundleActivator(project)
+        String activator = PluginUtils.findBundleActivator(project)
         if(activator) {
           m.attributes['Bundle-Activator'] = activator
           m.attributes['Bundle-ActivationPolicy'] = 'lazy'
         }
 
-        def pluginConfig = ProjectUtils.findPluginConfig(project)
+        def pluginConfig = PluginUtils.findPluginConfig(project)
 
         if(pluginConfig) {
           m.attributes['Bundle-SymbolicName'] = "${project.name}; singleton:=true" as String
-          Map importPackages = ProjectUtils.findImportPackagesInPluginConfigFile(project, pluginConfig).collectEntries { [ it, '' ] }
+          Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, pluginConfig).collectEntries { [ it, '' ] }
           importPackages << ManifestUtils.parsePackages(m.attributes['Import-Package'])
           m.attributes['Import-Package'] = ManifestUtils.packagesToString(importPackages)
         }
         else
           m.attributes['Bundle-SymbolicName'] = project.name
 
-        def localizationFiles = ProjectUtils.collectPluginLocalizationFiles(project)
+        def localizationFiles = PluginUtils.collectPluginLocalizationFiles(project)
         if(localizationFiles)
           m.attributes['Bundle-Localization'] = 'plugin'
 
         if(project.configurations.privateLib.files) {
           Map importPackages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
-          ProjectUtils.collectPrivateLibPackages(project).each { privatePackage ->
+          PluginUtils.collectPrivateLibPackages(project).each { privatePackage ->
             def packageValue = importPackages.remove(privatePackage)
             if(packageValue != null) {
               project.logger.info 'Package {} is referenced by private library, will be excluded from Import-Package.', privatePackage
