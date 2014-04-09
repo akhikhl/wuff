@@ -79,7 +79,7 @@ class OsgiBundleConfigurer extends Configurer {
           m.attributes['Import-Package'] = ManifestUtils.packagesToString(importPackages)
         }
 
-        def requiredBundles = [ 'org.eclipse.core.runtime', 'org.eclipse.core.resources' ] as LinkedHashSet
+        def requiredBundles = getDefaultRequiredBundles() as LinkedHashSet
         if(pluginConfig && pluginConfig.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' })
           requiredBundles.add 'org.eclipse.core.expressions'
         project.configurations.compile.allDependencies.each {
@@ -132,5 +132,9 @@ class OsgiBundleConfigurer extends Configurer {
       }
     } // jar task
   } // configureTasks
+
+  protected Collection<String> getDefaultRequiredBundles() {
+    [ 'org.eclipse.osgi' ]
+  }
 }
 

@@ -616,4 +616,9 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     project.extensions.create('run', RunExtension)
     project.extensions.create('equinox', EquinoxAppPluginExtension)
   }
+
+  @Override
+  protected Collection<String> getDefaultRequiredBundles() {
+    [ 'org.eclipse.core.runtime' ]
+  }
 }
