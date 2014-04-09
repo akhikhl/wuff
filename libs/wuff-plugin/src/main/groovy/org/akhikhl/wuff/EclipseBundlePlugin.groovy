@@ -17,12 +17,8 @@ import org.gradle.api.Project
 class EclipseBundlePlugin implements Plugin<Project> {
 
   void apply(final Project project) {
-    ProjectConfigurer configurer = new ProjectConfigurer(project, 'eclipseBundle')
-    configurer.configure()
-    project.afterEvaluate {
-      configurer.postConfigure()
-      TaskUtils.defineTask_createBundleManifest(project)
-    }
+    def configurer = new EclipseBundleConfigurer(project)
+    configurer.apply()
   }
 }
 

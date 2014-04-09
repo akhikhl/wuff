@@ -7,20 +7,26 @@
  */
 package org.akhikhl.wuff
 
-import org.gradle.api.*
-import org.gradle.api.plugins.*
-import org.gradle.api.tasks.*
-import org.gradle.api.tasks.bundling.*
+import org.gradle.api.Project
 
 /**
  *
  * @author akhikhl
  */
-class TaskUtils {
+class EclipseBundleConfigurer extends Configurer {
 
-  static void defineTask_createBundleManifest(Project project) {
+  EclipseBundleConfigurer(Project project) {
+    super(project, 'eclipseBundle')
+  }
 
-    File manifestFile = new File("${project.buildDir}/bundleManifest/MANIFEST.MF")
+  protected EclipseBundleConfigurer(Project project, String moduleName) {
+    super(project, moduleName)
+  }
+
+  @Override
+  protected void configureTasks() {
+
+    File manifestFile = new File(project.buildDir, 'bundleManifest/MANIFEST.MF')
 
     project.task('createBundleManifest') {
       dependsOn project.tasks.classes
@@ -125,6 +131,6 @@ class TaskUtils {
         }
       }
     } // jar task
-
-  } // defineTask_createBundleManifest
+  } // configureTasks
 }
+

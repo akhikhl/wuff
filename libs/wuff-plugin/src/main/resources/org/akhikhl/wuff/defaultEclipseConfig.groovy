@@ -7,7 +7,7 @@ eclipse {
     eclipseGroup = 'eclipse-kepler'
 
     swtlib {
-      configure { project ->
+      postConfigure { project ->
         project.dependencies {
           compile "${eclipseGroup}:org.eclipse.jface:+"
           compile "${eclipseGroup}:org.eclipse.swt:+"
@@ -19,6 +19,24 @@ eclipse {
     swtapp {
       configure { project ->
 
+        supported_oses.each { platform ->
+          supported_archs.each { arch ->
+
+            String productConfigName = "product_swtapp_${platform}_${arch}"
+            project.configurations.create(productConfigName)
+
+            supported_languages.each { language ->
+
+              String localizedProductConfigName = "product_swtapp_${platform}_${arch}_${language}"
+              def localizedConfig = project.configurations.create(localizedProductConfigName)
+              localizedConfig.extendsFrom project.configurations[productConfigName]
+            }
+          }
+        }
+      }
+
+      postConfigure { project ->
+
         project.dependencies {
           compile "${eclipseGroup}:org.eclipse.swt:+"
           compile "${eclipseGroup}:org.eclipse.jface:+"
@@ -28,14 +46,11 @@ eclipse {
           supported_archs.each { arch ->
 
             String productConfigName = "product_swtapp_${platform}_${arch}"
-            project.configurations.create(productConfigName)
             project.dependencies.add productConfigName, "${eclipseGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
 
             supported_languages.each { language ->
 
               String localizedProductConfigName = "product_swtapp_${platform}_${arch}_${language}"
-              def localizedConfig = project.configurations.create(localizedProductConfigName)
-              localizedConfig.extendsFrom project.configurations[productConfigName]
               project.dependencies.add localizedProductConfigName, "${eclipseGroup}:org.eclipse.jface.nl_${language}:+"
             }
           }
@@ -45,7 +60,7 @@ eclipse {
 
     eclipseBundle {
 
-      configure { project ->
+      postConfigure { project ->
 
         project.dependencies {
           compile "${eclipseGroup}:javax.annotation:+"
@@ -55,9 +70,6 @@ eclipse {
           compile "${eclipseGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
           compile "${eclipseGroup}:org.eclipse.ui:+"
         }
-      }
-
-      postConfigure { project ->
 
         project.tasks.jar.manifest {
           instruction 'Require-Bundle', 'org.eclipse.jface'
@@ -70,6 +82,22 @@ eclipse {
     equinoxApp {
 
       configure { project ->
+
+        supported_oses.each { platform ->
+          supported_archs.each { arch ->
+
+            String productConfigName = "product_equinox_${platform}_${arch}"
+            project.configurations.create(productConfigName)
+
+            supported_languages.each { language ->
+              def localizedConfig = project.configurations.create("product_equinox_${platform}_${arch}_${language}")
+              localizedConfig.extendsFrom project.configurations[productConfigName]
+            }
+          }
+        }
+      } // configure
+
+      postConfigure { project ->
 
         project.dependencies {
           compile "${eclipseGroup}:org.eclipse.core.runtime:+"
@@ -90,22 +118,16 @@ eclipse {
           supported_archs.each { arch ->
 
             String productConfigName = "product_equinox_${platform}_${arch}"
-            project.configurations.create(productConfigName)
             project.dependencies.add productConfigName, "${eclipseGroup}:org.eclipse.equinox.launcher.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
 
             supported_languages.each { language ->
               String localizedProductConfigName = "product_equinox_${platform}_${arch}_${language}"
-              def localizedConfig = project.configurations.create(localizedProductConfigName)
-              localizedConfig.extendsFrom project.configurations[productConfigName]
               project.dependencies.add localizedProductConfigName, "${eclipseGroup}:org.eclipse.equinox.launcher.${current_os_suffix}.${current_arch_suffix}.nl_${language}:+"
               project.dependencies.add localizedProductConfigName, "${eclipseGroup}:org.eclipse.osgi.nl_${language}:+"
               project.dependencies.add localizedProductConfigName, "${eclipseGroup}:org.eclipse.osgi.services.nl_${language}:+"
             }
           }
         }
-      } // configure
-
-      postConfigure { project ->
 
         project.tasks.jar.manifest {
           instruction 'Require-Bundle', 'org.eclipse.core.runtime'

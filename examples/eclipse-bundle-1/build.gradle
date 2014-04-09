@@ -1,1 +1,7 @@
+apply plugin: 'java'
 apply plugin: 'eclipse-bundle'
+
+dependencies {
+  compile 'org.apache.commons:commons-lang3:3.1'
+  compile 'commons-jxpath:commons-jxpath:1.1'
+}

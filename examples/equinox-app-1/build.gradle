@@ -1,0 +1,6 @@
+apply plugin: 'java'
+apply plugin: 'eclipse-equinox-app'
+
+dependencies {
+  compile project(':eclipse-bundle-2')
+}

@@ -17,11 +17,8 @@ import org.gradle.api.Project
 class SwtLibPlugin implements Plugin<Project> {
 
   void apply(final Project project) {
-    ProjectConfigurer configurer = new ProjectConfigurer(project, 'swtlib')
-    configurer.configure()
-    project.afterEvaluate {
-      configurer.postConfigure()
-    }
+    def configurer = new Configurer(project, 'swtlib')
+    configurer.apply()
   }
 }
 

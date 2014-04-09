@@ -16,23 +16,32 @@ import org.slf4j.LoggerFactory
  *
  * @author akhikhl
  */
-class ProjectConfigurer {
+class Configurer {
 
-  protected static final Logger log = LoggerFactory.getLogger(ProjectConfigurer)
+  protected static final Logger log = LoggerFactory.getLogger(Configurer)
 
   protected final Project project
   protected final String moduleName
   protected final EclipseConfig defaultConfig
   protected String eclipseVersion
 
-  ProjectConfigurer(Project project, String moduleName) {
+  Configurer(Project project, String moduleName) {
 
     this.project = project
     this.moduleName = moduleName
     this.defaultConfig = new EclipseConfigReader().readFromResource('org/akhikhl/wuff/defaultEclipseConfig.groovy')
   }
 
-  protected final void apply(Closure closure) {
+  protected void afterEvaluate(Closure closure) {
+    project.afterEvaluate(closure)
+  }
+
+  void apply() {
+    configure()
+    afterEvaluate(this.&postConfigure)
+  }
+
+  private void applyModuleConfig(Closure closure) {
 
     def applyConfigs = { EclipseConfig eclipseConfig ->
       EclipseVersionConfig versionConfig = eclipseConfig.versionConfigs[eclipseVersion]
@@ -43,7 +52,7 @@ class ProjectConfigurer {
         moduleConfig.properties.each { key, value ->
           if(value instanceof Collection)
             value.each { item ->
-              if(item instanceof Closure) {
+              if(item instanceof Closure && item.delegate != PlatformConfig) {
                 item.delegate = PlatformConfig
                 item.resolveStrategy = Closure.DELEGATE_FIRST
               }
@@ -62,10 +71,14 @@ class ProjectConfigurer {
     }
   }
 
-  void configure() {
-
+  protected void applyPlugins() {
     project.apply plugin: 'osgi'
-    project.extensions.create('eclipse', EclipseConfig)
+  }
+
+  protected void configure() {
+
+    applyPlugins()
+    createExtensions()
 
     if(project.hasProperty('eclipseVersion'))
       // project properties are inherently hierarchical, so parent's eclipseVersion will be inherited
@@ -84,18 +97,32 @@ class ProjectConfigurer {
       compile.extendsFrom privateLib
     }
 
-    apply { EclipseModuleConfig moduleConfig ->
+    applyModuleConfig { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.configure)
         closure(project)
     }
   }
 
-  void postConfigure() {
+  protected void configureProducts() {
+    // by default there are no products
+  }
+
+  protected void configureTasks() {
+    // by default there are no tasks
+  }
+
+  protected void createExtensions() {
+    project.extensions.create('eclipse', EclipseConfig)
+  }
+
+  protected void postConfigure() {
     if(project.version == 'unspecified')
       project.version = '1.0.0.0'
-    apply { EclipseModuleConfig moduleConfig ->
+    applyModuleConfig { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.postConfigure)
         closure(project)
     }
+    configureTasks()
+    configureProducts()
   }
 }

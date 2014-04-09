@@ -10,6 +10,7 @@ package org.akhikhl.wuff
 import java.nio.file.Paths
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -114,6 +115,12 @@ final class ProjectUtils {
     return activator
   }
 
+  static Configuration findFileInProducts(Project project, File file) {
+    project.configurations.find { config ->
+      config.name.startsWith('product_') && config.find { it == file }
+    }
+  }
+
   /**
    * Finds list of import-packages in the given plugin configuration file, 'plugin.xml'.
    *
@@ -184,9 +191,5 @@ final class ProjectUtils {
     while(p != null && !condition(p))
       p = p.parent
     return p
-  }
-
-  static File getWrappedLibsDir(Project project) {
-    new File(project.buildDir, 'wrappedLibs')
   }
 }
