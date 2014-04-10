@@ -17,12 +17,20 @@ class Config {
 
   Map<String, EclipseVersionConfig> versionConfigs = [:]
 
-  void eclipseVersion(String versionString, Closure versionDef) {
+  WrappedLibsConfig wrappedLibsConfig = new WrappedLibsConfig()
+
+  void eclipseVersion(String versionString, Closure closure) {
     if(versionConfigs[versionString] == null)
       versionConfigs[versionString] = new EclipseVersionConfig()
-    versionDef.resolveStrategy = Closure.DELEGATE_FIRST
-    versionDef.delegate = versionConfigs[versionString]
-    versionDef()
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+    closure.delegate = versionConfigs[versionString]
+    closure()
+  }
+
+  void wrappedLibs(Closure closure) {
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+    closure.delegate = wrappedLibsConfig
+    closure()
   }
 }
 

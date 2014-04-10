@@ -146,4 +146,96 @@ wuff {
       }
     }
   }
+
+  wrappedLibs {
+    /^ant-optional/ {
+      excludeImport(/^COM\.ibm\.netrexx\.process$/)
+    }
+
+    /^commons-logging/ {
+      excludeImport(/^org\.apache\.log/)
+      excludeImport(/^org\.apache\.avalon\.framework\.logger/)
+    }
+
+    /^avalon-framework/ {
+      excludeImport(/^org\.apache\.log/)
+      excludeImport(/^org\.apache\.avalon\.framework\.parameters/)
+    }
+
+    /^batik-js$/ {
+      excludeImport(/^org\.apache\.xmlbeans$/)
+    }
+
+    /^batik-script$/ {
+      excludeImport(/^org\.mozilla\.javascript$/)
+    }
+
+    /^fop$/ {
+      excludeImport(/^javax\.media\.jai$/)
+      excludeImport(/^org\.apache\.tools\.ant/)
+    }
+
+    /^jaxb-impl/ {
+      excludeImport(/^com\.sun\.xml\.fastinfoset/)
+      excludeImport(/^org\.jvnet\.fastinfoset$/)
+      excludeImport(/^org\.jvnet\.staxex/)
+    }
+
+    /^jdom$|^jdom-b8$/ {
+      excludeImport(/^oracle\.xml\.parser$/)
+      excludeImport(/^oracle\.xml\.parser\.v2$/)
+      excludeImport(/^org\.apache\.xerces\.dom$/)
+      excludeImport(/^org\.apache\.xerces\.parsers$/)
+      excludeImport(/^org\.jaxen\.jdom$/)
+      excludeImport(/^org\.jaxen$/)
+    }
+
+    /^jdom2$/ {
+      excludeImport(/^oracle\.xml\.parser$/)
+      excludeImport(/^oracle\.xml\.parser\.v2$/)
+      excludeImport(/^org\.apache\.xerces\.dom$/)
+      excludeImport(/^org\.apache\.xerces\.parsers$/)
+    }
+
+    /^ojdbc/ {
+      excludeImport(/^javax\.resource$/)
+      excludeImport(/^javax\.resource\.spi$/)
+      excludeImport(/^javax\.resource\.spi\.endpoint$/)
+      excludeImport(/^javax\.resource\.spi\.security$/)
+      excludeImport(/^oracle\.i18n\.text\.converter$/)
+      excludeImport(/^oracle\.ons$/)
+      excludeImport(/^oracle\.security\.pki$/)
+    }
+
+    /^saxon/ {
+      excludeImport(/^com\.saxonica\.validate$/)
+    }
+
+    /^svnkit/ {
+      excludeImport(/^org\.tmatesoft\.sqljet/)
+      excludeImport(/^org.tigris.subversion.javahl$/)
+    }
+
+    /^xalan$/ {
+      excludeImport(/^sun\.io$/)
+    }
+
+    /^xmlgraphics-commons$/ {
+      excludeImport(/^com\.sun\.image\.codec/)
+    }
+
+    /^jaxen$/ {
+      excludeImport(/^nu.xom$/)
+      excludeImport(/^org\.jdom/)
+      excludeImport(/^org\.dom4j/)
+    }
+
+    /^xercesImpl$/ {
+      excludeImport(/^sun.io$/)
+    }
+
+    /^commons-jxpath$/ {
+      excludeImport(/^ant-optional$/)
+    }
+  }
 }

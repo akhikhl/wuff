@@ -41,9 +41,20 @@ class Configurer {
     afterEvaluate(this.&postConfigure)
   }
 
-  private void applyModuleConfig(Closure closure) {
+  protected void applyToConfigs(Closure closure) {
 
-    def applyConfigs = { Config config ->
+    closure(defaultConfig)
+
+    ProjectUtils.collectWithAllAncestors(project).each { Project p ->
+      Config config = p.extensions.findByName('wuff')
+      if(config)
+        closure(config)
+    }
+  }
+
+  protected void applyToModuleConfigs(Closure closure) {
+
+    applyToConfigs { Config config ->
       EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
       if(versionConfig != null) {
         if(versionConfig.eclipseMavenGroup != null)
@@ -62,14 +73,6 @@ class Configurer {
           closure(moduleConfig)
         }
       }
-    }
-
-    applyConfigs(defaultConfig)
-
-    ProjectUtils.collectWithAllAncestors(project).each { Project p ->
-      Config config = p.extensions.findByName('wuff')
-      if(config)
-        applyConfigs(config)
     }
   }
 
@@ -99,7 +102,7 @@ class Configurer {
       compile.extendsFrom privateLib
     }
 
-    applyModuleConfig { EclipseModuleConfig moduleConfig ->
+    applyToModuleConfigs { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.configure)
         closure(project)
     }
@@ -120,7 +123,7 @@ class Configurer {
   protected void postConfigure() {
     if(project.version == 'unspecified')
       project.version = '1.0.0.0'
-    applyModuleConfig { EclipseModuleConfig moduleConfig ->
+    applyToModuleConfigs { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.postConfigure)
         closure(project)
     }

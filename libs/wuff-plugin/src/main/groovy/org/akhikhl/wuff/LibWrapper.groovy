@@ -11,14 +11,20 @@ import org.gradle.api.Project
 
 import org.apache.commons.io.FilenameUtils
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 /**
  *
  * @author akhikhl
  */
 class LibWrapper {
 
+  protected static final Logger log = LoggerFactory.getLogger(LibWrapper)
+
   private final Project project
   private final File lib
+  private final WrappedLibsConfig wrappedLibsConfig
   private libManifest
   private final String baseLibName
   private String bundleName
@@ -26,9 +32,10 @@ class LibWrapper {
   private String fragmentHost
   private String bundleFileName
 
-  LibWrapper(Project project, File lib) {
+  LibWrapper(Project project, File lib, WrappedLibsConfig wrappedLibsConfig) {
     this.project = project
     this.lib = lib
+    this.wrappedLibsConfig = wrappedLibsConfig
     libManifest = ManifestUtils.getManifest(project, lib)
     if(!ManifestUtils.isBundle(libManifest)) {
       baseLibName = FilenameUtils.getBaseName(lib.name)
@@ -50,70 +57,16 @@ class LibWrapper {
         instruction 'Fragment-Host', fragmentHost
     }
     m = m.effectiveManifest
-    def packages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
+    Map packages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
     // workarounds for dynamically referenced classes
-    if(bundleName.startsWith('ant-optional'))
-      packages.remove 'COM.ibm.netrexx.process'
-    else if(bundleName.startsWith('commons-logging'))
-      packages = packages.findAll { !it.key.startsWith('org.apache.log') && !it.key.startsWith('org.apache.avalon.framework.logger') }
-    else if(bundleName.startsWith('avalon-framework'))
-      packages = packages.findAll { !it.key.startsWith('org.apache.log') && !it.key.startsWith('org.apache.avalon.framework.parameters') }
-    else if(bundleName == 'batik-js')
-      packages.remove 'org.apache.xmlbeans'
-    else if(bundleName == 'batik-script')
-      packages.remove 'org.mozilla.javascript'
-    else if(bundleName == 'fop') {
-      packages.remove 'javax.media.jai'
-      packages = packages.findAll { !it.key.startsWith('org.apache.tools.ant') }
+    WrappedLibConfig wrappedLibConfig = wrappedLibsConfig.libConfigs.find { bundleName =~ it.key }?.value
+    if(wrappedLibConfig) {
+      log.debug 'found wrappedLibConfig for {}, excludedImports={}', bundleName, wrappedLibConfig.excludedImports
+      packages = packages.findAll { key, value -> !wrappedLibConfig.excludedImports.find { key =~ it } }
     }
-    else if(bundleName.startsWith('jaxb-impl')) {
-      packages = packages.findAll { !it.key.startsWith('com.sun.xml.fastinfoset') }
-      packages.remove 'org.jvnet.fastinfoset'
-      packages.remove 'org.jvnet.staxex'
-    }
-    else if(bundleName == 'jdom' || bundleName == 'jdom-b8') {
-      packages.remove 'oracle.xml.parser'
-      packages.remove 'oracle.xml.parser.v2'
-      packages.remove 'org.apache.xerces.dom'
-      packages.remove 'org.apache.xerces.parsers'
-      packages.remove 'org.jaxen.jdom'
-      packages.remove 'org.jaxen'
-    }
-    else if(bundleName == 'jdom2') {
-      packages.remove 'oracle.xml.parser'
-      packages.remove 'oracle.xml.parser.v2'
-      packages.remove 'org.apache.xerces.dom'
-      packages.remove 'org.apache.xerces.parsers'
-    }
-    else if(bundleName.startsWith('ojdbc')) {
-      packages.remove 'javax.resource'
-      packages.remove 'javax.resource.spi'
-      packages.remove 'javax.resource.spi.endpoint'
-      packages.remove 'javax.resource.spi.security'
-      packages.remove 'oracle.i18n.text.converter'
-      packages.remove 'oracle.ons'
-      packages.remove 'oracle.security.pki'
-    }
-    else if(bundleName.startsWith('saxon'))
-      packages.remove 'com.saxonica.validate'
-    else if(bundleName.startsWith('svnkit')) {
-      packages = packages.findAll { !it.key.startsWith('org.tmatesoft.sqljet') }
-      packages.remove 'org.tigris.subversion.javahl'
-    }
-    else if(bundleName == 'xalan')
-      packages.remove 'sun.io'
-    else if(bundleName == 'xmlgraphics-commons')
-      packages = packages.findAll { !it.key.startsWith('com.sun.image.codec') }
-    else if(bundleName == 'jaxen') {
-      packages.remove 'nu.xom'
-      packages = packages.findAll { !it.key.startsWith('org.jdom') && !it.key.startsWith('org.dom4j') }
-    } else if(bundleName == 'xercesImpl')
-      packages.remove 'sun.io'
-    else if(bundleName == 'commons-jxpath')
-      packages.remove 'ant-optional'
     m.attributes.remove 'Import-Package'
     if(packages)
-      m.attributes(['Import-Package': ManifestUtils.packagesToString(packages)])
+      m.attributes 'Import-Package': ManifestUtils.packagesToString(packages)
 
     m.attributes.remove 'Class-Path'
 
