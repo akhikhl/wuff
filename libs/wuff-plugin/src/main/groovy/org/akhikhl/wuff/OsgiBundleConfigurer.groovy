@@ -16,11 +16,7 @@ import org.gradle.api.Project
 class OsgiBundleConfigurer extends Configurer {
 
   OsgiBundleConfigurer(Project project) {
-    super(project, 'osgiBundle')
-  }
-
-  protected OsgiBundleConfigurer(Project project, String moduleName) {
-    super(project, moduleName)
+    super(project)
   }
 
   @Override
@@ -135,6 +131,11 @@ class OsgiBundleConfigurer extends Configurer {
 
   protected Collection<String> getDefaultRequiredBundles() {
     [ 'org.eclipse.osgi' ]
+  }
+
+  @Override
+  protected List<String> getModules() {
+    return [ 'osgiBundle' ]
   }
 }
 

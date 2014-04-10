@@ -18,7 +18,7 @@ class SwtAppConfigurer extends Configurer {
   private static final launchers = [ 'linux' : 'shell', 'windows' : 'windows' ]
 
   SwtAppConfigurer(Project project) {
-    super(project, 'swtapp')
+    super(project)
   }
 
   @Override
@@ -54,6 +54,11 @@ class SwtAppConfigurer extends Configurer {
   protected void createExtensions() {
     super.createExtensions()
     project.extensions.create('swtapp', SwtAppPluginExtension)
+  }
+
+  @Override
+  protected List<String> getModules() {
+    return [ 'swtapp' ]
   }
 }
 

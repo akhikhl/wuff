@@ -140,7 +140,9 @@ class EquinoxProductConfigurer {
 
         addBundle project.tasks.jar.archivePath
 
-        PluginUtils.getWrappedLibsDir(project).eachFileMatch(~/.*\.jar/) { addBundle it }
+        File wrappedLibsDir = PluginUtils.getWrappedLibsDir(project)
+        if(wrappedLibsDir.exists())
+          wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
 
         project.configurations.runtime.each {
           if(ManifestUtils.isBundle(project, it) && !ProjectUtils.findFileInProducts(project, it))

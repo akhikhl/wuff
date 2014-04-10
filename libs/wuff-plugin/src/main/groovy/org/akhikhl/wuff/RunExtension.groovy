@@ -9,7 +9,7 @@ package org.akhikhl.wuff
 
 /**
  *
- * @author ahi
+ * @author akhikhl
  */
 class RunExtension {
 

@@ -16,12 +16,17 @@ import org.gradle.api.Project
 class EclipseBundleConfigurer extends OsgiBundleConfigurer {
 
   EclipseBundleConfigurer(Project project) {
-    super(project, 'eclipseBundle')
+    super(project)
   }
 
   @Override
   protected Collection<String> getDefaultRequiredBundles() {
     [ 'org.eclipse.core.runtime', 'org.eclipse.core.resources', 'org.eclipse.ui', 'org.eclipse.jface' ]
+  }
+
+  @Override
+  protected List<String> getModules() {
+    return super.getModules() + [ 'eclipseBundle' ]
   }
 }
 

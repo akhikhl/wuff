@@ -7,18 +7,21 @@
  */
 package org.akhikhl.wuff
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
  *
  * @author akhikhl
  */
-class SwtLibPlugin implements Plugin<Project> {
+class SwtLibConfigurer extends Configurer {
 
-  void apply(final Project project) {
-    def configurer = new SwtLibConfigurer(project)
-    configurer.apply()
+  SwtLibConfigurer(Project project) {
+    super(project)
+  }
+
+  @Override
+  protected List<String> getModules() {
+    return [ 'swtlib' ]
   }
 }
 

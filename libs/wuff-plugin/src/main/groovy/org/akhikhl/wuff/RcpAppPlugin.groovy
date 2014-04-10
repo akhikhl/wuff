@@ -7,18 +7,18 @@
  */
 package org.akhikhl.wuff
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.*
+import org.gradle.api.plugins.*
+import org.gradle.api.tasks.*
 
 /**
  *
  * @author akhikhl
  */
-class SwtLibPlugin implements Plugin<Project> {
+class RcpAppPlugin implements Plugin<Project> {
 
   void apply(final Project project) {
-    def configurer = new SwtLibConfigurer(project)
+    def configurer = new RcpAppConfigurer(project)
     configurer.apply()
   }
 }
-

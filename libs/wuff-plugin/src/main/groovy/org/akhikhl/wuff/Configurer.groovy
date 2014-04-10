@@ -21,14 +21,11 @@ class Configurer {
   protected static final Logger log = LoggerFactory.getLogger(Configurer)
 
   protected final Project project
-  protected final String moduleName
   protected final Config defaultConfig
   protected String eclipseVersion
 
-  Configurer(Project project, String moduleName) {
-
+  Configurer(Project project) {
     this.project = project
-    this.moduleName = moduleName
     this.defaultConfig = new ConfigReader().readFromResource('defaultConfig.groovy')
   }
 
@@ -41,7 +38,7 @@ class Configurer {
     afterEvaluate(this.&postConfigure)
   }
 
-  protected void applyToConfigs(Closure closure) {
+  protected final void applyToConfigs(Closure closure) {
 
     closure(defaultConfig)
 
@@ -52,25 +49,27 @@ class Configurer {
     }
   }
 
-  protected void applyToModuleConfigs(Closure closure) {
+  protected final void applyToModuleConfigs(Closure closure) {
 
     applyToConfigs { Config config ->
       EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
       if(versionConfig != null) {
         if(versionConfig.eclipseMavenGroup != null)
           project.ext.eclipseMavenGroup = versionConfig.eclipseMavenGroup
-        EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
-        if(moduleConfig) {
-          moduleConfig.properties.each { key, value ->
-            if(value instanceof Collection)
-              value.each { item ->
-                if(item instanceof Closure && item.delegate != PlatformConfig) {
-                  item.delegate = PlatformConfig
-                  item.resolveStrategy = Closure.DELEGATE_FIRST
+        for(String moduleName in getModules()) {
+          EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
+          if(moduleConfig) {
+            moduleConfig.properties.each { key, value ->
+              if(value instanceof Collection)
+                value.each { item ->
+                  if(item instanceof Closure && item.delegate != PlatformConfig) {
+                    item.delegate = PlatformConfig
+                    item.resolveStrategy = Closure.DELEGATE_FIRST
+                  }
                 }
-              }
+            }
+            closure(moduleConfig)
           }
-          closure(moduleConfig)
         }
       }
     }
@@ -118,6 +117,10 @@ class Configurer {
 
   protected void createExtensions() {
     project.extensions.create('wuff', Config)
+  }
+
+  protected List<String> getModules() {
+    return []
   }
 
   protected void postConfigure() {

@@ -17,7 +17,7 @@ import org.gradle.api.tasks.JavaExec
 class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   EquinoxAppConfigurer(Project project) {
-    super(project, 'equinoxApp')
+    super(project)
   }
 
   @Override
@@ -81,7 +81,9 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
         addBundle project.tasks.jar.archivePath
 
-        PluginUtils.getWrappedLibsDir(project).eachFileMatch(~/.*\.jar/) { addBundle it }
+        File wrappedLibsDir = PluginUtils.getWrappedLibsDir(project)
+        if(wrappedLibsDir.exists())
+          wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
 
         project.configurations.runtime.each {
           if(ManifestUtils.isBundle(project, it))
@@ -208,7 +210,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     [ 'org.eclipse.core.runtime' ]
   }
 
-  private WrappedLibsConfig getEffectiveWrappedLibsConfig() {
+  protected WrappedLibsConfig getEffectiveWrappedLibsConfig() {
     WrappedLibsConfig result = new WrappedLibsConfig()
     applyToConfigs { Config config ->
       config.wrappedLibsConfig.libConfigs.each { String libName, WrappedLibConfig wrappedLibConfig ->
@@ -219,5 +221,10 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       }
     }
     return result
+  }
+
+  @Override
+  protected List<String> getModules() {
+    return super.getModules() + [ 'equinoxApp' ]
   }
 }

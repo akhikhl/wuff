@@ -79,7 +79,6 @@ wuff {
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
           compile "${eclipseMavenGroup}:org.eclipse.ui:+"
-          compile "${eclipseMavenGroup}:org.eclipse.osgi:+"
         }
 
         project.tasks.jar.manifest {
@@ -97,12 +96,11 @@ wuff {
         supported_oses.each { platform ->
           supported_archs.each { arch ->
 
-            String productConfigName = "product_equinox_${platform}_${arch}"
-            project.configurations.create(productConfigName)
+            def productConfig = project.configurations.create("product_equinox_${platform}_${arch}")
 
             supported_languages.each { language ->
               def localizedConfig = project.configurations.create("product_equinox_${platform}_${arch}_${language}")
-              localizedConfig.extendsFrom project.configurations[productConfigName]
+              localizedConfig.extendsFrom productConfig
             }
           }
         }
@@ -142,6 +140,66 @@ wuff {
 
         project.tasks.jar.manifest {
           instruction 'Require-Bundle', 'org.eclipse.core.runtime'
+        }
+      }
+    }
+
+    rcpApp {
+
+      configure { project ->
+
+        supported_oses.each { platform ->
+          supported_archs.each { arch ->
+
+            def productConfig = project.configurations.create("product_rcp_${platform}_${arch}")
+            productConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}")
+
+            supported_languages.each { language ->
+              def localizedConfig = project.configurations.create("product_rcp_${platform}_${arch}_${language}")
+              localizedConfig.extendsFrom productConfig
+              localizedConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}_${language}")
+            }
+          }
+        }
+      }
+
+      postConfigure { project ->
+
+        project.dependencies {
+          compile "${eclipseMavenGroup}:javax.annotation:+"
+          compile "${eclipseMavenGroup}:javax.inject:+"
+          runtime "${eclipseMavenGroup}:org.eclipse.core.filesystem:+"
+          runtime "${eclipseMavenGroup}:org.eclipse.core.net:+"
+          compile "${eclipseMavenGroup}:org.eclipse.jface:+"
+          compile "${eclipseMavenGroup}:org.eclipse.swt:+"
+          compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
+          compile "${eclipseMavenGroup}:org.eclipse.ui:+"
+        }
+
+        project.tasks.jar.manifest {
+          instruction 'Require-Bundle', 'org.eclipse.core.filesystem'
+          instruction 'Require-Bundle', 'org.eclipse.core.net'
+          instruction 'Require-Bundle', 'org.eclipse.jface'
+          instruction 'Require-Bundle', 'org.eclipse.swt'
+          instruction 'Require-Bundle', 'org.eclipse.ui'
+        }
+
+        supported_oses.each { platform ->
+          supported_archs.each { arch ->
+
+            String productConfigName = "product_rcp_${platform}_${arch}"
+            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.filesystem.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
+            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
+            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
+
+            supported_languages.each { language ->
+
+              String localizedConfigName = "product_rcp_${platform}_${arch}_${language}"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.nl_${language}:+"
+            }
+          }
         }
       }
     }
