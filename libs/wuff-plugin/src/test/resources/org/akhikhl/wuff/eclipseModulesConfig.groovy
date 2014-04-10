@@ -3,7 +3,7 @@ wuff {
 
   eclipseVersion('3.7') {
 
-    eclipseGroup = 'eclipse-indigo'
+    eclipseMavenGroup = 'eclipse-indigo'
 
     moduleA {
     }
@@ -14,7 +14,7 @@ wuff {
 
   eclipseVersion('4.2') {
 
-    eclipseGroup = 'eclipse-juno'
+    eclipseMavenGroup = 'eclipse-juno'
 
     moduleC {
     }
@@ -25,7 +25,7 @@ wuff {
 
   eclipseVersion('4.3') {
 
-    eclipseGroup = 'eclipse-kepler'
+    eclipseMavenGroup = 'eclipse-kepler'
 
     moduleE {
     }

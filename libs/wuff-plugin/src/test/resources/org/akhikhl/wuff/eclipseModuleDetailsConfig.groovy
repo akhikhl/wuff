@@ -3,7 +3,7 @@ wuff {
 
   eclipseVersion('4.3') {
 
-    eclipseGroup = 'eclipse-kepler'
+    eclipseMavenGroup = 'eclipse-kepler'
 
     moduleA {
       configure {}

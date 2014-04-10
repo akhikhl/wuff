@@ -16,7 +16,7 @@ class EclipseVersionConfig {
   /**
    * maven group containing artifacts of this eclipse version.
    */
-  String eclipseGroup
+  String eclipseMavenGroup
 
   /**
    * module configurations of this eclipse version.

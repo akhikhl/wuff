@@ -46,8 +46,8 @@ class Configurer {
     def applyConfigs = { Config config ->
       EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
       if(versionConfig != null) {
-        if(versionConfig.eclipseGroup != null)
-          project.ext.eclipseGroup = versionConfig.eclipseGroup
+        if(versionConfig.eclipseMavenGroup != null)
+          project.ext.eclipseMavenGroup = versionConfig.eclipseMavenGroup
         EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
         if(moduleConfig) {
           moduleConfig.properties.each { key, value ->

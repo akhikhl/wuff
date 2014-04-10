@@ -43,11 +43,11 @@ class ConfigReaderTest extends Specification {
   then:
     config.versionConfigs.size() == 3
     config.versionConfigs.containsKey('3.7')
-    config.versionConfigs['3.7'].eclipseGroup == 'eclipse-indigo'
+    config.versionConfigs['3.7'].eclipseMavenGroup == 'eclipse-indigo'
     config.versionConfigs.containsKey('4.2')
-    config.versionConfigs['4.2'].eclipseGroup == 'eclipse-juno'
+    config.versionConfigs['4.2'].eclipseMavenGroup == 'eclipse-juno'
     config.versionConfigs.containsKey('4.3')
-    config.versionConfigs['4.3'].eclipseGroup == 'eclipse-kepler'
+    config.versionConfigs['4.3'].eclipseMavenGroup == 'eclipse-kepler'
   }
 
   def 'should read eclipse modules configuration'() {

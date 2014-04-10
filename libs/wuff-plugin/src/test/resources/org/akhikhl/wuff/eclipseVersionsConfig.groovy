@@ -2,14 +2,14 @@ wuff {
   defaultEclipseVersion = '4.3'
 
   eclipseVersion('3.7') {
-    eclipseGroup = 'eclipse-indigo'
+    eclipseMavenGroup = 'eclipse-indigo'
   }
 
   eclipseVersion('4.2') {
-    eclipseGroup = 'eclipse-juno'
+    eclipseMavenGroup = 'eclipse-juno'
   }
 
   eclipseVersion('4.3') {
-    eclipseGroup = 'eclipse-kepler'
+    eclipseMavenGroup = 'eclipse-kepler'
   }
 }
