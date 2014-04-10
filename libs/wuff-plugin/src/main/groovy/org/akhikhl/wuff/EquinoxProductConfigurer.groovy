@@ -29,17 +29,12 @@ class EquinoxProductConfigurer {
   private final Configuration productConfig
   private final List launchers
   private final File jreFolder
-  private final String eclipseApplicationId
-  private final String eclipseProductId
-  private final File osgiFrameworkFile
-  private final File equinoxLauncherFile
-  private final File wrappedLibsDir
   private final File productOutputDir
   private final String buildTaskName
 
-  EquinoxProductConfigurer(EquinoxAppConfigurer appConfigurer, Map product) {
+  EquinoxProductConfigurer(Project project, Map product) {
 
-    project = appConfigurer.project
+    this.project = project
     this.product = product
 
     platform = product.platform ?: PlatformConfig.current_os
@@ -85,16 +80,10 @@ class EquinoxProductConfigurer {
     }
     this.jreFolder = jreFolder
 
-    eclipseApplicationId = appConfigurer.eclipseApplicationId
-    eclipseProductId = appConfigurer.eclipseProductId
-    osgiFrameworkFile = appConfigurer.osgiFrameworkFile
-    equinoxLauncherFile = appConfigurer.equinoxLauncherFile
-    wrappedLibsDir = appConfigurer.wrappedLibsDir
-
     String productOutputDirName = "${project.name}-${project.version}"
     if(suffix)
       productOutputDirName += '-' + suffix
-    productOutputDir = new File(appConfigurer.productOutputBaseDir, productOutputDirName)
+    productOutputDir = new File(PluginUtils.getProductOutputBaseDir(project), productOutputDirName)
 
     String buildTaskName = 'buildProduct'
     if(productName != 'default')
@@ -151,7 +140,7 @@ class EquinoxProductConfigurer {
 
         addBundle project.tasks.jar.archivePath
 
-        wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
+        PluginUtils.getWrappedLibsDir(project).eachFileMatch(~/.*\.jar/) { addBundle it }
 
         project.configurations.runtime.each {
           if(ManifestUtils.isBundle(project, it) && !ProjectUtils.findFileInProducts(project, it))
@@ -168,10 +157,13 @@ class EquinoxProductConfigurer {
         File configFile = new File(productOutputDir, 'configuration/config.ini')
         configFile.parentFile.mkdirs()
         configFile.withPrintWriter { PrintWriter configWriter ->
+          String eclipseApplicationId = PluginUtils.getEclipseApplicationId(project)
           if(eclipseApplicationId)
             configWriter.println "eclipse.application=$eclipseApplicationId"
+          String eclipseProductId = PluginUtils.getEclipseProductId(project)
           if(eclipseProductId)
             configWriter.println "eclipse.product=$eclipseProductId"
+          File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
           configWriter.println "osgi.framework=file\\:plugins/${osgiFrameworkFile.name}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
           configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
@@ -183,6 +175,7 @@ class EquinoxProductConfigurer {
           }
         }
 
+        File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
         String equinoxLauncherName = 'plugins/' + equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')
 
         if(jreFolder)

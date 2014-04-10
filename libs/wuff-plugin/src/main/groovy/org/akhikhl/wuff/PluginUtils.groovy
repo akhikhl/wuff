@@ -163,8 +163,40 @@ final class PluginUtils {
     return result
   }
 
+  static String getEclipseApplicationId(Project project) {
+    String eclipseApplicationId
+    def pluginConfig = PluginUtils.findPluginConfig(project)
+    if(pluginConfig)
+      eclipseApplicationId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
+    return eclipseApplicationId ? "${project.name}.${eclipseApplicationId}" : null
+  }
+
+  static String getEclipseProductId(Project project) {
+    String eclipseProductId
+    def pluginConfig = PluginUtils.findPluginConfig(project)
+    if(pluginConfig)
+      eclipseProductId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
+    return eclipseProductId ? "${project.name}.${eclipseProductId}" : null
+  }
+
+  static File getEquinoxLauncherFile(Project project) {
+    return project.configurations.runtime.find { getPluginName(it.name) == equinoxLauncherPluginName }
+  }
+
+  static File getOsgiFrameworkFile(Project project) {
+    return project.configurations.runtime.find { getPluginName(it.name) == osgiFrameworkPluginName }
+  }
+
   static String getPluginName(String fileName) {
     return fileName.replaceAll(eclipsePluginMask, '$1')
+  }
+
+  static File getProductOutputBaseDir(Project project) {
+    return new File(project.buildDir, 'output')
+  }
+
+  static File getWrappedLibsDir(Project project) {
+    return new File(project.buildDir, 'wrappedLibs')
   }
 }
 

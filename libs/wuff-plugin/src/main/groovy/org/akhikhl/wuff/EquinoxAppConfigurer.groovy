@@ -16,29 +16,8 @@ import org.gradle.api.tasks.JavaExec
  */
 class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
-  private File equinoxLauncherFile
-  private File osgiFrameworkFile
-  private final File wrappedLibsDir
-  private final File productOutputBaseDir
-  private final String eclipseApplicationId
-  private final String eclipseProductId
-
   EquinoxAppConfigurer(Project project) {
-
     super(project, 'equinoxApp')
-
-    wrappedLibsDir = new File(project.buildDir, 'wrappedLibs')
-    productOutputBaseDir = new File(project.buildDir, 'output')
-
-    String eclipseApplicationId
-    String eclipseProductId
-    def pluginConfig = PluginUtils.findPluginConfig(project)
-    if(pluginConfig) {
-      eclipseApplicationId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
-      eclipseProductId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
-    }
-    this.eclipseApplicationId = eclipseApplicationId ? "${project.name}.${eclipseApplicationId}" : null
-    this.eclipseProductId = eclipseProductId ? "${project.name}.${eclipseProductId}" : null
   }
 
   @Override
@@ -59,7 +38,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     }
 
     project.equinox.products.each { product ->
-      def productConfigurer = new EquinoxProductConfigurer(this, product)
+      def productConfigurer = new EquinoxProductConfigurer(project, product)
       productConfigurer.configure()
     } // each product
   }
@@ -102,7 +81,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
         addBundle project.tasks.jar.archivePath
 
-        wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
+        PluginUtils.getWrappedLibsDir(project).eachFileMatch(~/.*\.jar/) { addBundle it }
 
         project.configurations.runtime.each {
           if(ManifestUtils.isBundle(project, it))
@@ -126,8 +105,10 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
         runConfigFile.parentFile.mkdirs()
         runConfigFile.withPrintWriter { PrintWriter configWriter ->
+          String eclipseApplicationId = PluginUtils.getEclipseApplicationId(project)
           if(eclipseApplicationId)
             configWriter.println "eclipse.application=$eclipseApplicationId"
+          String eclipseProductId = PluginUtils.getEclipseProductId(project)
           if(eclipseProductId)
             configWriter.println "eclipse.product=$eclipseProductId"
           ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
@@ -137,6 +118,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
               true
             }
           }
+          File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
           configWriter.println "osgi.framework=file\\:${osgiFrameworkFile.absolutePath}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
           configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
@@ -176,6 +158,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
     project.tasks.run {
       dependsOn project.tasks.prepareRunConfig
+      File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
       classpath = project.files(new File(runPluginsDir, equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')))
       main = 'org.eclipse.equinox.launcher.Main'
       args = programArgs
@@ -183,6 +166,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
     project.tasks.debug {
       dependsOn project.tasks.prepareRunConfig
+      File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
       classpath = project.files(new File(runPluginsDir, equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')))
       main = 'org.eclipse.equinox.launcher.Main'
       args = programArgs
@@ -194,11 +178,10 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
     project.task('wrapLibs') {
       inputs.files { project.configurations.runtime }
-      outputs.dir wrappedLibsDir
+      outputs.dir { PluginUtils.getWrappedLibsDir(project) }
       doLast {
-        wrappedLibsDir.mkdirs()
         inputs.files.each { lib ->
-          def wrapper = new LibWrapper(project, lib, wrappedLibsDir)
+          def wrapper = new LibWrapper(project, lib)
           wrapper.wrap()
         }
       }
@@ -207,13 +190,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   @Override
   protected void configureTasks() {
-
     super.configureTasks()
-
-    // This code is here because configuration files should be accessed only after all dependency augmentations.
-    equinoxLauncherFile = project.configurations.runtime.find { PluginUtils.getPluginName(it.name) == PluginUtils.equinoxLauncherPluginName }
-    osgiFrameworkFile = project.configurations.runtime.find { PluginUtils.getPluginName(it.name) == PluginUtils.osgiFrameworkPluginName }
-
     configureTask_wrapLibs()
     configureRunTasks()
   }

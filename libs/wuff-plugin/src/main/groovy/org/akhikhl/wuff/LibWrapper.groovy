@@ -19,7 +19,6 @@ class LibWrapper {
 
   private final Project project
   private final File lib
-  private final File outputDir
   private libManifest
   private final String baseLibName
   private String bundleName
@@ -27,10 +26,9 @@ class LibWrapper {
   private String fragmentHost
   private String bundleFileName
 
-  LibWrapper(Project project, File lib, File outputDir) {
+  LibWrapper(Project project, File lib) {
     this.project = project
     this.lib = lib
-    this.outputDir = outputDir
     libManifest = ManifestUtils.getManifest(project, lib)
     if(!ManifestUtils.isBundle(libManifest)) {
       baseLibName = FilenameUtils.getBaseName(lib.name)
@@ -174,9 +172,10 @@ class LibWrapper {
   void wrap() {
     if(ManifestUtils.isBundle(libManifest))
       return
-    outputDir.mkdirs()
+    File wrappedLibsDir = PluginUtils.getWrappedLibsDir(project)
+    wrappedLibsDir.mkdirs()
     File manifestFile = generateManifestFile()
-    project.ant.jar(destFile: new File(outputDir, bundleFileName), manifest: manifestFile) {
+    project.ant.jar(destFile: new File(wrappedLibsDir, bundleFileName), manifest: manifestFile) {
       fileset(file: lib)
     }
     manifestFile.delete()
