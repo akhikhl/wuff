@@ -212,7 +212,9 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     WrappedLibsConfig result = new WrappedLibsConfig()
     applyToConfigs { Config config ->
       config.wrappedLibsConfig.libConfigs.each { String libName, WrappedLibConfig wrappedLibConfig ->
-        def targetWrappedLibConfig = result.libConfigs[libName] = new WrappedLibConfig()
+        def targetWrappedLibConfig = result.libConfigs[libName]
+        if(targetWrappedLibConfig == null)
+          targetWrappedLibConfig = result.libConfigs[libName] = new WrappedLibConfig()
         wrappedLibConfig.excludedImports.each { targetWrappedLibConfig.excludedImports.add(it) }
       }
     }

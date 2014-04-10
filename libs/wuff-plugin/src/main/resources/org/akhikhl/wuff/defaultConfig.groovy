@@ -233,9 +233,5 @@ wuff {
     /^xercesImpl$/ {
       excludeImport(/^sun.io$/)
     }
-
-    /^commons-jxpath$/ {
-      excludeImport(/^ant-optional$/)
-    }
   }
 }
