@@ -11,13 +11,13 @@ package org.akhikhl.wuff
  * Holds plugin configuration.
  * @author akhikhl
  */
-class EclipseConfig {
+class Config {
 
-  String defaultVersion = null
+  String defaultEclipseVersion = null
 
   Map<String, EclipseVersionConfig> versionConfigs = [:]
 
-  void version(String versionString, Closure versionDef) {
+  void eclipseVersion(String versionString, Closure versionDef) {
     if(versionConfigs[versionString] == null)
       versionConfigs[versionString] = new EclipseVersionConfig()
     versionDef.resolveStrategy = Closure.DELEGATE_FIRST

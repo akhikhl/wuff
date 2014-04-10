@@ -35,8 +35,8 @@ class EclipseBundlePluginTest extends Specification {
     plugin.apply(project)
     project.evaluate()
   then:
-    project.extensions.findByName('eclipse')
-    project.eclipse.defaultVersion == '4.3'
+    project.extensions.findByName('wuff')
+    project.wuff.defaultEclipseVersion == '4.3'
     project.configurations.findByName('privateLib')
     project.configurations.findByName('compile')
     project.configurations.compile.files.find { it.name.startsWith('org.eclipse.swt') }

@@ -18,6 +18,6 @@ class EclipseConfigPlugin implements Plugin<Project> {
 
   void apply(final Project project) {
     // configuration is created, but not applied to this project
-    project.extensions.create('eclipse', EclipseConfig)
+    project.extensions.create('wuff', Config)
   }
 }

@@ -1,7 +1,7 @@
-eclipse {
-  defaultVersion = '4.3'
+wuff {
+  defaultEclipseVersion = '4.3'
 
-  version('3.7') {
+  eclipseVersion('3.7') {
 
     eclipseGroup = 'eclipse-indigo'
 
@@ -12,7 +12,7 @@ eclipse {
     }
   }
 
-  version('4.2') {
+  eclipseVersion('4.2') {
 
     eclipseGroup = 'eclipse-juno'
 
@@ -23,7 +23,7 @@ eclipse {
     }
   }
 
-  version('4.3') {
+  eclipseVersion('4.3') {
 
     eclipseGroup = 'eclipse-kepler'
 

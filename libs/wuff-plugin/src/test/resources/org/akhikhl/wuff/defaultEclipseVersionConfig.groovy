@@ -1,3 +1,3 @@
-eclipse {
-  defaultVersion = '4.3'
+wuff {
+  defaultEclipseVersion = '4.3'
 }

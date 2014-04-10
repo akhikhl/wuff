@@ -22,14 +22,14 @@ class Configurer {
 
   protected final Project project
   protected final String moduleName
-  protected final EclipseConfig defaultConfig
+  protected final Config defaultConfig
   protected String eclipseVersion
 
   Configurer(Project project, String moduleName) {
 
     this.project = project
     this.moduleName = moduleName
-    this.defaultConfig = new EclipseConfigReader().readFromResource('defaultEclipseConfig.groovy')
+    this.defaultConfig = new ConfigReader().readFromResource('defaultConfig.groovy')
   }
 
   protected void afterEvaluate(Closure closure) {
@@ -43,8 +43,8 @@ class Configurer {
 
   private void applyModuleConfig(Closure closure) {
 
-    def applyConfigs = { EclipseConfig eclipseConfig ->
-      EclipseVersionConfig versionConfig = eclipseConfig.versionConfigs[eclipseVersion]
+    def applyConfigs = { Config config ->
+      EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
       if(versionConfig != null) {
         if(versionConfig.eclipseGroup != null)
           project.ext.eclipseGroup = versionConfig.eclipseGroup
@@ -67,7 +67,7 @@ class Configurer {
     applyConfigs(defaultConfig)
 
     ProjectUtils.collectWithAllAncestors(project).each { Project p ->
-      EclipseConfig config = p.extensions.findByName('eclipse')
+      Config config = p.extensions.findByName('wuff')
       if(config)
         applyConfigs(config)
     }
@@ -86,13 +86,13 @@ class Configurer {
       // project properties are inherently hierarchical, so parent's eclipseVersion will be inherited
       eclipseVersion = project.eclipseVersion
     else {
-      Project p = ProjectUtils.findUpAncestorChain(project, { it.extensions.findByName('eclipse')?.defaultVersion != null })
-      eclipseVersion = p != null ? p.eclipse.defaultVersion : defaultConfig.defaultVersion
+      Project p = ProjectUtils.findUpAncestorChain(project, { it.extensions.findByName('wuff')?.defaultEclipseVersion != null })
+      eclipseVersion = p != null ? p.wuff.defaultEclipseVersion : defaultConfig.defaultEclipseVersion
       if(eclipseVersion == null)
-        eclipseVersion = defaultConfig.defaultVersion
+        eclipseVersion = defaultConfig.defaultEclipseVersion
     }
 
-    project.eclipse.defaultVersion = eclipseVersion
+    project.wuff.defaultEclipseVersion = eclipseVersion
 
     project.configurations {
       privateLib
@@ -114,7 +114,7 @@ class Configurer {
   }
 
   protected void createExtensions() {
-    project.extensions.create('eclipse', EclipseConfig)
+    project.extensions.create('wuff', Config)
   }
 
   protected void postConfigure() {

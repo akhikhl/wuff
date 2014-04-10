@@ -13,33 +13,33 @@ import spock.lang.Specification
  *
  * @author akhikhl
  */
-class EclipseConfigReaderTest extends Specification {
+class ConfigReaderTest extends Specification {
 
-  EclipseConfigReader reader
+  ConfigReader reader
 
   def setup() {
-    reader = new EclipseConfigReader()
+    reader = new ConfigReader()
   }
 
   def 'should read empty configuration'() {
   when:
-    EclipseConfig config = reader.readFromResource('emptyConfig.groovy')
+    Config config = reader.readFromResource('emptyConfig.groovy')
   then:
-    config.defaultVersion == null
+    config.defaultEclipseVersion == null
     config.versionConfigs.isEmpty()
   }
 
   def 'should read default eclipse version'() {
   when:
-    EclipseConfig config = reader.readFromResource('defaultEclipseVersionConfig.groovy')
+    Config config = reader.readFromResource('defaultEclipseVersionConfig.groovy')
   then:
-    config.defaultVersion == '4.3'
+    config.defaultEclipseVersion == '4.3'
     config.versionConfigs.isEmpty()
   }
 
   def 'should read eclipse versions configuration'() {
   when:
-    EclipseConfig config = reader.readFromResource('eclipseVersionsConfig.groovy')
+    Config config = reader.readFromResource('eclipseVersionsConfig.groovy')
   then:
     config.versionConfigs.size() == 3
     config.versionConfigs.containsKey('3.7')
@@ -52,7 +52,7 @@ class EclipseConfigReaderTest extends Specification {
 
   def 'should read eclipse modules configuration'() {
   when:
-    EclipseConfig config = reader.readFromResource('eclipseModulesConfig.groovy')
+    Config config = reader.readFromResource('eclipseModulesConfig.groovy')
   then:
     config.versionConfigs.size() == 3
     config.versionConfigs['3.7'].moduleConfigs.size() == 2
@@ -68,7 +68,7 @@ class EclipseConfigReaderTest extends Specification {
 
   def 'should read eclipse module details configuration'() {
   when:
-    EclipseConfig config = reader.readFromResource('eclipseModuleDetailsConfig.groovy')
+    Config config = reader.readFromResource('eclipseModuleDetailsConfig.groovy')
   then:
     config.versionConfigs.size() == 1
     config.versionConfigs['4.3'].moduleConfigs.size() == 2

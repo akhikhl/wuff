@@ -9,6 +9,9 @@ package org.akhikhl.wuff
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.bundling.Compression
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.Zip
 
 /**
  *
@@ -17,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 class EquinoxProductConfigurer {
 
   private final Project project
+  private final Map product
   private final String platform
   private final String arch
   private final String language
@@ -36,6 +40,7 @@ class EquinoxProductConfigurer {
   EquinoxProductConfigurer(EquinoxAppConfigurer appConfigurer, Map product) {
 
     project = appConfigurer.project
+    this.product = product
 
     platform = product.platform ?: PlatformConfig.current_os
     if(!PlatformConfig.supported_oses.contains(platform))
@@ -263,7 +268,7 @@ class EquinoxProductConfigurer {
     project.task(archiveTaskName, type: archiveType) { task ->
       task.dependsOn buildTaskName
       project.tasks.build.dependsOn task
-      from new File(productOutputDir), { into project.name }
+      from productOutputDir, { into project.name }
       def addedFiles = new HashSet()
       def addFileToArchive = { f, Closure closure ->
         File file = f instanceof File ? f : new File(f)
@@ -299,7 +304,7 @@ class EquinoxProductConfigurer {
       destinationDir = productOutputDir.parentFile
       classifier = suffix
       if(archiveType == Tar) {
-        extension = '.tar.gz'
+        extension = 'tar.gz'
         compression = Compression.GZIP
       }
       task.doLast {

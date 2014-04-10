@@ -1,8 +1,8 @@
-eclipse {
+wuff {
 
-  defaultVersion = '4.3'
+  defaultEclipseVersion = '4.3'
 
-  version('4.3') {
+  eclipseVersion('4.3') {
 
     eclipseGroup = 'eclipse-kepler'
 
