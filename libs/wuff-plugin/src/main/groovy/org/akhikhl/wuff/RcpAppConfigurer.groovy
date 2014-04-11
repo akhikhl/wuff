@@ -25,16 +25,7 @@ class RcpAppConfigurer extends EquinoxAppConfigurer {
   protected void configureProducts() {
 
     project.rcp.products.each { product ->
-      String platform = product.platform ?: PlatformConfig.current_os
-      String arch = product.arch ?: PlatformConfig.current_arch
-      String language = product.language ?: ''
-      def archiveFiles = []
-      if(product.archiveFile)
-        archiveFiles.add product.archiveFile
-      if(product.archiveFiles)
-        archiveFiles.addAll product.archiveFiles
-      String productName = language ? "rcp_${platform}_${arch}_$language" : "rcp_${platform}_${arch}"
-      project.equinox.product name: productName, launcher: launchers[platform], platform: platform, arch: arch, jre: product.jre, archiveFiles: archiveFiles
+      project.equinox.product(product)
     }
 
     project.equinox.archiveProducts = project.rcp.archiveProducts
@@ -52,7 +43,11 @@ class RcpAppConfigurer extends EquinoxAppConfigurer {
 
   @Override
   protected List<String> getModules() {
-    return super.getModules() + [ 'rcpApp' ]
+    super.getModules() + [ 'rcpApp' ]
+  }
+
+  protected String getProductConfigPrefix() {
+    'product_rcp_'
   }
 }
 

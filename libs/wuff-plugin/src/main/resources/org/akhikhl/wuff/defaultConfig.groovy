@@ -104,6 +104,19 @@ wuff {
             }
           }
         }
+
+        project.equinox.products.each { product ->
+          if(product.name && !product.configName) {
+            String platform = product.platform ?: current_os
+            String arch = product.arch ?: current_arch
+            String language = product.language ?: ''
+            String languageSuffix = language ? "_${language}" : ''
+            def productSpecificConfig = project.configurations.create("product_equinox_${product.name}")
+            def productAndPlatformSpecificConfig = project.configurations.create("product_equinox_${product.name}_${platform}_${arch}${languageSuffix}")
+            productAndPlatformSpecificConfig.extendsFrom project.configurations["product_equinox_${platform}_${arch}${languageSuffix}"]
+            productAndPlatformSpecificConfig.extendsFrom productSpecificConfig
+          }
+        }
       } // configure
 
       postConfigure { project ->
@@ -159,6 +172,20 @@ wuff {
               localizedConfig.extendsFrom productConfig
               localizedConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}_${language}")
             }
+          }
+        }
+
+        project.rcp.products.each { product ->
+          if(product.name && !product.configName) {
+            String platform = product.platform ?: current_os
+            String arch = product.arch ?: current_arch
+            String language = product.language ?: ''
+            String languageSuffix = language ? "_${language}" : ''
+            def productSpecificConfig = project.configurations.create("product_rcp_${product.name}")
+            productSpecificConfig.extendsFrom project.configurations["product_equinox_${product.name}"]
+            def productAndPlatformSpecificConfig = project.configurations.create("product_rcp_${product.name}_${platform}_${arch}${languageSuffix}")
+            productAndPlatformSpecificConfig.extendsFrom project.configurations["product_rcp_${platform}_${arch}${languageSuffix}"]
+            productAndPlatformSpecificConfig.extendsFrom productSpecificConfig
           }
         }
       }

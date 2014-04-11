@@ -30,9 +30,8 @@ class EquinoxProductConfigurer {
   private final List launchers
   private final File jreFolder
   private final File productOutputDir
-  private final String buildTaskName
 
-  EquinoxProductConfigurer(Project project, Map product) {
+  EquinoxProductConfigurer(Project project, String productConfigPrefix, Map product) {
 
     this.project = project
     this.product = product
@@ -60,21 +59,18 @@ class EquinoxProductConfigurer {
     if(product.taskSuffix)
       productTaskSuffix = product.taskSuffix
     else {
-      String productNamePrefix = product.name ? "_${product.name}" : ''
+      String productNamePrefix = product.name ? "${product.name}_" : ''
       String languageSuffix = language ? "_${language}" : ''
-      productTaskSuffix = "${productNamePrefix}_${platform}_${arch}${languageSuffix}"
+      productTaskSuffix = "${productNamePrefix}${platform}_${arch}${languageSuffix}"
     }
 
     String configName
     if(product.configName)
       configName = product.configName
     else {
-      configName = "${platform}_${arch}"
-      if(product.name)
-        configName = "${product.name}_${configName}"
-      if(language)
-        configName = "${configName}_${language}"
-      configName = "product_equinox_${configName}"
+      String productNamePrefix = product.name ? "${product.name}_" : ''
+      String languageSuffix = language ? "_${language}" : ''
+      configName = "${productConfigPrefix}${productNamePrefix}${platform}_${arch}${languageSuffix}"
     }
 
     productConfig = project.configurations.findByName(configName)
@@ -108,8 +104,6 @@ class EquinoxProductConfigurer {
     if(productFileSuffix)
       productOutputDirName += '-' + productFileSuffix
     productOutputDir = new File(PluginUtils.getProductOutputBaseDir(project), productOutputDirName)
-
-    this.buildTaskName = "buildProduct_${productTaskSuffix}"
   }
 
   void configure() {
@@ -119,7 +113,7 @@ class EquinoxProductConfigurer {
 
   void configureBuildTask() {
 
-    project.task(buildTaskName) { task ->
+    project.task("buildProduct_${productTaskSuffix}") { task ->
 
       dependsOn project.tasks.jar
       dependsOn project.tasks.wrapLibs
@@ -277,9 +271,9 @@ class EquinoxProductConfigurer {
 
     def archiveType = launchers.contains('windows') ? Zip : Tar
 
-    project.task("archiveProduct_${productTaskSuffix}", type: archiveType) { task ->
-      task.dependsOn buildTaskName
-      project.tasks.build.dependsOn task
+    project.task("archiveProduct_${productTaskSuffix}", type: archiveType) {
+      dependsOn "buildProduct_${productTaskSuffix}"
+      project.tasks.build.dependsOn it
       from productOutputDir, { into project.name }
       def addedFiles = new HashSet()
       def addFileToArchive = { f, Closure closure ->
@@ -319,7 +313,7 @@ class EquinoxProductConfigurer {
         extension = 'tar.gz'
         compression = Compression.GZIP
       }
-      task.doLast {
+      doLast {
         ant.checksum file: it.archivePath
       }
     } // archiveTaskName

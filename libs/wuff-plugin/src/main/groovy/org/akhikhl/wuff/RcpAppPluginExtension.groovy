@@ -14,7 +14,7 @@ package org.akhikhl.wuff
 class RcpAppPluginExtension {
 
   private boolean defaultProducts = true
-  def products = [[ name: 'default' ]]
+  def products = [[:]]
 
   boolean archiveProducts = false
 

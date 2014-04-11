@@ -29,19 +29,6 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     // so that netbeans recognizes them and uses them.
     project.task 'run', type: JavaExec
     project.task 'debug', type: JavaExec
-
-    project.equinox.products.each { product ->
-      if(product.name && !product.configName) {
-        String platform = product.platform ?: PlatformConfig.current_os
-        String arch = product.arch ?: PlatformConfig.current_arch
-        String language = product.language ?: ''
-        String configName = "${product.name}_${platform}_${arch}"
-        if(language)
-          configName = "${configName}_${language}"
-        configName = "product_equinox_${configName}"
-        def config = project.configurations.create(configName)
-      }
-    }
   }
 
   @Override
@@ -53,7 +40,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     }
 
     project.equinox.products.each { product ->
-      def productConfigurer = new EquinoxProductConfigurer(project, product)
+      def productConfigurer = new EquinoxProductConfigurer(project, getProductConfigPrefix(), product)
       productConfigurer.configure()
     } // each product
   }
@@ -240,6 +227,10 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   @Override
   protected List<String> getModules() {
-    return super.getModules() + [ 'equinoxApp' ]
+    super.getModules() + [ 'equinoxApp' ]
+  }
+
+  protected String getProductConfigPrefix() {
+    'product_equinox_'
   }
 }
