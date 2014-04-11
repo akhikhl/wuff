@@ -24,8 +24,8 @@ class EquinoxProductConfigurer {
   private final String platform
   private final String arch
   private final String language
-  private final String productName
-  private final String suffix
+  private final String productFileSuffix
+  private final String productTaskSuffix
   private final Configuration productConfig
   private final List launchers
   private final File jreFolder
@@ -49,11 +49,35 @@ class EquinoxProductConfigurer {
     if(language && !PlatformConfig.supported_languages.contains(language))
       log.error 'Language {} is not supported', language
 
-    productName = product.name ?: (language ? "${platform}_${arch}_${language}" : "${platform}_${arch}")
+    if(product.fileSuffix)
+      productFileSuffix = product.fileSuffix
+    else {
+      String productNamePrefix = product.name ? "${product.name}-" : ''
+      String languageSuffix = language ? "-${language}" : ''
+      productFileSuffix = "${productNamePrefix}${platform}-${arch}${languageSuffix}"
+    }
 
-    suffix = productName == 'default' ? '' : (product.suffix ?: productName)
+    if(product.taskSuffix)
+      productTaskSuffix = product.taskSuffix
+    else {
+      String productNamePrefix = product.name ? "_${product.name}" : ''
+      String languageSuffix = language ? "_${language}" : ''
+      productTaskSuffix = "${productNamePrefix}_${platform}_${arch}${languageSuffix}"
+    }
 
-    productConfig = project.configurations.findByName("product_equinox_${productName}")
+    String configName
+    if(product.configName)
+      configName = product.configName
+    else {
+      configName = "${platform}_${arch}"
+      if(product.name)
+        configName = "${product.name}_${configName}"
+      if(language)
+        configName = "${configName}_${language}"
+      configName = "product_equinox_${configName}"
+    }
+
+    productConfig = project.configurations.findByName(configName)
 
     if(product.launchers)
       launchers = product.launchers
@@ -81,14 +105,11 @@ class EquinoxProductConfigurer {
     this.jreFolder = jreFolder
 
     String productOutputDirName = "${project.name}-${project.version}"
-    if(suffix)
-      productOutputDirName += '-' + suffix
+    if(productFileSuffix)
+      productOutputDirName += '-' + productFileSuffix
     productOutputDir = new File(PluginUtils.getProductOutputBaseDir(project), productOutputDirName)
 
-    String buildTaskName = 'buildProduct'
-    if(productName != 'default')
-      buildTaskName += '_' + productName
-    this.buildTaskName = buildTaskName
+    this.buildTaskName = "buildProduct_${productTaskSuffix}"
   }
 
   void configure() {
@@ -254,13 +275,9 @@ class EquinoxProductConfigurer {
     if(!project.equinox.archiveProducts)
       return
 
-    String archiveTaskName = 'archiveProduct'
-    if(productName != 'default')
-      archiveTaskName += '_' + productName
-
     def archiveType = launchers.contains('windows') ? Zip : Tar
 
-    project.task(archiveTaskName, type: archiveType) { task ->
+    project.task("archiveProduct_${productTaskSuffix}", type: archiveType) { task ->
       task.dependsOn buildTaskName
       project.tasks.build.dependsOn task
       from productOutputDir, { into project.name }
@@ -297,7 +314,7 @@ class EquinoxProductConfigurer {
           rename 'appicon.xpm', "${project.name}.xpm"
         }
       destinationDir = productOutputDir.parentFile
-      classifier = suffix
+      classifier = productFileSuffix
       if(archiveType == Tar) {
         extension = 'tar.gz'
         compression = Compression.GZIP

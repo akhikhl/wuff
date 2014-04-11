@@ -33,10 +33,8 @@ class RcpAppConfigurer extends EquinoxAppConfigurer {
         archiveFiles.add product.archiveFile
       if(product.archiveFiles)
         archiveFiles.addAll product.archiveFiles
-      if(language)
-        project.equinox.product name: "rcp_${platform}_${arch}_$language", launcher: launchers[platform], suffix: "${platform}-${arch}-${language}", platform: platform, arch: arch, language: language, jre: product.jre, archiveFiles: archiveFiles
-      else
-        project.equinox.product name: "rcp_${platform}_${arch}", launcher: launchers[platform], suffix: "${platform}-${arch}", platform: platform, arch: arch, jre: product.jre, archiveFiles: archiveFiles
+      String productName = language ? "rcp_${platform}_${arch}_$language" : "rcp_${platform}_${arch}"
+      project.equinox.product name: productName, launcher: launchers[platform], platform: platform, arch: arch, jre: product.jre, archiveFiles: archiveFiles
     }
 
     project.equinox.archiveProducts = project.rcp.archiveProducts

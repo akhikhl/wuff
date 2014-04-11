@@ -22,11 +22,26 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   @Override
   protected void configure() {
+
     super.configure()
+
     // these tasks need to be configured early (not in configureTasks),
     // so that netbeans recognizes them and uses them.
     project.task 'run', type: JavaExec
     project.task 'debug', type: JavaExec
+
+    project.equinox.products.each { product ->
+      if(product.name && !product.configName) {
+        String platform = product.platform ?: PlatformConfig.current_os
+        String arch = product.arch ?: PlatformConfig.current_arch
+        String language = product.language ?: ''
+        String configName = "${product.name}_${platform}_${arch}"
+        if(language)
+          configName = "${configName}_${language}"
+        configName = "product_equinox_${configName}"
+        def config = project.configurations.create(configName)
+      }
+    }
   }
 
   @Override

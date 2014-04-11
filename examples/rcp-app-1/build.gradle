@@ -1,12 +1,3 @@
 apply plugin: 'java'
 apply plugin: 'eclipse-rcp-app'
 
-rcp {
-  product platform: 'linux', arch: 'x86_64'
-  product platform: 'linux', arch: 'x86_64', language: 'de'
-  product platform: 'windows', arch: 'x86_32'
-  product platform: 'windows', arch: 'x86_32', language: 'de'
-  product platform: 'windows', arch: 'x86_64'
-  product platform: 'windows', arch: 'x86_64', language: 'de'
-  archiveProducts = true
-}

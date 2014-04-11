@@ -20,7 +20,7 @@ class EquinoxAppPluginExtension {
   def launchParameters = []
 
   private boolean defaultProducts = true
-  def products = [[ name: 'default' ]]
+  def products = [[]]
 
   def additionalFilesToArchive = []
 
