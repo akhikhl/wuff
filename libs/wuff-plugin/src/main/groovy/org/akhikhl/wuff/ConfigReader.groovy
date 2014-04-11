@@ -23,6 +23,7 @@ class ConfigReader {
       closure.delegate = config
       closure()
     }
+    binding.PluginUtils = PluginUtils.class
     GroovyShell shell = new GroovyShell(binding)
     ConfigReader.class.getResourceAsStream(resourceName).withReader('UTF-8') {
       shell.evaluate(it)

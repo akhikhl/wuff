@@ -1,0 +1,7 @@
+apply plugin: 'java'
+apply plugin: 'eclipse-ide-app'
+
+dependencies {
+  compile project(':ide-bundle-1')
+}
+
