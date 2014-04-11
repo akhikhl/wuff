@@ -305,9 +305,9 @@ wuff {
             supported_languages.each { language ->
 
               String localizedConfigName = "product_eclipseIde_${platform}_${arch}_${language}"
-              project.dependencies.add localizedConfigName, "$eclipseGroup:org.eclipse.ui.ide.nl_${language}:+"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.ide.nl_${language}:+"
               if(hasIntro)
-                project.dependencies.add localizedConfigName, "$eclipseGroup:org.eclipse.ui.intro.nl_${language}:+"
+                project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
             }
           }
         }
