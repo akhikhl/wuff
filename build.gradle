@@ -37,6 +37,8 @@ task('cleanExamples', type: GradleBuild) { task ->
 tasks.clean.dependsOn tasks.cleanExamples
 
 subprojects {
+  if(project.parent.name != 'libs')
+    return
 
   apply plugin: 'maven'
   apply plugin: 'groovy'
