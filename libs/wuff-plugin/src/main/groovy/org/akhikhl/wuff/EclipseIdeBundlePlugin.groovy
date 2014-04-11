@@ -18,7 +18,8 @@ class EclipseIdeBundlePlugin implements Plugin<Project> {
 
   @Override
   void apply(Project project) {
-
+    def configurer = new EclipseIdeBundleConfigurer(project)
+    configurer.apply()
   }
 }
 
