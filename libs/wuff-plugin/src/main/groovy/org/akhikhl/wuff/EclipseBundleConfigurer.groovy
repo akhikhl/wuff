@@ -20,11 +20,6 @@ class EclipseBundleConfigurer extends OsgiBundleConfigurer {
   }
 
   @Override
-  protected Collection<String> getDefaultRequiredBundles() {
-    [ 'org.eclipse.core.runtime', 'org.eclipse.core.resources', 'org.eclipse.ui', 'org.eclipse.jface' ]
-  }
-
-  @Override
   protected List<String> getModules() {
     return super.getModules() + [ 'eclipseBundle' ]
   }

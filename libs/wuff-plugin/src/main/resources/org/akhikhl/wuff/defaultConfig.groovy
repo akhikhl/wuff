@@ -65,6 +65,10 @@ wuff {
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.osgi:+"
         }
+
+        project.tasks.jar.manifest {
+          instruction 'Require-Bundle', 'org.eclipse.osgi'
+        }
       }
     }
 
@@ -82,8 +86,10 @@ wuff {
         }
 
         project.tasks.jar.manifest {
-          instruction 'Require-Bundle', 'org.eclipse.jface'
+          instruction 'Require-Bundle', 'org.eclipse.core.runtime'
+          instruction 'Require-Bundle', 'org.eclipse.core.resources'
           instruction 'Require-Bundle', 'org.eclipse.swt'
+          instruction 'Require-Bundle', 'org.eclipse.jface'
           instruction 'Require-Bundle', 'org.eclipse.ui'
         }
       }

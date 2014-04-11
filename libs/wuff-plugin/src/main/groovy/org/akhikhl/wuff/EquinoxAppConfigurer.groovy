@@ -207,11 +207,6 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     project.extensions.create('equinox', EquinoxAppPluginExtension)
   }
 
-  @Override
-  protected Collection<String> getDefaultRequiredBundles() {
-    [ 'org.eclipse.core.runtime' ]
-  }
-
   protected WrappedLibsConfig getEffectiveWrappedLibsConfig() {
     WrappedLibsConfig result = new WrappedLibsConfig()
     applyToConfigs { Config config ->
