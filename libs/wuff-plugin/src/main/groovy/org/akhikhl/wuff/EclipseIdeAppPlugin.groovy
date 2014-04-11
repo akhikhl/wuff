@@ -12,14 +12,13 @@ import org.gradle.api.Project
 
 /**
  *
- * @author akhikhl
+ * @author ahi
  */
-class OsgiBundlePlugin implements Plugin<Project> {
+class EclipseIdeAppPlugin implements Plugin<Project> {
 
   @Override
   void apply(Project project) {
-    def configurer = new OsgiBundleConfigurer(project)
+    def configurer = new EclipseIdeAppConfigurer(project)
     configurer.apply()
   }
 }
-

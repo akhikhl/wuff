@@ -164,19 +164,37 @@ final class PluginUtils {
   }
 
   static String getEclipseApplicationId(Project project) {
-    String eclipseApplicationId
+    String result
     def pluginConfig = PluginUtils.findPluginConfig(project)
     if(pluginConfig)
-      eclipseApplicationId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
-    return eclipseApplicationId ? "${project.name}.${eclipseApplicationId}" : null
+      result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
+    if(result)
+      result = "${project.name}.${result}"
+    return result
+  }
+
+  static String getEclipseIntroId(Project project) {
+    String result
+    project.sourceSets.main.resources.srcDirs.each { File srcDir ->
+      File pluginConfigFile = new File(srcDir, 'plugin.xml')
+      if(pluginConfigFile.exists()) {
+        def pluginConfig = new XmlParser().parse(pluginConfigFile)
+        result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
+      }
+    }
+    if(result)
+      result = "${project.name}.$result"
+    return result
   }
 
   static String getEclipseProductId(Project project) {
-    String eclipseProductId
+    String result
     def pluginConfig = PluginUtils.findPluginConfig(project)
     if(pluginConfig)
-      eclipseProductId = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
-    return eclipseProductId ? "${project.name}.${eclipseProductId}" : null
+      result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
+    if(result)
+      result = "${project.name}.$result"
+    return result
   }
 
   static File getEquinoxLauncherFile(Project project) {

@@ -16,7 +16,8 @@ import org.gradle.api.Project
  */
 class SwtLibPlugin implements Plugin<Project> {
 
-  void apply(final Project project) {
+  @Override
+  void apply(Project project) {
     def configurer = new SwtLibConfigurer(project)
     configurer.apply()
   }

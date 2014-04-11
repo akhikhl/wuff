@@ -13,14 +13,24 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class EclipseBundleConfigurer extends OsgiBundleConfigurer {
+class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
-  EclipseBundleConfigurer(Project project) {
+  EclipseRcpAppConfigurer(Project project) {
     super(project)
   }
 
   @Override
+  protected String getAppExtensionName() {
+    'rcp'
+  }
+
+  @Override
   protected List<String> getModules() {
-    return super.getModules() + [ 'eclipseBundle' ]
+    super.getModules() + [ 'rcpApp' ]
+  }
+
+  protected String getProductConfigPrefix() {
+    'product_rcp_'
   }
 }
+

@@ -111,7 +111,7 @@ wuff {
           }
         }
 
-        project.equinox.products.each { product ->
+        project.appConfig.products.each { product ->
           if(product.name && !product.configName) {
             String platform = product.platform ?: current_os
             String arch = product.arch ?: current_arch
@@ -181,7 +181,7 @@ wuff {
           }
         }
 
-        project.rcp.products.each { product ->
+        project.appConfig.products.each { product ->
           if(product.name && !product.configName) {
             String platform = product.platform ?: current_os
             String arch = product.arch ?: current_arch
@@ -231,6 +231,83 @@ wuff {
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.nl_${language}:+"
+            }
+          }
+        }
+      }
+    }
+
+    eclipseIdeBundle {
+
+      postConfigure { project ->
+        project.dependencies {
+          compile "${eclipseMavenGroup}:org.eclipse.ui.ide:+"
+        }
+
+        project.tasks.jar.manifest {
+          instruction 'Require-Bundle', 'org.eclipse.ui.ide'
+        }
+      }
+    }
+
+    eclipseIdeApp {
+
+      configure { project ->
+
+        supported_oses.each { platform ->
+          supported_archs.each { arch ->
+
+            def productConfig = project.configurations.create("product_eclipseIde_${platform}_${arch}")
+            productConfig.extendsFrom project.configurations.findByName("product_rcp_${platform}_${arch}")
+
+            supported_languages.each { language ->
+              def localizedConfig = project.configurations.create("product_eclipseIde_${platform}_${arch}_${language}")
+              localizedConfig.extendsFrom productConfig
+              localizedConfig.extendsFrom project.configurations.findByName("product_rcp_${platform}_${arch}_${language}")
+            }
+          }
+        }
+
+        project.appConfig.products.each { product ->
+          if(product.name && !product.configName) {
+            String platform = product.platform ?: current_os
+            String arch = product.arch ?: current_arch
+            String language = product.language ?: ''
+            String languageSuffix = language ? "_${language}" : ''
+            def productSpecificConfig = project.configurations.create("product_eclipseIde_${product.name}")
+            productSpecificConfig.extendsFrom project.configurations["product_rcp_${product.name}"]
+            def productAndPlatformSpecificConfig = project.configurations.create("product_eclipseIde_${product.name}_${platform}_${arch}${languageSuffix}")
+            productAndPlatformSpecificConfig.extendsFrom project.configurations["product_eclipseIde_${platform}_${arch}${languageSuffix}"]
+            productAndPlatformSpecificConfig.extendsFrom productSpecificConfig
+          }
+        }
+      }
+
+      postConfigure { project ->
+
+        boolean hasIntro = PluginUtils.getEclipseIntroId(project)
+
+        project.dependencies {
+          if(hasIntro)
+            compile "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
+        }
+
+        project.tasks.jar.manifest {
+          if(hasIntro)
+            instruction 'Require-Bundle', 'org.eclipse.ui.intro'
+        }
+
+        supported_oses.each { platform ->
+          supported_archs.each { arch ->
+
+            String productConfigName = "product_eclipseIde_${platform}_${arch}"
+
+            supported_languages.each { language ->
+
+              String localizedConfigName = "product_eclipseIde_${platform}_${arch}_${language}"
+              project.dependencies.add localizedConfigName, "$eclipseGroup:org.eclipse.ui.ide.nl_${language}:+"
+              if(hasIntro)
+                project.dependencies.add localizedConfigName, "$eclipseGroup:org.eclipse.ui.intro.nl_${language}:+"
             }
           }
         }

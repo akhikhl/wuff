@@ -16,7 +16,8 @@ import org.gradle.api.Project
  */
 class EquinoxAppPlugin implements Plugin<Project> {
 
-  void apply(final Project project) {
+  @Override
+  void apply(Project project) {
     def configurer = new EquinoxAppConfigurer(project)
     configurer.apply()
   }

@@ -13,14 +13,14 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class EclipseBundleConfigurer extends OsgiBundleConfigurer {
+class EclipseIdeBundleConfigurer extends EclipseBundleConfigurer {
 
-  EclipseBundleConfigurer(Project project) {
+  EclipseIdeBundleConfigurer(Project project) {
     super(project)
   }
 
   @Override
   protected List<String> getModules() {
-    return super.getModules() + [ 'eclipseBundle' ]
+    return super.getModules() + [ 'eclipseIdeBundle' ]
   }
 }

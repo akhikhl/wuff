@@ -34,12 +34,12 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   @Override
   protected void configureProducts() {
 
-    project.equinox.beforeProductGeneration.each { obj ->
+    project.appConfig.beforeProductGeneration.each { obj ->
       if(obj instanceof Closure)
         obj()
     }
 
-    project.equinox.products.each { product ->
+    project.appConfig.products.each { product ->
       def productConfigurer = new EquinoxProductConfigurer(project, getProductConfigPrefix(), product)
       productConfigurer.configure()
     } // each product
@@ -204,7 +204,12 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   protected void createExtensions() {
     super.createExtensions()
     project.extensions.create('run', RunExtension)
-    project.extensions.create('equinox', EquinoxAppPluginExtension)
+    project.extensions.create(getAppExtensionName(), EclipseAppExtension)
+    project.ext.appConfig = project.extensions.getByName(getAppExtensionName())
+  }
+
+  protected String getAppExtensionName() {
+    'equinox'
   }
 
   protected WrappedLibsConfig getEffectiveWrappedLibsConfig() {

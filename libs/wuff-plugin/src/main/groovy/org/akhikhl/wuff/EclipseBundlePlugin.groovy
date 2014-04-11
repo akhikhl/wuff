@@ -16,7 +16,8 @@ import org.gradle.api.Project
  */
 class EclipseBundlePlugin implements Plugin<Project> {
 
-  void apply(final Project project) {
+  @Override
+  void apply(Project project) {
     def configurer = new EclipseBundleConfigurer(project)
     configurer.apply()
   }

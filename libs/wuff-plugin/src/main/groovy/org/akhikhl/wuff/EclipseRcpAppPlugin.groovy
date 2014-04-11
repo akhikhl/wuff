@@ -15,10 +15,11 @@ import org.gradle.api.tasks.*
  *
  * @author akhikhl
  */
-class RcpAppPlugin implements Plugin<Project> {
+class EclipseRcpAppPlugin implements Plugin<Project> {
 
-  void apply(final Project project) {
-    def configurer = new RcpAppConfigurer(project)
+  @Override
+  void apply(Project project) {
+    def configurer = new EclipseRcpAppConfigurer(project)
     configurer.apply()
   }
 }

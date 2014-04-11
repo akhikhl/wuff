@@ -53,9 +53,7 @@ class Configurer {
 
     applyToConfigs { Config config ->
       EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
-      if(versionConfig != null) {
-        if(versionConfig.eclipseMavenGroup != null)
-          project.ext.eclipseMavenGroup = versionConfig.eclipseMavenGroup
+      if(versionConfig != null)
         for(String moduleName in getModules()) {
           EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
           if(moduleConfig) {
@@ -71,7 +69,6 @@ class Configurer {
             closure(moduleConfig)
           }
         }
-      }
     }
   }
 
@@ -89,12 +86,19 @@ class Configurer {
       eclipseVersion = project.eclipseVersion
     else {
       Project p = ProjectUtils.findUpAncestorChain(project, { it.extensions.findByName('wuff')?.defaultEclipseVersion != null })
-      eclipseVersion = p != null ? p.wuff.defaultEclipseVersion : defaultConfig.defaultEclipseVersion
+      if(p != null)
+        eclipseVersion = p.wuff.defaultEclipseVersion
       if(eclipseVersion == null)
         eclipseVersion = defaultConfig.defaultEclipseVersion
     }
 
     project.wuff.defaultEclipseVersion = eclipseVersion
+
+    applyToConfigs { Config config ->
+      EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
+      if(versionConfig?.eclipseMavenGroup != null)
+        project.ext.eclipseMavenGroup = versionConfig.eclipseMavenGroup
+    }
 
     project.configurations {
       privateLib

@@ -11,30 +11,36 @@ package org.akhikhl.wuff
  *
  * @author akhikhl
  */
-class RcpAppPluginExtension {
+class EclipseAppExtension {
 
-  private boolean defaultProducts = true
-  def products = [[:]]
+  List additionalFilesToArchive = []
 
   boolean archiveProducts = false
 
-  def launchParameters = []
+  List<Closure> beforeProductGeneration = []
 
-  def additionalFilesToArchive = []
+  private boolean defaultProducts = true
+  List products = [[:]]
+
+  List<String> launchParameters = []
 
   def archiveFile(file) {
     additionalFilesToArchive.add file
   }
 
-  def launchParameter(String newValue) {
+  void beforeProductGeneration(Closure newValue) {
+    beforeProductGeneration.add newValue
+  }
+
+  void launchParameter(String newValue) {
     launchParameters.add newValue
   }
 
-  def product(String productName) {
+  void product(String productName) {
     product( [ name: productName ] )
   }
 
-  def product(Map productSpec) {
+  void product(Map productSpec) {
     if(defaultProducts) {
       products = []
       defaultProducts = false
