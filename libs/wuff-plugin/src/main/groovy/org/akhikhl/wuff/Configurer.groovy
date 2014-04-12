@@ -116,11 +116,16 @@ class Configurer {
   }
 
   protected void configureTasks() {
-    // by default there are no tasks
+    project.jar {
+      from PluginUtils.getGeneratedDir(project)
+    }
   }
 
   protected void createExtensions() {
     project.extensions.create('wuff', Config)
+  }
+
+  protected void generateDefaultFiles() {
   }
 
   protected List<String> getModules() {
@@ -130,6 +135,7 @@ class Configurer {
   protected void postConfigure() {
     if(project.version == 'unspecified')
       project.version = '1.0.0.0'
+    generateDefaultFiles()
     applyToModuleConfigs { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.postConfigure)
         closure(project)

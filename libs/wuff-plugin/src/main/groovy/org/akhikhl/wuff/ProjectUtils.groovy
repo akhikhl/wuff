@@ -12,6 +12,8 @@ import java.nio.file.Paths
 import groovy.transform.CompileStatic
 import groovy.util.XmlParser
 
+import org.apache.commons.codec.digest.DigestUtils
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
@@ -64,5 +66,20 @@ final class ProjectUtils {
     while(p != null && !condition(p))
       p = p.parent
     return p
+  }
+
+  static stringToFile(String str, File file) {
+    String fileMd5
+    if(file.exists())
+      file.withInputStream {
+        fileMd5 = DigestUtils.md5Hex(it)
+      }
+    if(fileMd5 == DigestUtils.md5Hex(str))
+      log.debug 'md5 of {} did not change - will not be overwritten', file
+    else {
+      log.debug 'md5 of {} changed - will be overwritten', file
+      file.parentFile.mkdirs()
+      file.text = str
+    }
   }
 }

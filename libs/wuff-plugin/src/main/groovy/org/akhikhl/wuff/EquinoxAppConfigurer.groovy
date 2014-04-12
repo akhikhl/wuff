@@ -22,9 +22,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   @Override
   protected void configure() {
-
     super.configure()
-
     // these tasks need to be configured early (not in configureTasks),
     // so that netbeans recognizes them and uses them.
     project.task 'run', type: JavaExec

@@ -21,8 +21,9 @@ class OsgiBundleConfigurer extends Configurer {
 
   @Override
   protected void configureTasks() {
+    super.configureTasks()
 
-    File manifestFile = new File(project.buildDir, 'bundleManifest/MANIFEST.MF')
+    File manifestFile = new File(project.buildDir, 'osgi/MANIFEST.MF')
 
     project.task('createBundleManifest') {
       dependsOn project.tasks.classes
@@ -49,6 +50,9 @@ class OsgiBundleConfigurer extends Configurer {
         }
 
         def pluginConfig = PluginUtils.findPluginConfig(project)
+
+        if(pluginConfig == null)
+          pluginConfig = PluginUtils.findGeneratedPluginConfig(project)
 
         if(pluginConfig) {
           m.attributes['Bundle-SymbolicName'] = "${project.name}; singleton:=true" as String
@@ -107,7 +111,7 @@ class OsgiBundleConfigurer extends Configurer {
 
     project.jar {
       dependsOn project.tasks.createBundleManifest
-      inputs.files project.files(manifestFile)
+      inputs.files manifestFile
       from { project.configurations.privateLib }
       manifest {
         from(manifestFile.absolutePath) {
@@ -134,4 +138,3 @@ class OsgiBundleConfigurer extends Configurer {
     return [ 'osgiBundle' ]
   }
 }
-
