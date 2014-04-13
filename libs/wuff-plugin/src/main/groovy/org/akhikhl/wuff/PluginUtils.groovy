@@ -106,8 +106,8 @@ final class PluginUtils {
     return activator
   }
 
-  static Node findGeneratedPluginConfig(Project project) {
-    File f = getGeneratedPluginConfigFile(project)
+  static Node findExtraPluginConfig(Project project) {
+    File f = getExtraPluginConfigFile(project)
     f.exists() ? new XmlParser().parse(f) : null
   }
 
@@ -170,10 +170,8 @@ final class PluginUtils {
 
   static String getEclipseApplicationId(Project project) {
     String result
-    def pluginConfig = findPluginConfig(project)
-    if(pluginConfig == null)
-      pluginConfig = findGeneratedPluginConfig(project)
-    if(pluginConfig != null)
+    def pluginConfig = findPluginConfig(project) ?: findExtraPluginConfig(project)
+    if(pluginConfig)
       result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
     if(result)
       result = "${project.name}.${result}"
@@ -182,10 +180,8 @@ final class PluginUtils {
 
   static String getEclipseIntroId(Project project) {
     String result
-    def pluginConfig = findPluginConfig(project)
-    if(pluginConfig == null)
-      pluginConfig = findGeneratedPluginConfig(project)
-    if(pluginConfig != null)
+    def pluginConfig = findPluginConfig(project) ?: findExtraPluginConfig(project)
+    if(pluginConfig)
       result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
     if(result)
       result = "${project.name}.$result"
@@ -194,10 +190,8 @@ final class PluginUtils {
 
   static String getEclipseProductId(Project project) {
     String result
-    def pluginConfig = findPluginConfig(project)
-    if(pluginConfig == null)
-      pluginConfig = findGeneratedPluginConfig(project)
-    if(pluginConfig != null)
+    def pluginConfig = findPluginConfig(project) ?: findExtraPluginConfig(project)
+    if(pluginConfig)
       result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
     if(result)
       result = "${project.name}.$result"
@@ -208,12 +202,12 @@ final class PluginUtils {
     return project.configurations.runtime.find { getPluginName(it.name) == equinoxLauncherPluginName }
   }
 
-  static File getGeneratedDir(Project project) {
-    new File(project.buildDir, 'generated')
+  static File getExtraDir(Project project) {
+    new File(project.buildDir, 'extra')
   }
 
-  static File getGeneratedPluginConfigFile(Project project) {
-    new File(getGeneratedDir(project), 'plugin.xml')
+  static File getExtraPluginConfigFile(Project project) {
+    new File(getExtraDir(project), 'plugin.xml')
   }
 
   static File getOsgiFrameworkFile(Project project) {

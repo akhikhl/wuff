@@ -49,10 +49,7 @@ class OsgiBundleConfigurer extends Configurer {
           m.attributes['Bundle-ActivationPolicy'] = 'lazy'
         }
 
-        def pluginConfig = PluginUtils.findPluginConfig(project)
-
-        if(pluginConfig == null)
-          pluginConfig = PluginUtils.findGeneratedPluginConfig(project)
+        def pluginConfig = PluginUtils.findPluginConfig(project) ?: PluginUtils.findExtraPluginConfig(project)
 
         if(pluginConfig) {
           m.attributes['Bundle-SymbolicName'] = "${project.name}; singleton:=true" as String
