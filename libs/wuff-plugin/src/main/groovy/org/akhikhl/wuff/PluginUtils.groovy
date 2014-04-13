@@ -10,7 +10,10 @@ package org.akhikhl.wuff
 import java.nio.file.Paths
 
 import groovy.transform.CompileStatic
+import groovy.util.Node
 import groovy.util.XmlParser
+
+import org.apache.commons.io.FilenameUtils
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -80,30 +83,20 @@ final class PluginUtils {
   }
 
   /**
-   * Finds bundle activator.
+   * Finds a class in the sources of the project.
    *
    * @param project project being analyzed, not modified.
-   * @return qualified name (package.class) of the bundle activator, if present.
+   * @return qualified name (package.class) of the found class or null, if class is not found.
    */
-  static String findBundleActivator(Project project) {
-    String activator
-    project.sourceSets.main.allSource.srcDirs.findResult { File srcDir ->
-      project.fileTree(srcDir).include('**/Activator.groovy').files.findResult { File activatorSourceFile ->
-        activator = Paths.get(srcDir.absolutePath).relativize(Paths.get(activatorSourceFile.absolutePath)).toString()
-        activator = activator.substring(0, activator.length() - 7) // remove '.groovy' file extension
-        activator = activator.replaceAll('/', '.') // convert to package.class
-      }
-      if(!activator)
-        project.fileTree(srcDir).include('**/Activator.java').files.findResult { File activatorSourceFile ->
-          activator = Paths.get(srcDir.absolutePath).relativize(Paths.get(activatorSourceFile.absolutePath)).toString()
-          activator = activator.substring(0, activator.length() - 5) // remove '.java' file extension
-          activator = activator.replaceAll('/', '.') // convert to package.class
+  static String findClassFromSource(Project project, String... sourceMasks) {
+    sourceMasks.findResult { String sourceMask ->
+      project.sourceSets.main.allSource.srcDirs.findResult { File srcDir ->
+        project.fileTree(srcDir).include(sourceMask).files.findResult { File sourceFile ->
+          String path = Paths.get(srcDir.absolutePath).relativize(Paths.get(sourceFile.absolutePath)).toString()
+          FilenameUtils.removeExtension(path).replaceAll(File.separator, '.')
         }
-      activator
+      }
     }
-    if(activator)
-      log.info '{}: Found bundle activator: {}', project.name, activator
-    return activator
   }
 
   static Node findExtraPluginConfig(Project project) {

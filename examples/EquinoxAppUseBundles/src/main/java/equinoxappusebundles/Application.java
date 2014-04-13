@@ -1,4 +1,4 @@
-package equinoxapp2;
+package equinoxappusebundles;
 
 import java.io.IOException;
 
@@ -12,7 +12,7 @@ public class Application implements IApplication {
 
   @Override
   public Object start(IApplicationContext arg0) throws Exception {
-    System.out.println("Hello, application!");
+    System.out.println("Hello, world! I am equinox application accessing code in bundles!");
     System.out.println("Testing access to org.eclipse.core.runtime.Platform: " + Platform.getLocation().toPortableString());
     System.out.println("Testing lazy activation start");
     TestClass obj = new TestClass();
@@ -29,6 +29,7 @@ public class Application implements IApplication {
 
   @Override
   public void stop() {
-    System.out.println("Application stop requested");
+    // From eclipse doc:
+    // This method will not be called if an application exits normally from the start(IApplicationContext) method. 
   }
 }

@@ -1,4 +1,4 @@
-package equinoxapp1;
+package equinoxappproducts;
 
 import java.io.IOException;
 
@@ -8,7 +8,7 @@ import org.eclipse.equinox.app.IApplicationContext;
 
 import osgibundle2.TestClass;
 
-public class Application implements IApplication {
+public class MyApp implements IApplication {
 
   @Override
   public Object start(IApplicationContext arg0) throws Exception {

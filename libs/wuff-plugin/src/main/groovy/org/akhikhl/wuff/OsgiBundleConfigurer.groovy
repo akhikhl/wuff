@@ -43,7 +43,7 @@ class OsgiBundleConfigurer extends Configurer {
 
         m = m.effectiveManifest
 
-        String activator = PluginUtils.findBundleActivator(project)
+        String activator = PluginUtils.findClassFromSource(project, '**/Activator.groovy', '**/Activator.java')
         if(activator) {
           m.attributes['Bundle-Activator'] = activator
           m.attributes['Bundle-ActivationPolicy'] = 'lazy'

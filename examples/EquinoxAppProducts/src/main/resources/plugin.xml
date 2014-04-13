@@ -3,7 +3,7 @@
 <plugin>
   <extension id="application" point="org.eclipse.core.runtime.applications">
     <application>
-      <run class="equinoxapp2.Application"/>
+      <run class="equinoxappproducts.MyApp"/>
     </application>
   </extension>
 </plugin>
