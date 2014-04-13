@@ -3,14 +3,14 @@
 <plugin>
   <extension id="application" point="org.eclipse.core.runtime.applications">
     <application>
-      <run class="rcpapp2.Application"/>
+      <run class="rcpappproducts.MyApp"/>
     </application>
   </extension>
   <extension point="org.eclipse.ui.perspectives">
     <perspective
       name="RCP Perspective"
-      class="rcpapp2.Perspective"
-      id="rcpapp2.perspective">
+      class="rcpappproducts.MyPerspective"
+      id="rcpappproducts.perspective">
     </perspective>
   </extension>  
 </plugin>

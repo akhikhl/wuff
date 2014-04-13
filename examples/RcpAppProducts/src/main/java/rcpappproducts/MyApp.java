@@ -1,4 +1,4 @@
-package rcpapp2;
+package rcpappproducts;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
@@ -19,7 +19,6 @@ public class Application implements IApplication {
   public Object start(IApplicationContext context) throws Exception {
     Display display = PlatformUI.createDisplay();
     try {
-      System.out.println("Testing access to org.eclipse.core.runtime.Platform: " + Platform.getLocation().toPortableString());
       int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor());
       if (returnCode == PlatformUI.RETURN_RESTART)
         return IApplication.EXIT_RESTART;

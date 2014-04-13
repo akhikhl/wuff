@@ -1,9 +1,9 @@
-package rcpapp2;
+package rcpappproducts;
 
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
-public class Perspective implements IPerspectiveFactory {
+public class MyPerspective implements IPerspectiveFactory {
 
 	public void createInitialLayout(IPageLayout layout) {
 	}
