@@ -37,9 +37,10 @@ class EclipseIdeAppConfigurer extends EclipseRcpAppConfigurer {
   }
 
   @Override
-  protected void populateExtraPluginConfig(MarkupBuilder xml, Node existingConfig) {
-    if(!existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.core.runtime.products' }))
-      xml.extension(id: 'product', point: 'org.eclipse.core.runtime.products') {
+  protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
+    populatePerspective(pluginXml, existingPluginXml)
+    if(!existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' }))
+      pluginXml.extension(id: 'product', point: 'org.eclipse.core.runtime.products') {
         product application: 'org.eclipse.ui.ide.workbench', name: project.name
       }
   }

@@ -8,6 +8,7 @@
 package org.akhikhl.wuff
 
 import java.nio.file.Paths
+import java.util.Properties
 
 import groovy.transform.CompileStatic
 import groovy.util.Node
@@ -99,8 +100,8 @@ final class PluginUtils {
     }
   }
 
-  static Node findExtraPluginConfig(Project project) {
-    File f = getExtraPluginConfigFile(project)
+  static Node findExtraPluginXml(Project project) {
+    File f = getExtraPluginXmlFile(project)
     f.exists() ? new XmlParser().parse(f) : null
   }
 
@@ -138,20 +139,21 @@ final class PluginUtils {
    * Finds eclipse plugin configuration file, 'plugin.xml'.
    *
    * @param project project being analyzed, not modified.
-   * @return groovy.util.Node, containing DOM-tree for 'plugin.xml', or null, if configuration file does not exist.
+   * @return groovy.util.Node, containing DOM-tree for 'plugin.xml', or null, if such file does not exist.
    */
-  static Node findPluginConfig(Project project) {
-    File f = findPluginConfigFile(project)
-    f ? new XmlParser().parse(f) : null
+  static Node findPluginXml(Project project) {
+    findPluginXmlFile(project)?.withReader('UTF-8') {
+      new XmlParser().parse(it)
+    }
   }
 
   /**
    * Finds eclipse plugin configuration file, 'plugin.xml'.
    *
    * @param project project being analyzed, not modified.
-   * @return java.io.File, pointing to 'plugin.xml', or null, if configuration file does not exist.
+   * @return java.io.File, pointing to 'plugin.xml', or null, if such file does not exist.
    */
-  static File findPluginConfigFile(Project project) {
+  static File findPluginXmlFile(Project project) {
     File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
       File f = new File(dir, 'plugin.xml')
       f.exists() ? f : null
@@ -161,11 +163,40 @@ final class PluginUtils {
     return result
   }
 
+  /**
+   * Finds eclipse plugin configuration file, 'plugin.xml'.
+   *
+   * @param project project being analyzed, not modified.
+   * @return groovy.util.Node, containing DOM-tree for 'plugin.xml', or null, if such file does not exist.
+   */
+  static Properties findPluginCustomization(Project project) {
+    findPluginCustomizationFile(project)?.withReader('UTF-8') {
+      def props = new Properties()
+      props.load(it)
+      props
+    }
+  }
+
+  /**
+   * Finds eclipse plugin customization file, 'plugin_customization.ini'.
+   *
+   * @param project project being analyzed, not modified.
+   * @return java.io.File, pointing to 'plugin_customization.ini', or null, if such file does not exist.
+   */
+  static File findPluginCustomizationFile(Project project) {
+    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+      File f = new File(dir, 'plugin_customization.ini')
+      f.exists() ? f : null
+    }
+    if(result)
+      log.info '{}: Found eclipse plugin customization: {}', project.name, result
+    return result
+  }
+
   static String getEclipseApplicationId(Project project) {
     String result
-    def pluginConfig = findPluginConfig(project) ?: findExtraPluginConfig(project)
-    if(pluginConfig)
-      result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
+    if(project.pluginXml)
+      result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
     if(result)
       result = "${project.name}.${result}"
     return result
@@ -173,9 +204,8 @@ final class PluginUtils {
 
   static String getEclipseIntroId(Project project) {
     String result
-    def pluginConfig = findPluginConfig(project) ?: findExtraPluginConfig(project)
-    if(pluginConfig)
-      result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
+    if(project.pluginXml)
+      result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
     if(result)
       result = "${project.name}.$result"
     return result
@@ -183,9 +213,8 @@ final class PluginUtils {
 
   static String getEclipseProductId(Project project) {
     String result
-    def pluginConfig = findPluginConfig(project) ?: findExtraPluginConfig(project)
-    if(pluginConfig)
-      result = pluginConfig.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
+    if(project.pluginXml)
+      result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
     if(result)
       result = "${project.name}.$result"
     return result
@@ -199,8 +228,12 @@ final class PluginUtils {
     new File(project.buildDir, 'extra')
   }
 
-  static File getExtraPluginConfigFile(Project project) {
+  static File getExtraPluginXmlFile(Project project) {
     new File(getExtraDir(project), 'plugin.xml')
+  }
+
+  static File getExtraPluginCustomizationFile(Project project) {
+    new File(getExtraDir(project), 'plugin_customization.ini')
   }
 
   static File getOsgiFrameworkFile(Project project) {

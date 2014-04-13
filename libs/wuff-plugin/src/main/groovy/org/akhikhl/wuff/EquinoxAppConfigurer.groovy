@@ -45,21 +45,6 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     } // each product
   }
 
-  private void configureJarTask() {
-    File pluginConfigFile = PluginUtils.findPluginConfigFile(project)
-    if(pluginConfigFile != null)
-      project.jar {
-        File extraPluginConfigFile = PluginUtils.getExtraPluginConfigFile(project)
-        mainSpec.eachFile { FileCopyDetails details ->
-          if(details.path.endsWith('plugin.xml') && details.file != extraPluginConfigFile) {
-            log.debug 'excluding {}', details.file
-            log.debug 'including {}', extraPluginConfigFile
-            details.exclude()
-          }
-        }
-      }
-  }
-
   private void configureRunTasks() {
 
     String runDir = "${project.buildDir}/run"
@@ -213,7 +198,6 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     super.configureTasks()
     configureTask_wrapLibs()
     configureRunTasks()
-    configureJarTask()
   }
 
   @Override
@@ -225,13 +209,24 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   }
 
   @Override
-  protected void generateExtraFiles() {
-    super.generateExtraFiles()
-    generateExtraPluginConfig()
+  protected void createExtraFiles() {
+    super.createExtraFiles()
+    ProjectUtils.stringToFile(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))
+    ProjectUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
   }
 
-  private void generateExtraPluginConfig() {
-    def existingConfig = PluginUtils.findPluginConfig(project)
+  @Override
+  protected void createPluginCustomization() {
+    Properties customization = PluginUtils.findPluginCustomization(project)
+    if(customization == null)
+      customization = new Properties()
+    populatePluginCustomization(customization)
+    project.ext.pluginCustomization = customization.isEmpty() ? null : customization
+  }
+
+  @Override
+  protected void createPluginXml() {
+    def existingConfig = PluginUtils.findPluginXml(project)
     StringWriter writer = new StringWriter()
     def xml = new MarkupBuilder(writer)
     xml.doubleQuotes = true
@@ -241,9 +236,17 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       existingConfig?.children().each {
         XmlUtils.writeNode(xml, it)
       }
-      populateExtraPluginConfig(xml, existingConfig)
+      populatePluginXml(xml, existingConfig)
     }
-    ProjectUtils.stringToFile(writer.toString(), PluginUtils.getExtraPluginConfigFile(project))
+    project.ext.pluginXml = new XmlParser().parseText(writer.toString())
+  }
+
+  protected boolean extraFilesUpToDate() {
+    if(!ProjectUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project)))
+      return false
+    if(!ProjectUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project)))
+      return false
+    return true
   }
 
   protected String getAppExtensionName() {
@@ -264,6 +267,14 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   }
 
   @Override
+  protected Map getExtraFilesProperties() {
+    Map result = [:]
+    result.pluginXml = getPluginXmlString()
+    result.pluginCustomization = getPluginCustomizationString()
+    return result
+  }
+
+  @Override
   protected List<String> getModules() {
     super.getModules() + [ 'equinoxApp' ]
   }
@@ -272,15 +283,18 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     'product_equinox_'
   }
 
-  protected void populateExtraPluginConfig(MarkupBuilder xml, Node existingConfig) {
-    if(!existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })) {
+  protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
+    if(!existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })) {
       String appClass = PluginUtils.findClassFromSource(project, '**/*Application.groovy', '**/*Application.java')
       if(appClass)
-        xml.extension(id: 'application', point: 'org.eclipse.core.runtime.applications') {
+        pluginXml.extension(id: 'application', point: 'org.eclipse.core.runtime.applications') {
           application {
             run class: appClass
           }
         }
     }
+  }
+
+  protected void populatePluginCustomization(Properties props) {
   }
 }

@@ -68,18 +68,25 @@ final class ProjectUtils {
     return p
   }
 
-  static stringToFile(String str, File file) {
-    String fileMd5
-    if(file.exists())
-      file.withInputStream {
-        fileMd5 = DigestUtils.md5Hex(it)
-      }
-    if(fileMd5 == DigestUtils.md5Hex(str))
-      log.debug 'md5 of {} did not change - will not be overwritten', file
-    else {
-      log.debug 'md5 of {} changed - will be overwritten', file
+  static void stringToFile(String str, File file) {
+    if(str) {
       file.parentFile.mkdirs()
-      file.text = str
-    }
+      file.setText(str, 'UTF-8')
+    } else if(file.exists())
+      file.delete()
+  }
+
+  static boolean stringToFileUpToDate(String str, File file) {
+    boolean result
+    if(str) {
+      String fileMd5
+      if(file.exists())
+        file.withInputStream {
+          fileMd5 = DigestUtils.md5Hex(it)
+        }
+      result = fileMd5 == DigestUtils.md5Hex(str)
+    } else
+      result = !file.exists()
+    return result
   }
 }

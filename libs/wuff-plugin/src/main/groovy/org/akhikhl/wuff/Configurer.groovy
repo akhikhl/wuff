@@ -116,7 +116,17 @@ class Configurer {
   }
 
   protected void configureTasks() {
-    project.jar {
+    project.task('createExtraFiles') {
+      inputs.properties getExtraFilesProperties()
+      outputs.upToDateWhen {
+        extraFilesUpToDate()
+      }
+      doLast {
+        createExtraFiles()
+      }
+    }
+    project.tasks.jar {
+      dependsOn project.tasks.createExtraFiles
       from PluginUtils.getExtraDir(project)
     }
   }
@@ -125,7 +135,18 @@ class Configurer {
     project.extensions.create('wuff', Config)
   }
 
-  protected void generateExtraFiles() {
+  protected void createExtraFiles() {
+  }
+
+  protected void createVirtualConfigurations() {
+  }
+
+  protected boolean extraFilesUpToDate() {
+    return true
+  }
+
+  protected Map getExtraFilesProperties() {
+    [:]
   }
 
   protected List<String> getModules() {
@@ -135,7 +156,7 @@ class Configurer {
   protected void postConfigure() {
     if(project.version == 'unspecified')
       project.version = '1.0.0.0'
-    generateExtraFiles()
+    createVirtualConfigurations()
     applyToModuleConfigs { EclipseModuleConfig moduleConfig ->
       for(Closure closure in moduleConfig.postConfigure)
         closure(project)
