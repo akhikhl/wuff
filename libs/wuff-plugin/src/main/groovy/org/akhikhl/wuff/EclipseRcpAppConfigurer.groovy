@@ -7,6 +7,7 @@
  */
 package org.akhikhl.wuff
 
+import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 
 /**
@@ -31,6 +32,18 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
   protected String getProductConfigPrefix() {
     'product_rcp_'
+  }
+
+  @Override
+  protected void populateExtraPluginConfig(MarkupBuilder xml, Node existingConfig) {
+    super.populateExtraPluginConfig(xml, existingConfig)
+    if(!existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectives' })) {
+      String perspectiveClass = PluginUtils.findClassFromSource(project, '**/*Perspective.groovy', '**/*Perspective.java')
+      if(perspectiveClass)
+        xml.extension(point: 'org.eclipse.ui.perspectives') {
+          perspective id: "${project.name}.perspective", name: project.name, 'class': perspectiveClass
+        }
+    }
   }
 }
 

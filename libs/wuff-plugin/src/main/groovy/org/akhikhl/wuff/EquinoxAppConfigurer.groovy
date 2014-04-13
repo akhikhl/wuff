@@ -274,7 +274,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   protected void populateExtraPluginConfig(MarkupBuilder xml, Node existingConfig) {
     if(!existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })) {
-      String appClass = PluginUtils.findClassFromSource(project, '**/Application.groovy', '**/Application.java')
+      String appClass = PluginUtils.findClassFromSource(project, '**/*Application.groovy', '**/*Application.java')
       if(appClass)
         xml.extension(id: 'application', point: 'org.eclipse.core.runtime.applications') {
           application {

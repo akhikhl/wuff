@@ -1,4 +1,4 @@
-package rcpapp1;
+package rcpappwithpluginxml;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.application.ActionBarAdvisor;

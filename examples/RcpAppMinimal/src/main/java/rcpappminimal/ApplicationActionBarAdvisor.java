@@ -1,4 +1,4 @@
-package rcpapp1;
+package rcpappminimal;
 
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IWorkbenchWindow;
