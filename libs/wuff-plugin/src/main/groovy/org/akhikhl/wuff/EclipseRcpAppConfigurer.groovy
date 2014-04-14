@@ -26,6 +26,11 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   @Override
+  protected String getScaffoldResourceDir() {
+    'scaffold/eclipse-rcp-app/'
+  }
+
+  @Override
   protected List<String> getModules() {
     super.getModules() + [ 'rcpApp' ]
   }
@@ -52,7 +57,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
   protected void populatePluginCustomization(Properties props) {
     if(!props.containsKey('org.eclipse.ui/defaultPerspectiveId')) {
-      String perspectiveId = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })?.perspective?.'@id'?.text()
+      String perspectiveId = project.pluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })?.perspective?.'@id'?.text()
       if(perspectiveId)
         props.setProperty('org.eclipse.ui/defaultPerspectiveId', perspectiveId)
     }
