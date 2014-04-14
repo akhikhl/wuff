@@ -63,6 +63,8 @@ class OsgiBundleConfigurer extends Configurer {
           }
         }
       }
+      //log.warn '{} classesDir {}', project.name, project.sourceSets.main.output.classesDir
+      //log.warn '{} resourcesDir {}', project.name, project.sourceSets.main.output.resourcesDir
       File extraPluginXmlFile = PluginUtils.getExtraPluginXmlFile(project)
       File extraPluginCustomizationFile = PluginUtils.getExtraPluginCustomizationFile(project)
       mainSpec.eachFile { FileCopyDetails details ->
