@@ -42,7 +42,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
   protected void populatePerspective(MarkupBuilder pluginXml, Node existingConfig) {
     if(!existingConfig?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })) {
-      String perspectiveClass = PluginUtils.findClassFromSource(project, '**/*Perspective.groovy', '**/*Perspective.java')
+      String perspectiveClass = PluginUtils.findClassInSources(project, '**/*Perspective.groovy', '**/*Perspective.java')
       if(perspectiveClass)
         pluginXml.extension(point: 'org.eclipse.ui.perspectives') {
           perspective id: "${project.name}.perspective", name: project.name, 'class': perspectiveClass

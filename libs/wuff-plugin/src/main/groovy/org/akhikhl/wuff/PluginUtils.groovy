@@ -89,7 +89,7 @@ final class PluginUtils {
    * @param project project being analyzed, not modified.
    * @return qualified name (package.class) of the found class or null, if class is not found.
    */
-  static String findClassFromSource(Project project, String... sourceMasks) {
+  static String findClassInSources(Project project, String... sourceMasks) {
     sourceMasks.findResult { String sourceMask ->
       project.sourceSets.main.allSource.srcDirs.findResult { File srcDir ->
         project.fileTree(srcDir).include(sourceMask).files.findResult { File sourceFile ->
@@ -133,6 +133,16 @@ final class PluginUtils {
       }
     }
     return importPackages
+  }
+
+  static File findPluginManifestFile(Project project) {
+    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+      File f = new File(dir, 'META-INF/MANIFEST.MF')
+      f.exists() ? f : null
+    }
+    if(result)
+      log.info '{}: Found manifest: {}', project.name, result
+    return result
   }
 
   /**

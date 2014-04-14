@@ -26,28 +26,37 @@ class OsgiBundleConfigurer extends Configurer {
   @Override
   protected void configureTasks() {
     super.configureTasks()
+    configureTask_createOsgiManifest()
+    configureTask_Jar()
+  }
 
-    File manifestFile = new File(project.buildDir, 'osgi/MANIFEST.MF')
+  private void configureTask_createOsgiManifest() {
 
     project.task('createOsgiManifest') {
+      File generatedManifestFile = getGeneratedManifestFile()
       dependsOn project.tasks.classes
       inputs.files { project.configurations.runtime }
-      outputs.files manifestFile
+      outputs.files generatedManifestFile
       doLast {
         // workaround for OsgiManifest bug: it fails, when classesDir does not exist,
         // i.e. when the project contains no java/groovy classes (resources-only project)
         project.sourceSets.main.output.classesDir.mkdirs()
-        manifestFile.parentFile.mkdirs()
-        manifestFile.withWriter { createManifest().writeTo it }
-      } // doLast
-    } // createOsgiManifest task
+        generatedManifestFile.parentFile.mkdirs()
+        generatedManifestFile.withWriter { createManifest().writeTo it }
+      }
+    }
+  } // configureTask_createOsgiManifest
+
+  private void configureTask_Jar() {
 
     project.tasks.jar {
       dependsOn project.tasks.createOsgiManifest
-      inputs.files manifestFile
+      File generatedManifestFile = getGeneratedManifestFile()
+      inputs.files generatedManifestFile
       from { project.configurations.privateLib }
       manifest {
-        from(manifestFile.absolutePath) {
+
+        def mergeManifest = {
           eachEntry { details ->
             def newValue
             if(details.key == 'Require-Bundle')
@@ -62,6 +71,12 @@ class OsgiBundleConfigurer extends Configurer {
               details.exclude()
           }
         }
+
+        File userManifestFile = PluginUtils.findPluginManifestFile(project)
+        // attention: call order is important here!
+        if(userManifestFile != null)
+          from userManifestFile.absolutePath, mergeManifest
+        from generatedManifestFile.absolutePath, mergeManifest
       }
       mainSpec.eachFile { FileCopyDetails details ->
         [project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
@@ -76,8 +91,8 @@ class OsgiBundleConfigurer extends Configurer {
           }
         }
       }
-    } // jar task
-  } // configureTasks
+    }
+  } // configureTask_Jar
 
   @Override
   protected void createExtraFiles() {
@@ -97,7 +112,7 @@ class OsgiBundleConfigurer extends Configurer {
 
     m = m.effectiveManifest
 
-    String activator = PluginUtils.findClassFromSource(project, '**/Activator.groovy', '**/Activator.java')
+    String activator = PluginUtils.findClassInSources(project, '**/Activator.groovy', '**/Activator.java')
     if(activator) {
       m.attributes['Bundle-Activator'] = activator
       m.attributes['Bundle-ActivationPolicy'] = 'lazy'
@@ -202,6 +217,10 @@ class OsgiBundleConfigurer extends Configurer {
     result.pluginXml = getPluginXmlString()
     result.pluginCustomization = getPluginCustomizationString()
     return result
+  }
+
+  protected final File getGeneratedManifestFile() {
+    new File(project.buildDir, 'osgi/MANIFEST.MF')
   }
 
   @Override
