@@ -100,6 +100,8 @@ class Configurer {
         project.ext.eclipseMavenGroup = versionConfig.eclipseMavenGroup
     }
 
+    new EclipseMavenInstaller(project).installEclipseIntoLocalMavenRepo()
+
     project.configurations {
       privateLib
       compile.extendsFrom privateLib
