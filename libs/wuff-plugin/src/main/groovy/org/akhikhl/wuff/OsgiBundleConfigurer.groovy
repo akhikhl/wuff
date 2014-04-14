@@ -7,6 +7,7 @@
  */
 package org.akhikhl.wuff
 
+import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.java.archives.Manifest
@@ -62,7 +63,6 @@ class OsgiBundleConfigurer extends Configurer {
           }
         }
       }
-
       File extraPluginXmlFile = PluginUtils.getExtraPluginXmlFile(project)
       File extraPluginCustomizationFile = PluginUtils.getExtraPluginCustomizationFile(project)
       mainSpec.eachFile { FileCopyDetails details ->
@@ -79,6 +79,13 @@ class OsgiBundleConfigurer extends Configurer {
       }
     } // jar task
   } // configureTasks
+
+  @Override
+  protected void createExtraFiles() {
+    super.createExtraFiles()
+    ProjectUtils.stringToFile(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))
+    ProjectUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
+  }
 
   protected Manifest createManifest() {
 
@@ -97,8 +104,7 @@ class OsgiBundleConfigurer extends Configurer {
       m.attributes['Bundle-ActivationPolicy'] = 'lazy'
     }
 
-    def pluginXml = project.hasProperty('pluginXml') ? project.pluginXml : null
-
+    def pluginXml = project.pluginXml
     if(pluginXml) {
       m.attributes['Bundle-SymbolicName'] = "${project.name}; singleton:=true" as String
       Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, pluginXml).collectEntries { [ it, '' ] }
@@ -152,11 +158,28 @@ class OsgiBundleConfigurer extends Configurer {
   } // createManifest
 
   protected void createPluginCustomization() {
-    project.ext.pluginCustomization = PluginUtils.findPluginCustomization(project)
+    Properties customization = PluginUtils.findPluginCustomization(project)
+    if(customization == null)
+      customization = new Properties()
+    populatePluginCustomization(customization)
+    project.ext.pluginCustomization = customization.isEmpty() ? null : customization
   }
 
   protected void createPluginXml() {
-    project.ext.pluginXml = PluginUtils.findPluginXml(project)
+    def existingConfig = PluginUtils.findPluginXml(project)
+    StringWriter writer = new StringWriter()
+    def xml = new MarkupBuilder(writer)
+    xml.doubleQuotes = true
+    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
+    xml.pi eclipse: [version: '3.2']
+    xml.plugin {
+      existingConfig?.children().each {
+        XmlUtils.writeNode(xml, it)
+      }
+      populatePluginXml(xml, existingConfig)
+    }
+    def pluginXml = new XmlParser().parseText(writer.toString())
+    project.ext.pluginXml = (pluginXml.iterator() as boolean) ? pluginXml : null
   }
 
   @Override
@@ -164,6 +187,22 @@ class OsgiBundleConfigurer extends Configurer {
     super.createVirtualConfigurations()
     createPluginXml()
     createPluginCustomization()
+  }
+
+  protected boolean extraFilesUpToDate() {
+    if(!ProjectUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project)))
+      return false
+    if(!ProjectUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project)))
+      return false
+    return super.extraFilesUpToDate()
+  }
+
+  @Override
+  protected Map getExtraFilesProperties() {
+    Map result = [:]
+    result.pluginXml = getPluginXmlString()
+    result.pluginCustomization = getPluginCustomizationString()
+    return result
   }
 
   @Override
@@ -181,11 +220,17 @@ class OsgiBundleConfigurer extends Configurer {
   }
 
   protected final String getPluginXmlString() {
-    if(project.hasProperty('pluginXml')) {
+    if(project.hasProperty('pluginXml') && project.pluginXml != null) {
       def writer = new StringWriter()
       new XmlNodePrinter(new PrintWriter(writer)).print(project.pluginXml)
       return writer.toString()
     }
     return null
+  }
+
+  protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
+  }
+
+  protected void populatePluginCustomization(Properties props) {
   }
 }

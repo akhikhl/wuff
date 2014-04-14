@@ -208,47 +208,6 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     project.ext.appConfig = project.extensions.getByName(getAppExtensionName())
   }
 
-  @Override
-  protected void createExtraFiles() {
-    super.createExtraFiles()
-    ProjectUtils.stringToFile(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))
-    ProjectUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
-  }
-
-  @Override
-  protected void createPluginCustomization() {
-    Properties customization = PluginUtils.findPluginCustomization(project)
-    if(customization == null)
-      customization = new Properties()
-    populatePluginCustomization(customization)
-    project.ext.pluginCustomization = customization.isEmpty() ? null : customization
-  }
-
-  @Override
-  protected void createPluginXml() {
-    def existingConfig = PluginUtils.findPluginXml(project)
-    StringWriter writer = new StringWriter()
-    def xml = new MarkupBuilder(writer)
-    xml.doubleQuotes = true
-    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
-    xml.pi eclipse: [version: '3.2']
-    xml.plugin {
-      existingConfig?.children().each {
-        XmlUtils.writeNode(xml, it)
-      }
-      populatePluginXml(xml, existingConfig)
-    }
-    project.ext.pluginXml = new XmlParser().parseText(writer.toString())
-  }
-
-  protected boolean extraFilesUpToDate() {
-    if(!ProjectUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project)))
-      return false
-    if(!ProjectUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project)))
-      return false
-    return true
-  }
-
   protected String getAppExtensionName() {
     'equinox'
   }
@@ -267,14 +226,6 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   }
 
   @Override
-  protected Map getExtraFilesProperties() {
-    Map result = [:]
-    result.pluginXml = getPluginXmlString()
-    result.pluginCustomization = getPluginCustomizationString()
-    return result
-  }
-
-  @Override
   protected List<String> getModules() {
     super.getModules() + [ 'equinoxApp' ]
   }
@@ -283,6 +234,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     'product_equinox_'
   }
 
+  @Override
   protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
     if(!existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })) {
       String appClass = PluginUtils.findClassFromSource(project, '**/*Application.groovy', '**/*Application.java')
@@ -293,8 +245,5 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
           }
         }
     }
-  }
-
-  protected void populatePluginCustomization(Properties props) {
   }
 }
