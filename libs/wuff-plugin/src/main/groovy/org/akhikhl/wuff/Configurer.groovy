@@ -8,7 +8,8 @@
 package org.akhikhl.wuff
 
 import org.gradle.api.Project
-
+import org.gradle.api.file.RelativePath
+import org.gradle.api.tasks.Copy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -118,6 +119,12 @@ class Configurer {
   }
 
   protected void configureTasks() {
+    configureTask_createExtraFiles()
+    configureTask_Jar()
+    configureTask_scaffold()
+  }
+
+  private void configureTask_createExtraFiles() {
     project.task('createExtraFiles') {
       inputs.properties getExtraFilesProperties()
       outputs.upToDateWhen {
@@ -127,10 +134,37 @@ class Configurer {
         createExtraFiles()
       }
     }
+  }
+
+  private void configureTask_Jar() {
     project.tasks.jar {
       dependsOn project.tasks.createExtraFiles
       from PluginUtils.getExtraDir(project)
     }
+  }
+
+  private void configureTask_scaffold() {
+    String resourceDir = getScaffoldResourceDir()
+    if(resourceDir != null)
+      project.task('scaffold', type: Copy) {
+        if(!resourceDir.endsWith('/'))
+          resourceDir += '/'
+        String path = URLDecoder.decode(Configurer.class.getProtectionDomain().getCodeSource().getLocation().getPath(), 'UTF-8')
+        String packageName = project.name.toLowerCase().replace('-', '.')
+        String packagePath = packageName.replace('.', '/')
+        from project.zipTree(path)
+        into project.projectDir
+        include "${resourceDir}**"
+        rename ~/(.+)\.java_$/, '$1.java'
+        expand packageName: packageName
+        eachFile { details ->
+          String rpath = details.relativePath.toString()
+          rpath = rpath.substring(resourceDir.length())
+          rpath = rpath.replaceAll($/(.*)/_package_/(.*)/$, '$1/' + packagePath + '/$2')
+          details.relativePath = new RelativePath(!details.directory, rpath)
+        }
+        includeEmptyDirs = false
+      }
   }
 
   protected void createExtensions() {
@@ -145,6 +179,10 @@ class Configurer {
 
   protected boolean extraFilesUpToDate() {
     return true
+  }
+
+  protected String getScaffoldResourceDir() {
+    null
   }
 
   protected Map getExtraFilesProperties() {

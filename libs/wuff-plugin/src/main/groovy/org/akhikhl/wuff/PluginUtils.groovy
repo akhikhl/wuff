@@ -121,7 +121,10 @@ final class PluginUtils {
       pluginConfig = new XmlParser().parse(pluginConfig)
     }
     def classes = pluginConfig.extension.'**'.findAll({ it.'@class' })*.'@class' + pluginConfig.extension.'**'.findAll({ it.'@contributorClass' })*.'@contributorClass'
-    def packages = classes.collect { it.substring(0, it.lastIndexOf('.')) }.unique(false)
+    def packages = classes.findResults {
+      int dotPos = it.lastIndexOf('.')
+      dotPos >= 0 ? it.substring(0, dotPos) : null
+    }.unique(false)
     List importPackages = []
     packages.each { String packageName ->
       String packagePath = packageName.replaceAll(/\./, '/')

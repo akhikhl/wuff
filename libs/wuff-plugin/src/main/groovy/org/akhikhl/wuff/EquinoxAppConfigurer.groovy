@@ -9,7 +9,6 @@ package org.akhikhl.wuff
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
-import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.tasks.JavaExec
 
 /**
@@ -210,6 +209,11 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   protected String getAppExtensionName() {
     'equinox'
+  }
+
+  @Override
+  protected String getScaffoldResourceDir() {
+    'scaffold/eclipse-equinox-app/'
   }
 
   protected WrappedLibsConfig getEffectiveWrappedLibsConfig() {

@@ -9,10 +9,7 @@ package org.akhikhl.wuff
 
 import java.nio.file.Paths
 
-import groovy.transform.CompileStatic
 import groovy.util.XmlParser
-
-import org.apache.commons.codec.digest.DigestUtils
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -66,27 +63,5 @@ final class ProjectUtils {
     while(p != null && !condition(p))
       p = p.parent
     return p
-  }
-
-  static void stringToFile(String str, File file) {
-    if(str) {
-      file.parentFile.mkdirs()
-      file.setText(str, 'UTF-8')
-    } else if(file.exists())
-      file.delete()
-  }
-
-  static boolean stringToFileUpToDate(String str, File file) {
-    boolean result
-    if(str) {
-      String fileMd5
-      if(file.exists())
-        file.withInputStream {
-          fileMd5 = DigestUtils.md5Hex(it)
-        }
-      result = fileMd5 == DigestUtils.md5Hex(str)
-    } else
-      result = !file.exists()
-    return result
   }
 }

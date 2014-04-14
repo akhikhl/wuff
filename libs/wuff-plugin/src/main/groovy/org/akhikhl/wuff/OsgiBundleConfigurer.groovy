@@ -97,8 +97,8 @@ class OsgiBundleConfigurer extends Configurer {
   @Override
   protected void createExtraFiles() {
     super.createExtraFiles()
-    ProjectUtils.stringToFile(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))
-    ProjectUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
+    FileUtils.stringToFile(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))
+    FileUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
   }
 
   protected Manifest createManifest() {
@@ -204,9 +204,9 @@ class OsgiBundleConfigurer extends Configurer {
   }
 
   protected boolean extraFilesUpToDate() {
-    if(!ProjectUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project)))
+    if(!FileUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project)))
       return false
-    if(!ProjectUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project)))
+    if(!FileUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project)))
       return false
     return super.extraFilesUpToDate()
   }
