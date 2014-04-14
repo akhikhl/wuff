@@ -63,20 +63,17 @@ class OsgiBundleConfigurer extends Configurer {
           }
         }
       }
-      //log.warn '{} classesDir {}', project.name, project.sourceSets.main.output.classesDir
-      //log.warn '{} resourcesDir {}', project.name, project.sourceSets.main.output.resourcesDir
-      File extraPluginXmlFile = PluginUtils.getExtraPluginXmlFile(project)
-      File extraPluginCustomizationFile = PluginUtils.getExtraPluginCustomizationFile(project)
       mainSpec.eachFile { FileCopyDetails details ->
-        if(details.path.endsWith('plugin.xml') && details.file != extraPluginXmlFile && extraPluginXmlFile.exists()) {
-          log.debug 'excluding {}', details.file
-          log.debug 'including {}', extraPluginXmlFile
-          details.exclude()
-        }
-        else if(details.path.endsWith('plugin_customization.ini') && details.file != extraPluginCustomizationFile && extraPluginCustomizationFile.exists()) {
-          log.debug 'excluding {}', details.file
-          log.debug 'including {}', extraPluginCustomizationFile
-          details.exclude()
+        [project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
+          if(details.file.absolutePath.startsWith(dir.absolutePath)) {
+            String relPath = dir.toPath().relativize(details.file.toPath()).toString()
+            File extraFile = new File(PluginUtils.getExtraDir(project), relPath)
+            if(extraFile.exists()) {
+              log.debug 'excluding {}', details.file
+              log.debug 'including {}', extraFile
+              details.exclude()
+            }
+          }
         }
       }
     } // jar task
