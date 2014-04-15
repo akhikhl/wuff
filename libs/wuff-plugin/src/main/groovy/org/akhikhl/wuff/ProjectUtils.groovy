@@ -7,17 +7,11 @@
  */
 package org.akhikhl.wuff
 
-import java.nio.file.Paths
-
-import groovy.util.XmlParser
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import org.xml.sax.InputSource
 
 /**
  * Project-centric utilities

@@ -13,7 +13,7 @@ import org.codehaus.groovy.control.CompilerConfiguration
  * Reads plugin configuration from the specified groovy script.
  * @author akhikhl
  */
-class ConfigReader {
+final class ConfigReader {
 
   Config readFromResource(String resourceName) {
     Config config = new Config()
@@ -25,7 +25,7 @@ class ConfigReader {
     }
     binding.PluginUtils = PluginUtils.class
     GroovyShell shell = new GroovyShell(binding)
-    ConfigReader.class.getResourceAsStream(resourceName).withReader('UTF-8') {
+    this.getClass().getResourceAsStream(resourceName).withReader('UTF-8') {
       shell.evaluate(it)
     }
     return config
