@@ -3,5 +3,9 @@ apply plugin: 'osgi-bundle'
 
 dependencies {
   compile 'org.apache.commons:commons-lang3:3.3.2'
-  compile 'commons-jxpath:commons-jxpath:1.3'
+  compile 'commons-jxpath:commons-jxpath:1.2', {
+    exclude module: 'ant-optional'
+    exclude module: 'xml-apis'
+  }
+  compile 'xml-apis:xml-apis:1.4.01'
 }
