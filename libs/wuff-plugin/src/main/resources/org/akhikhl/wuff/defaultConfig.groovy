@@ -386,30 +386,30 @@ wuff {
     }
 
     /^saxon/ {
-      excludeImport(/^com\.saxonica\.validate$/)
+      excludeImport ~/^com\.saxonica\.validate$/
     }
 
     /^svnkit/ {
-      excludeImport(/^org\.tmatesoft\.sqljet/)
-      excludeImport(/^org.tigris.subversion.javahl$/)
+      excludeImport ~/^org\.tmatesoft\.sqljet/
+      excludeImport ~/^org.tigris.subversion.javahl$/
     }
 
     /^xalan$/ {
-      excludeImport(/^sun\.io$/)
+      excludeImport ~/^sun\.io$/
     }
 
     /^xmlgraphics-commons$/ {
-      excludeImport(/^com\.sun\.image\.codec/)
+      excludeImport ~/^com\.sun\.image\.codec/
     }
 
     /^jaxen$/ {
-      excludeImport(/^nu.xom$/)
-      excludeImport(/^org\.jdom/)
-      excludeImport(/^org\.dom4j/)
+      excludeImport ~/^nu.xom$/
+      excludeImport ~/^org\.jdom/
+      excludeImport ~/^org\.dom4j/
     }
 
     /^xercesImpl$/ {
-      excludeImport(/^sun.io$/)
+      excludeImport ~/^sun.io$/
     }
   }
 }
