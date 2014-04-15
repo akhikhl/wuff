@@ -23,11 +23,6 @@ class EclipseIdeAppConfigurer extends EclipseRcpAppConfigurer {
   }
 
   @Override
-  protected String getAppExtensionName() {
-    'eclipseIde'
-  }
-
-  @Override
   protected List<String> getModules() {
     super.getModules() + [ 'eclipseIdeBundle', 'eclipseIdeApp' ]
   }

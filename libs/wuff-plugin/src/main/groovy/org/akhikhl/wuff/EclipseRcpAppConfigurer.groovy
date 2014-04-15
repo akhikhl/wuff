@@ -21,11 +21,6 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   @Override
-  protected String getAppExtensionName() {
-    'rcp'
-  }
-
-  @Override
   protected String getScaffoldResourceDir() {
     'scaffold/eclipse-rcp-app/'
   }

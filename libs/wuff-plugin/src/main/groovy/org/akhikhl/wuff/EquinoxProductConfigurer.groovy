@@ -201,7 +201,7 @@ class EquinoxProductConfigurer {
             into new File(productOutputDir, 'jre')
           }
 
-        def launchParameters = project.appConfig.launchParameters.clone()
+        def launchParameters = project.products.launchParameters.clone()
 
         ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
           File splashFile = new File(srcDir, 'splash.bmp')
@@ -266,7 +266,7 @@ class EquinoxProductConfigurer {
 
   void configureArchiveTask() {
 
-    if(!project.appConfig.archiveProducts)
+    if(!project.products.archiveProducts)
       return
 
     def archiveType = launchers.contains('windows') ? Zip : Tar
@@ -288,8 +288,8 @@ class EquinoxProductConfigurer {
             project.logger.info 'additional file/folder {} does not exist', file.absolutePath
         }
       }
-      if(project.appConfig.additionalFilesToArchive)
-        for(def f in project.appConfig.additionalFilesToArchive)
+      if(project.products.additionalFilesToArchive)
+        for(def f in project.products.additionalFilesToArchive)
           addFileToArchive f, { into project.name }
       if(product.archiveFiles)
         for(def f in product.archiveFiles)

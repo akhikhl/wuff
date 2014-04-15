@@ -11,12 +11,14 @@ package org.akhikhl.wuff
  *
  * @author ahi
  */
-class SwtAppPluginExtension {
+class SwtAppProductsExtension {
 
-  def products = []
+  boolean archiveProducts = false
+
+  def productList = []
 
   def product(newValue) {
-    products.add newValue
+    productList.add newValue
   }
 }
 

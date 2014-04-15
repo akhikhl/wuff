@@ -9,11 +9,8 @@ jar {
   manifest { attributes 'Main-Class': 'swtapp1.Main' }
 }
 
-onejar {
-  archiveProducts true
-}
-
-swtapp {
+products {
   product platform: 'linux', arch: 'x86_64', language: 'de'
   product platform: 'windows', arch: 'x86_32'
+  archiveProducts = true
 }

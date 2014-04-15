@@ -37,9 +37,9 @@ class SwtAppConfigurer extends Configurer {
   @Override
   protected void configureProducts() {
 
-    def products = project.swtapp.products ?: [[]]
+    def productList = project.products.productList ?: [[]]
 
-    products.each { product ->
+    productList.each { product ->
       def platform = product.platform ?: PlatformConfig.current_os
       def arch = product.arch ?: PlatformConfig.current_arch
       def language = product.language ?: ''
@@ -48,12 +48,14 @@ class SwtAppConfigurer extends Configurer {
       else
         project.onejar.product name: "swtapp_${platform}_${arch}", launcher: launchers[platform], suffix: "${platform}-${arch}", platform: platform, arch: arch
     }
+
+    project.onejar.archiveProducts = project.products.archiveProducts
   }
 
   @Override
   protected void createExtensions() {
     super.createExtensions()
-    project.extensions.create('swtapp', SwtAppPluginExtension)
+    project.extensions.create('products', SwtAppProductsExtension)
   }
 
   @Override

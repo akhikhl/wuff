@@ -11,7 +11,7 @@ package org.akhikhl.wuff
  *
  * @author akhikhl
  */
-class EclipseAppExtension {
+class EquinoxAppProductsExtension {
 
   List additionalFilesToArchive = []
 
@@ -20,7 +20,7 @@ class EclipseAppExtension {
   List<Closure> beforeProductGeneration = []
 
   private boolean defaultProducts = true
-  List products = [[:]]
+  List productList = [[:]]
 
   List<String> launchParameters = []
 
@@ -42,9 +42,9 @@ class EclipseAppExtension {
 
   void product(Map productSpec) {
     if(defaultProducts) {
-      products = []
+      productList = []
       defaultProducts = false
     }
-    products.add productSpec
+    productList.add productSpec
   }
 }
