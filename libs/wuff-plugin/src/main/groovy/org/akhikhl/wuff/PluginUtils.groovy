@@ -9,6 +9,7 @@ package org.akhikhl.wuff
 
 import java.nio.file.Paths
 import java.util.Properties
+import java.util.regex.Matcher
 
 import groovy.transform.CompileStatic
 import groovy.util.Node
@@ -75,7 +76,7 @@ final class PluginUtils {
     project.configurations.privateLib.files.each { File lib ->
       project.zipTree(lib).visit { f ->
         if(f.isDirectory())
-          privatePackages.add(f.path.replaceAll('/', '.'))
+          privatePackages.add(f.path.replace('/', '.').replace('\\', '.'))
       }
     }
     if(privatePackages)
@@ -94,7 +95,7 @@ final class PluginUtils {
       project.sourceSets.main.allSource.srcDirs.findResult { File srcDir ->
         project.fileTree(srcDir).include(sourceMask).files.findResult { File sourceFile ->
           String path = Paths.get(srcDir.absolutePath).relativize(Paths.get(sourceFile.absolutePath)).toString()
-          FilenameUtils.removeExtension(path).replaceAll(File.separator, '.')
+          FilenameUtils.removeExtension(path).replace(File.separator, '.')
         }
       }
     }
@@ -127,7 +128,7 @@ final class PluginUtils {
     }.unique(false)
     List importPackages = []
     packages.each { String packageName ->
-      String packagePath = packageName.replaceAll(/\./, '/')
+      String packagePath = packageName.replaceAll(/\./, Matcher.quoteReplacement(File.separator))
       if(project.sourceSets.main.allSource.srcDirs.find { new File(it, packagePath).exists() })
         log.info 'Found package {} within {}, no import needed', packageName, project.name
       else {
