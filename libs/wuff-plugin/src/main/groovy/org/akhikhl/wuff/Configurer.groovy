@@ -23,6 +23,7 @@ class Configurer {
 
   protected final Project project
   protected final Config defaultConfig
+  protected Config effectiveConfig
   protected String eclipseVersion
 
   Configurer(Project project) {
@@ -39,42 +40,25 @@ class Configurer {
     afterEvaluate(this.&postConfigure)
   }
 
-  protected final void applyToConfigs(Closure closure) {
-
-    closure(defaultConfig)
-
-    ProjectUtils.collectWithAllAncestors(project).each { Project p ->
-      Config config = p.extensions.findByName('wuff')
-      if(config)
-        closure(config)
-    }
-  }
-
-  protected final void applyToModuleConfigs(Closure closure) {
-
-    applyToConfigs { Config config ->
-      EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
-      if(versionConfig != null)
-        for(String moduleName in getModules()) {
-          EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
-          if(moduleConfig) {
-            moduleConfig.properties.each { key, value ->
-              if(value instanceof Collection)
-                value.each { item ->
-                  if(item instanceof Closure && item.delegate != PlatformConfig) {
-                    item.delegate = PlatformConfig
-                    item.resolveStrategy = Closure.DELEGATE_FIRST
-                  }
-                }
-            }
-            closure(moduleConfig)
-          }
-        }
-    }
-  }
-
   protected void applyPlugins() {
     project.apply plugin: 'osgi'
+  }
+
+  private void applyModuleAction(String action) {
+    EclipseVersionConfig versionConfig = effectiveConfig.versionConfigs[effectiveConfig.defaultEclipseVersion]
+    if(versionConfig) {
+      for(String moduleName in getModules()) {
+        EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
+        if(moduleConfig) {
+          for(Closure closure in moduleConfig[action]) {
+            closure = closure.rehydrate(PlatformConfig, closure.owner, closure.thisObject)
+            closure.resolveStrategy = Closure.DELEGATE_FIRST
+            closure(project)
+          }
+        }
+      }
+    } else
+      log.error 'Eclipse version {} is not configured', effectiveConfig.defaultEclipseVersion
   }
 
   protected void configure() {
@@ -82,23 +66,18 @@ class Configurer {
     applyPlugins()
     createExtensions()
 
-    if(project.hasProperty('eclipseVersion'))
-      // project properties are inherently hierarchical, so parent's eclipseVersion will be inherited
-      eclipseVersion = project.eclipseVersion
-    else {
-      Project p = ProjectUtils.findUpAncestorChain(project, { it.extensions.findByName('wuff')?.defaultEclipseVersion != null })
-      if(p != null)
-        eclipseVersion = p.wuff.defaultEclipseVersion
-      if(eclipseVersion == null)
-        eclipseVersion = defaultConfig.defaultEclipseVersion
-    }
+    setupConfigChain(project)
 
-    project.wuff.defaultEclipseVersion = eclipseVersion
+    effectiveConfig = project.wuff.effectiveConfig
+    eclipseVersion = effectiveConfig.defaultEclipseVersion
 
-    applyToConfigs { Config config ->
-      EclipseVersionConfig versionConfig = config.versionConfigs[eclipseVersion]
-      if(versionConfig?.eclipseMavenGroup != null)
-        project.ext.eclipseMavenGroup = versionConfig.eclipseMavenGroup
+    Project p = project
+    while(p != null) {
+      if(p.extensions.findByName('wuff')) {
+        def econf = p.wuff.effectiveConfig
+        p.ext.eclipseMavenGroup = econf.versionConfigs[econf.defaultEclipseVersion]?.eclipseMavenGroup
+      }
+      p = p.parent
     }
 
     new EclipseMavenInstaller(project).installEclipseIntoLocalMavenRepo()
@@ -108,10 +87,7 @@ class Configurer {
       compile.extendsFrom privateLib
     }
 
-    applyToModuleConfigs { EclipseModuleConfig moduleConfig ->
-      for(Closure closure in moduleConfig.configure)
-        closure(project)
-    }
+    applyModuleAction('configure')
   }
 
   protected void configureProducts() {
@@ -197,11 +173,22 @@ class Configurer {
     if(project.version == 'unspecified')
       project.version = '1.0.0.0'
     createVirtualConfigurations()
-    applyToModuleConfigs { EclipseModuleConfig moduleConfig ->
-      for(Closure closure in moduleConfig.postConfigure)
-        closure(project)
-    }
+    applyModuleAction('postConfigure')
     configureTasks()
     configureProducts()
+  }
+
+  private void setupConfigChain(Project project) {
+    if(project.wuff.parentConfig == null) {
+      Project p = project.parent
+      while(p != null && !p.extensions.findByName('wuff'))
+        p = p.parent
+      if(p == null)
+        project.wuff.parentConfig = defaultConfig
+      else {
+        project.wuff.parentConfig = p.wuff
+        setupConfigChain(p)
+      }
+    }
   }
 }

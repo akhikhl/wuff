@@ -183,9 +183,8 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       inputs.files { project.configurations.runtime }
       outputs.dir { PluginUtils.getWrappedLibsDir(project) }
       doLast {
-        def wrappedLibsConfig = getEffectiveWrappedLibsConfig()
         inputs.files.each { lib ->
-          def wrapper = new LibWrapper(project, lib, wrappedLibsConfig)
+          def wrapper = new LibWrapper(project, lib, effectiveConfig.wrappedLibs)
           wrapper.wrap()
         }
       }
@@ -209,19 +208,6 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   @Override
   protected String getScaffoldResourceDir() {
     'scaffold/eclipse-equinox-app/'
-  }
-
-  protected WrappedLibsConfig getEffectiveWrappedLibsConfig() {
-    WrappedLibsConfig result = new WrappedLibsConfig()
-    applyToConfigs { Config config ->
-      config.wrappedLibsConfig.libConfigs.each { String libName, WrappedLibConfig wrappedLibConfig ->
-        def targetWrappedLibConfig = result.libConfigs[libName]
-        if(targetWrappedLibConfig == null)
-          targetWrappedLibConfig = result.libConfigs[libName] = new WrappedLibConfig()
-        wrappedLibConfig.excludedImports.each { targetWrappedLibConfig.excludedImports.add(it) }
-      }
-    }
-    return result
   }
 
   @Override

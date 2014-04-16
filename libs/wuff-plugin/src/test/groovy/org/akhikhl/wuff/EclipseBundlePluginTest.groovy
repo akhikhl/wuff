@@ -36,13 +36,13 @@ class EclipseBundlePluginTest extends Specification {
     project.evaluate()
   then:
     project.extensions.findByName('wuff')
-    project.wuff.defaultEclipseVersion == '4.3'
+    project.wuff.effectiveConfig.defaultEclipseVersion == '4.3'
     project.configurations.findByName('privateLib')
     project.configurations.findByName('compile')
-    project.configurations.compile.files.find { it.name.startsWith('org.eclipse.swt') }
-    project.configurations.compile.files.find { it.name.startsWith("org.eclipse.swt.${PlatformConfig.current_os_suffix}.${PlatformConfig.current_arch_suffix}") }
-    project.configurations.compile.files.find { it.name.startsWith('org.eclipse.jface') }
-    project.configurations.compile.files.find { it.name.startsWith('org.eclipse.ui') }
+    project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.swt') }
+    project.configurations.compile.dependencies.find { it.name.startsWith("org.eclipse.swt.${PlatformConfig.current_os_suffix}.${PlatformConfig.current_arch_suffix}") }
+    project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.jface') }
+    project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.ui') }
   }
 }
 
