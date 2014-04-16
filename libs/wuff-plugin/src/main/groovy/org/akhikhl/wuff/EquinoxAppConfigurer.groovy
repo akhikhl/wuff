@@ -116,13 +116,9 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
           String eclipseProductId = PluginUtils.getEclipseProductId(project)
           if(eclipseProductId)
             configWriter.println "eclipse.product=$eclipseProductId"
-          ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
-            File splashFile = new File(srcDir, 'splash.bmp')
-            if(splashFile.exists()) {
-              configWriter.println "osgi.splashLocation=${splashFile.absolutePath}"
-              true
-            }
-          }
+          File splashFile = PluginUtils.findPluginSplash(project)
+          if(splashFile.exists())
+            configWriter.println "osgi.splashLocation=${splashFile.absolutePath}"
           File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
           configWriter.println "osgi.framework=file\\:${osgiFrameworkFile.absolutePath}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
@@ -146,13 +142,8 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       '-consoleLog'
     ]
 
-    ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
-      File splashFile = new File(srcDir, 'splash.bmp')
-      if(splashFile.exists()) {
-        programArgs.add '-showSplash'
-        true
-      }
-    }
+    if(PluginUtils.findPluginSplash(project))
+      programArgs.add '-showSplash'
 
     programArgs.addAll project.run.args
 

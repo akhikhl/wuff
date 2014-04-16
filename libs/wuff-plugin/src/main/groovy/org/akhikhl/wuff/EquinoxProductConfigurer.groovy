@@ -189,12 +189,8 @@ class EquinoxProductConfigurer {
           configWriter.println "osgi.framework=file\\:plugins/${osgiFrameworkFile.name}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
           configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
-          ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
-            if(new File(srcDir, 'splash.bmp').exists()) {
-              configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
-              true
-            }
-          }
+          if(PluginUtils.findPluginSplash(project))
+            configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
         }
 
         File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
@@ -208,13 +204,8 @@ class EquinoxProductConfigurer {
 
         def launchParameters = project.products.launchParameters.clone()
 
-        ([project.projectDir] + project.sourceSets.main.resources.srcDirs).find { File srcDir ->
-          File splashFile = new File(srcDir, 'splash.bmp')
-          if(splashFile.exists()) {
-            launchParameters.add '-showSplash'
-            true
-          }
-        }
+        if(PluginUtils.findPluginSplash(project))
+          launchParameters.add '-showSplash'
 
         if(language) {
           launchParameters.add '-nl'

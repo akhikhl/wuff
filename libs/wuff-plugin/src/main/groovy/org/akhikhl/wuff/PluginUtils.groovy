@@ -207,6 +207,16 @@ final class PluginUtils {
     return result
   }
 
+  static File findPluginSplash(Project project) {
+    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+      File f = new File(dir, 'splash.bmp')
+      f.exists() ? f : null
+    }
+    if(result)
+      log.info '{}: Found eclipse plugin splash: {}', project.name, result
+    return result
+  }
+
   static String getEclipseApplicationId(Project project) {
     String result
     if(project.pluginXml)
