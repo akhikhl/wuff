@@ -80,7 +80,9 @@ class Configurer {
       p = p.parent
     }
 
-    new EclipseMavenInstaller(project).installEclipseIntoLocalMavenRepo()
+    def unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project.rootProject)
+    unpuzzleConfigurer.apply()
+    unpuzzleConfigurer.installEclipse()
 
     project.configurations {
       privateLib
