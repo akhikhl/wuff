@@ -1,17 +1,16 @@
 buildscript {
-  apply plugin: 'maven'
-
   repositories {
     mavenLocal()
+    jcenter()
     mavenCentral()
   }
   
   dependencies {
-    classpath 'org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.1'
+    classpath 'org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.2'
   }
 }
 
-import org.akhikhl.unpuzzle.gradle.UnpuzzlePlugin
+import org.akhikhl.unpuzzle.UnpuzzlePlugin
 
 if (!project.plugins.findPlugin(UnpuzzlePlugin))
   project.apply(plugin: UnpuzzlePlugin)
