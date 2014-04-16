@@ -79,7 +79,7 @@ class EquinoxProductConfigurer {
       launchers = product.launchers
     else if(product.launcher)
       launchers = [ product.launcher ]
-    else if(product.platform == 'windows')
+    else if(platform == 'windows')
       launchers = [ 'windows' ]
     else
       launchers = [ 'shell' ]
