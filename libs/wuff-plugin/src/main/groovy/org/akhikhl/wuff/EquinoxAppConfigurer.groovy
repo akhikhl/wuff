@@ -52,6 +52,8 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     String runPluginsDir = "$runDir/plugins"
 
     project.task('prepareRunConfig') {
+      group = 'wuff'
+      description = 'prepares run configuration in buildDir/run'
       dependsOn project.tasks.jar
       dependsOn project.tasks.wrapLibs
       inputs.files { project.configurations.runtime.files }
@@ -180,6 +182,8 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   private void configureTask_wrapLibs() {
 
     project.task('wrapLibs') {
+      group = 'wuff'
+      description = 'wraps non-OSGi libraries as OSGi-bundles'
       inputs.files { project.configurations.runtime }
       outputs.dir { PluginUtils.getWrappedLibsDir(project) }
       doLast {

@@ -114,6 +114,11 @@ class EquinoxProductConfigurer {
   void configureBuildTask() {
 
     project.task("buildProduct_${productTaskSuffix}") { task ->
+      group = 'wuff'
+      if(language)
+        description = "builds product for platform $platform, architecture $arch and language $language"
+      else
+        description = "builds product for platform $platform and architecture $arch"
 
       dependsOn project.tasks.jar
       dependsOn project.tasks.wrapLibs
@@ -272,6 +277,12 @@ class EquinoxProductConfigurer {
     def archiveType = launchers.contains('windows') ? Zip : Tar
 
     project.task("archiveProduct_${productTaskSuffix}", type: archiveType) {
+      group = 'wuff'
+      if(language)
+        description = "archives product for platform $platform, architecture $arch and language $language"
+      else
+        description = "archives product for platform $platform and architecture $arch"
+
       dependsOn "buildProduct_${productTaskSuffix}"
       project.tasks.build.dependsOn it
       from productOutputDir, { into project.name }

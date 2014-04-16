@@ -102,6 +102,8 @@ class Configurer {
 
   private void configureTask_createExtraFiles() {
     project.task('createExtraFiles') {
+      group = 'wuff'
+      description = 'creates project-specific extra files in buildDir/extra'
       inputs.properties getExtraFilesProperties()
       outputs.upToDateWhen {
         extraFilesUpToDate()
@@ -123,6 +125,8 @@ class Configurer {
     String resourceDir = getScaffoldResourceDir()
     if(resourceDir != null)
       project.task('scaffold', type: Copy) {
+        group = 'wuff'
+        description = 'creates default source code files and configuration files'
         if(!resourceDir.endsWith('/'))
           resourceDir += '/'
         String path = URLDecoder.decode(Configurer.class.getProtectionDomain().getCodeSource().getLocation().getPath(), 'UTF-8')

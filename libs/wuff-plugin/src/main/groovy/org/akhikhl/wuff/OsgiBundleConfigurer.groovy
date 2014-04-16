@@ -33,6 +33,9 @@ class OsgiBundleConfigurer extends Configurer {
   private void configureTask_createOsgiManifest() {
 
     project.task('createOsgiManifest') {
+      group = 'wuff'
+      description = 'creates OSGi manifest'
+
       File generatedManifestFile = getGeneratedManifestFile()
       dependsOn project.tasks.classes
       inputs.files { project.configurations.runtime }
