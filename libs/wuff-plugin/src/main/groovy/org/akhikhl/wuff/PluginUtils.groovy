@@ -169,11 +169,14 @@ final class PluginUtils {
     return result
   }
 
-  static File findPluginIntroHtmlFile(Project project) {
+  static File findPluginIntroHtmlFile(Project project, String language = null) {
+    String prefix = language ? "nl/$language/" : ''
+    String relPath = "${prefix}intro/welcome.html"
+    String relPath2 = "${prefix}intro/welcome.htm"
     File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, 'intro/welcome.html')
+      File f = new File(dir, relPath)
       if(!f.exists())
-        f = new File(dir, 'intro/welcome.htm')
+        f = new File(dir, relPath2)
       f.exists() ? f : null
     }
     if(result)
@@ -181,15 +184,17 @@ final class PluginUtils {
     return result
   }
 
-  static Node findPluginIntroXml(Project project) {
-    findPluginIntroXmlFile(project)?.withReader('UTF-8') {
+  static Node findPluginIntroXml(Project project, String language = null) {
+    findPluginIntroXmlFile(project, language)?.withReader('UTF-8') {
       new XmlParser().parse(it)
     }
   }
 
-  static File findPluginIntroXmlFile(Project project) {
+  static File findPluginIntroXmlFile(Project project, String language = null) {
+    String prefix = language ? "nl/$language/" : ''
+    String relPath = "${prefix}intro/introContent.xml"
     File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, 'intro/introContent.xml')
+      File f = new File(dir, relPath)
       f.exists() ? f : null
     }
     if(result)
@@ -280,8 +285,10 @@ final class PluginUtils {
     new File(project.buildDir, 'extra')
   }
 
-  static File getExtraIntroXmlFile(Project project) {
-    new File(getExtraDir(project), 'intro/introContent.xml')
+  static File getExtraIntroXmlFile(Project project, String language = null) {
+    String prefix = language ? "nl/$language/" : ''
+    String relPath = "${prefix}intro/introContent.xml"
+    new File(getExtraDir(project), relPath)
   }
 
   static File getExtraPluginXmlFile(Project project) {
@@ -290,6 +297,16 @@ final class PluginUtils {
 
   static File getExtraPluginCustomizationFile(Project project) {
     new File(getExtraDir(project), 'plugin_customization.ini')
+  }
+
+  static List<File> getLocalizationDirs(Project project) {
+    List result = []
+    ([project.projectDir] + project.sourceSets.main.resources.srcDirs).each { File dir ->
+      File f = new File(dir, 'nl')
+      if(f.exists())
+        result.addAll(f.listFiles({ it.isDirectory() } as FileFilter))
+    }
+    return result
   }
 
   static File getOsgiFrameworkFile(Project project) {

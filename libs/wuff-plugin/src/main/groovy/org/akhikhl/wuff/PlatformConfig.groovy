@@ -15,7 +15,7 @@ class PlatformConfig {
 
   public static final supported_oses = ['windows', 'linux']
   public static final supported_archs = ['x86_32', 'x86_64']
-  public static final supported_languages = ['de']
+  public static final supported_languages = ['de', 'fr', 'es']
 
   public static final String current_os
 
