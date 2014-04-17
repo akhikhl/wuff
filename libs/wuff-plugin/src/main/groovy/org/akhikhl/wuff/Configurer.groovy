@@ -120,8 +120,18 @@ class Configurer {
     project.tasks.jar {
       dependsOn project.tasks.createExtraFiles
       from PluginUtils.getExtraDir(project)
-      from project.file('splash.bmp')
-      from project.file('OSGI-INF')
+      // Normally these files should be placed in src/main/resources.
+      // We support them in root to be backward-compatible with eclipse project layout.
+      from 'splash.bmp'
+      from 'OSGI-INF', {
+        into 'OSGI-INF'
+      }
+      from 'intro', {
+        into 'intro'
+      }
+      from 'nl', {
+        into 'nl'
+      }
     }
   }
 
