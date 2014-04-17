@@ -135,72 +135,7 @@ class EquinoxProductConfigurer {
       outputs.dir productOutputDir
 
       doLast {
-        // key is plugin name, value is complete launch entry for configuration
-        def bundleLaunchList = [:]
-
-        def addBundle = { File file ->
-          String pluginName = PluginUtils.getPluginName(file.name)
-          if(bundleLaunchList.containsKey(pluginName))
-            return
-          String launchOption = ''
-          if(pluginName == 'org.eclipse.equinox.ds' || pluginName == 'org.eclipse.equinox.common')
-            launchOption = '@2:start'
-          else if(pluginName == 'org.eclipse.core.runtime' || pluginName == 'jersey-core')
-            launchOption = '@start'
-          if(pluginName != PluginUtils.osgiFrameworkPluginName && !pluginName.startsWith(PluginUtils.equinoxLauncherPluginName))
-            bundleLaunchList[pluginName] = "reference\\:file\\:${file.name}${launchOption}"
-          project.copy {
-            from file
-            into new File(productOutputDir, 'plugins')
-            // need to rename them to ensure that platform-specific launcher fragments are automatically found
-            if(file.name.startsWith(PluginUtils.equinoxLauncherPluginName))
-              rename PluginUtils.eclipsePluginMask, '$1_$2'
-          }
-        }
-
-        addBundle project.tasks.jar.archivePath
-
-        File wrappedLibsDir = PluginUtils.getWrappedLibsDir(project)
-        if(wrappedLibsDir.exists())
-          wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
-
-        project.configurations.runtime.each {
-          if(ManifestUtils.isBundle(project, it) && !ProjectUtils.findFileInProducts(project, it))
-            addBundle it
-        }
-
-        productConfig?.each {
-          if(ManifestUtils.isBundle(project, it))
-            addBundle it
-        }
-
-        bundleLaunchList = bundleLaunchList.sort()
-
-        File configFile = new File(productOutputDir, 'configuration/config.ini')
-        configFile.parentFile.mkdirs()
-        configFile.withPrintWriter { PrintWriter configWriter ->
-          String eclipseApplicationId = PluginUtils.getEclipseApplicationId(project)
-          if(eclipseApplicationId)
-            configWriter.println "eclipse.application=$eclipseApplicationId"
-          String eclipseProductId = PluginUtils.getEclipseProductId(project)
-          if(eclipseProductId)
-            configWriter.println "eclipse.product=$eclipseProductId"
-          File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
-          configWriter.println "osgi.framework=file\\:plugins/${osgiFrameworkFile.name}"
-          configWriter.println 'osgi.bundles.defaultStartLevel=4'
-          configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
-          if(PluginUtils.findPluginSplash(project))
-            configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
-        }
-
-        File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
-        String equinoxLauncherName = 'plugins/' + equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')
-
-        if(jreFolder)
-          project.copy {
-            from jreFolder
-            into new File(productOutputDir, 'jre')
-          }
+        writeConfigIni()
 
         def launchParameters = project.products.launchParameters.clone()
 
@@ -212,50 +147,19 @@ class EquinoxProductConfigurer {
           launchParameters.add language
         }
 
-        launchParameters = launchParameters.join(' ')
-        if(launchParameters)
-          launchParameters = ' ' + launchParameters
+        if(launchers.contains('shell'))
+          writeShellLaunchFile(launchParameters)
 
-        if(launchers.contains('shell')) {
-          def javaLocation = ''
-          if(jreFolder)
-            javaLocation = 'SOURCE="${BASH_SOURCE[0]}"\n' +
-              'while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink\n' +
-              'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
-              'SOURCE="$(readlink "$SOURCE")\n' +
-              '[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located\n' +
-              'done\n' +
-              'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
-              '${DIR}/jre/bin/'
-          File launchScriptFile = new File(productOutputDir, "${project.name}.sh")
-          launchScriptFile.text = "#!/bin/bash\n${javaLocation}java -jar $equinoxLauncherName$launchParameters \"\$@\""
-          launchScriptFile.setExecutable(true)
-        }
+        if(launchers.contains('windows'))
+          writeWindowsLaunchFile(launchParameters)
 
-        if(launchers.contains('windows')) {
-          def javaLocation = ''
-          if(jreFolder)
-            javaLocation = '%~dp0\\jre\\bin\\'
-          File launchScriptFile = new File(productOutputDir, "${project.name}.bat")
-          launchScriptFile.text = "@start /min cmd /c ${javaLocation}java.exe -jar $equinoxLauncherName$launchParameters %*"
-          javaLocation = ''
-          if(jreFolder)
-            javaLocation = 'jre\\bin\\'
-          launchScriptFile = new File(productOutputDir, "${project.name}.vbs")
-          launchScriptFile.text = "Set shell = CreateObject(\"WScript.Shell\")\r\nshell.Run \"cmd /c ${javaLocation}java.exe -jar $equinoxLauncherName$launchParameters\", 0"
-        }
+        writeVersionFile()
 
-        String versionFileName = 'VERSION'
-        String lineSep = '\n'
-        if(platform == 'windows' || launchers.contains('windows')) {
-          versionFileName += '.txt'
-          lineSep = '\r\n'
-        }
-        new File(productOutputDir, versionFileName).text = "product: ${project.name}" + lineSep +
-          "version: ${project.version}" + lineSep +
-          "platform: $platform" + lineSep +
-          "architecture: $arch" + lineSep +
-          "language: ${language ?: 'en'}" + lineSep
+        if(jreFolder)
+          project.copy {
+            from jreFolder
+            into new File(productOutputDir, 'jre')
+          }
       } // doLast
     } // buildProduct_xxx task
   } // configureBuildTask
@@ -320,4 +224,112 @@ class EquinoxProductConfigurer {
       }
     } // archiveTaskName
   } // configureArchiveTask
+
+  void writeConfigIni() {
+    // key is plugin name, value is complete launch entry for configuration
+    def bundleLaunchList = [:]
+
+    def addBundle = { File file ->
+      String pluginName = PluginUtils.getPluginName(file.name)
+      if(bundleLaunchList.containsKey(pluginName))
+        return
+      String launchOption = ''
+      if(pluginName == 'org.eclipse.equinox.ds' || pluginName == 'org.eclipse.equinox.common')
+        launchOption = '@2:start'
+      else if(pluginName == 'org.eclipse.core.runtime' || pluginName == 'jersey-core')
+        launchOption = '@start'
+      if(pluginName != PluginUtils.osgiFrameworkPluginName && !pluginName.startsWith(PluginUtils.equinoxLauncherPluginName))
+        bundleLaunchList[pluginName] = "reference\\:file\\:${file.name}${launchOption}"
+      project.copy {
+        from file
+        into new File(productOutputDir, 'plugins')
+        // need to rename them to ensure that platform-specific launcher fragments are automatically found
+        if(file.name.startsWith(PluginUtils.equinoxLauncherPluginName))
+          rename PluginUtils.eclipsePluginMask, '$1_$2'
+      }
+    }
+
+    addBundle project.tasks.jar.archivePath
+
+    File wrappedLibsDir = PluginUtils.getWrappedLibsDir(project)
+    if(wrappedLibsDir.exists())
+      wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
+
+    project.configurations.runtime.each {
+      if(ManifestUtils.isBundle(project, it) && !ProjectUtils.findFileInProducts(project, it))
+        addBundle it
+    }
+
+    productConfig?.each {
+      if(ManifestUtils.isBundle(project, it))
+        addBundle it
+    }
+
+    bundleLaunchList = bundleLaunchList.sort()
+
+    File configFile = new File(productOutputDir, 'configuration/config.ini')
+    configFile.parentFile.mkdirs()
+    configFile.withPrintWriter { PrintWriter configWriter ->
+      String eclipseApplicationId = PluginUtils.getEclipseApplicationId(project)
+      if(eclipseApplicationId)
+        configWriter.println "eclipse.application=$eclipseApplicationId"
+      String eclipseProductId = PluginUtils.getEclipseProductId(project)
+      if(eclipseProductId)
+        configWriter.println "eclipse.product=$eclipseProductId"
+      File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
+      configWriter.println "osgi.framework=file\\:plugins/${osgiFrameworkFile.name}"
+      configWriter.println 'osgi.bundles.defaultStartLevel=4'
+      configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
+      if(PluginUtils.findPluginSplash(project))
+        configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
+    }
+  }
+
+  void writeShellLaunchFile(List<String> launchParameters) {
+    String launchParametersStr = launchParameters.join(' ')
+    if(launchParametersStr)
+      launchParametersStr = ' ' + launchParametersStr
+    File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
+    String equinoxLauncherName = 'plugins/' + equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')
+    String javaLocation = ''
+    if(jreFolder)
+      javaLocation = 'SOURCE="${BASH_SOURCE[0]}"\n' +
+        'while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink\n' +
+        'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
+        'SOURCE="$(readlink "$SOURCE")\n' +
+        '[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located\n' +
+        'done\n' +
+        'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
+        '${DIR}/jre/bin/'
+    File launchScriptFile = new File(productOutputDir, "${project.name}.sh")
+    launchScriptFile.text = "#!/bin/bash\n${javaLocation}java -jar $equinoxLauncherName$launchParametersStr \"\$@\""
+    launchScriptFile.setExecutable(true)
+  }
+
+  void writeVersionFile() {
+    String lineSep = '\n'
+    if(platform == 'windows' || launchers.contains('windows'))
+      lineSep = '\r\n'
+    new File(productOutputDir, 'VERSION').text = "product: ${project.name}" + lineSep +
+      "version: ${project.version}" + lineSep +
+      "platform: $platform" + lineSep +
+      "architecture: $arch" + lineSep +
+      "language: ${language ?: 'en'}" + lineSep
+  }
+
+  void writeWindowsLaunchFile(List<String> launchParameters) {
+    String launchParametersStr = launchParameters.join(' ')
+    if(launchParametersStr)
+      launchParametersStr = ' ' + launchParametersStr
+    File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
+    String equinoxLauncherName = 'plugins/' + equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')
+    String javaLocation = ''
+    if(jreFolder)
+      javaLocation = '%~dp0\\jre\\bin\\'
+    File launchScriptFile = new File(productOutputDir, "${project.name}.bat")
+    String scriptText = "${javaLocation}java.exe -jar $equinoxLauncherName$launchParametersStr %*"
+    if(PluginUtils.findPluginSplash(project))
+      scriptText = '@start /min cmd /c ' + scriptText
+    launchScriptFile.text = scriptText
+  }
 }
