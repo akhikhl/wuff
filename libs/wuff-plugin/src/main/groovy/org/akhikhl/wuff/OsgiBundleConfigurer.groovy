@@ -67,11 +67,10 @@ class OsgiBundleConfigurer extends Configurer {
         into 'OSGI-INF'
       }
 
-      inputs.dir 'intro'
       from 'intro', {
         into 'intro'
       }
-      
+
       from 'nl', {
         into 'nl'
       }
