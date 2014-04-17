@@ -124,7 +124,7 @@ class EquinoxProductConfigurer {
       dependsOn project.tasks.wrapLibs
       project.tasks.build.dependsOn task
 
-      inputs.files { project.configurations.runtime.files }
+      inputs.files { project.configurations.runtime }
 
       if(productConfig)
         inputs.files productConfig.files

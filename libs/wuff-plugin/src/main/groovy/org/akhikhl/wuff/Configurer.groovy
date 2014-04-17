@@ -120,6 +120,8 @@ class Configurer {
     project.tasks.jar {
       dependsOn project.tasks.createExtraFiles
       from PluginUtils.getExtraDir(project)
+      from project.file('splash.bmp')
+      from project.file('OSGI-INF')
     }
   }
 

@@ -56,7 +56,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       description = 'prepares run configuration in buildDir/run'
       dependsOn project.tasks.jar
       dependsOn project.tasks.wrapLibs
-      inputs.files { project.configurations.runtime.files }
+      inputs.files { project.configurations.runtime }
       outputs.files runConfigFile
       doLast {
         // need to delete config-subdirs, otherwise osgi uses cached bundles,
