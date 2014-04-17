@@ -23,6 +23,56 @@ class EclipseIdeAppConfigurer extends EclipseRcpAppConfigurer {
   }
 
   @Override
+  protected void createExtraFiles() {
+    super.createExtraFiles()
+    FileUtils.stringToFile(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project))
+  }
+
+  protected void createIntroXml() {
+    def existingConfig = PluginUtils.findPluginIntroXml(project)
+    StringWriter writer = new StringWriter()
+    def xml = new MarkupBuilder(writer)
+    xml.doubleQuotes = true
+    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
+    xml.introContent {
+      existingConfig?.children().each {
+        XmlUtils.writeNode(xml, it)
+      }
+      populatePluginIntroXml(xml, existingConfig)
+    }
+    def introXml = new XmlParser().parseText(writer.toString())
+    project.ext.introXml = (introXml.iterator() as boolean) ? introXml : null
+  }
+
+  @Override
+  protected void createVirtualConfigurations() {
+    super.createVirtualConfigurations()
+    createIntroXml()
+  }
+
+  protected boolean extraFilesUpToDate() {
+    if(!FileUtils.stringToFileUpToDate(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project)))
+      return false
+    return super.extraFilesUpToDate()
+  }
+
+  @Override
+  protected Map getExtraFilesProperties() {
+    Map result = super.getExtraFilesProperties()
+    result.introXml = getIntroXmlString()
+    return result
+  }
+
+  protected final String getIntroXmlString() {
+    if(project.hasProperty('introXml') && project.introXml != null) {
+      def writer = new StringWriter()
+      new XmlNodePrinter(new PrintWriter(writer)).print(project.introXml)
+      return writer.toString()
+    }
+    return null
+  }
+
+  @Override
   protected List<String> getModules() {
     super.getModules() + [ 'eclipseIdeBundle', 'eclipseIdeApp' ]
   }
@@ -32,11 +82,49 @@ class EclipseIdeAppConfigurer extends EclipseRcpAppConfigurer {
   }
 
   @Override
+  protected void populatePluginIntroXml(MarkupBuilder pluginIntroXml, Node existingPluginIntroXml) {
+    File introFile = PluginUtils.findPluginIntroHtmlFile(project)
+    if(introFile) {
+      String homePageId = project.pluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.intro.config' })?.config?.presentation?.'@home-page-id'.text()
+      if(homePageId && !existingPluginIntroXml?.page.find { it.'@id' == homePageId })
+        pluginIntroXml.page id: homePageId, url: introFile.name
+    }
+  }
+
+  @Override
   protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
     populatePerspective(pluginXml, existingPluginXml)
-    if(!existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' }))
+    String productId
+    def existingProductDef = existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })
+    if(existingProductDef)
+      productId = "${project.name}.${existingProductDef.'@id'}"
+    else {
       pluginXml.extension(id: 'product', point: 'org.eclipse.core.runtime.products') {
         product application: 'org.eclipse.ui.ide.workbench', name: project.name
       }
+      productId = "${project.name}.product"
+    }
+    File introFile = PluginUtils.findPluginIntroHtmlFile(project)
+    if(introFile) {
+      String introId
+      def existingIntroDef = existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })
+      if(existingIntroDef)
+        introId = existingIntroDef.intro.'@id'
+      else
+        introId = "${project.name}.intro"
+        pluginXml.extension(point: 'org.eclipse.ui.intro') {
+          intro id: introId, 'class': 'org.eclipse.ui.intro.config.CustomizableIntroPart'
+          introProductBinding introId: introId, productId: productId
+        }
+      if(!existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.intro.config' })) {
+        pluginXml.extension(point: 'org.eclipse.ui.intro.config') {
+          config(id: "${project.name}.introConfigId", introId: introId, content: '\$nl\$/intro/introContent.xml') {
+            presentation('home-page-id': 'homePageId', 'standby-page-id': 'homePageId') {
+              implementation kind: 'html'
+            }
+          }
+        }
+      }
+    }
   }
 }

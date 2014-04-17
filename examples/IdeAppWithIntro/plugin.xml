@@ -6,7 +6,7 @@
     <introProductBinding introId="IdeAppWithIntro.intro" productId="IdeAppWithIntro.product"/>
   </extension>
   <extension point="org.eclipse.ui.intro.config">
-    <config id="IdeAppWithIntro.introConfigId" introId="IdeAppWithIntro.intro" content="intro/introContent.xml">
+    <config id="IdeAppWithIntro.introConfigId" introId="IdeAppWithIntro.intro" content="$nl$/intro/introContent.xml">
       <presentation home-page-id="homePageId" standby-page-id="homePageId">
         <implementation kind="html" os="win32,linux,macosx"/>
       </presentation>

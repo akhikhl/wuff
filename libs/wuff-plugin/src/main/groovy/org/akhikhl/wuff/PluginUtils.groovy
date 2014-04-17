@@ -139,44 +139,6 @@ final class PluginUtils {
     return importPackages
   }
 
-  static File findPluginManifestFile(Project project) {
-    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, 'META-INF/MANIFEST.MF')
-      f.exists() ? f : null
-    }
-    if(result)
-      log.info '{}: Found manifest: {}', project.name, result
-    return result
-  }
-
-  /**
-   * Finds eclipse plugin configuration file, 'plugin.xml'.
-   *
-   * @param project project being analyzed, not modified.
-   * @return groovy.util.Node, containing DOM-tree for 'plugin.xml', or null, if such file does not exist.
-   */
-  static Node findPluginXml(Project project) {
-    findPluginXmlFile(project)?.withReader('UTF-8') {
-      new XmlParser().parse(it)
-    }
-  }
-
-  /**
-   * Finds eclipse plugin configuration file, 'plugin.xml'.
-   *
-   * @param project project being analyzed, not modified.
-   * @return java.io.File, pointing to 'plugin.xml', or null, if such file does not exist.
-   */
-  static File findPluginXmlFile(Project project) {
-    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, 'plugin.xml')
-      f.exists() ? f : null
-    }
-    if(result)
-      log.info '{}: Found eclipse plugin configuration: {}', project.name, result
-    return result
-  }
-
   /**
    * Finds eclipse plugin configuration file, 'plugin.xml'.
    *
@@ -207,13 +169,79 @@ final class PluginUtils {
     return result
   }
 
-  static File findPluginSplash(Project project) {
+  static File findPluginIntroHtmlFile(Project project) {
+    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+      File f = new File(dir, 'intro/welcome.html')
+      if(!f.exists())
+        f = new File(dir, 'intro/welcome.htm')
+      f.exists() ? f : null
+    }
+    if(result)
+      log.info '{}: Found eclipse plugin intro html: {}', project.name, result
+    return result
+  }
+
+  static Node findPluginIntroXml(Project project) {
+    findPluginIntroXmlFile(project)?.withReader('UTF-8') {
+      new XmlParser().parse(it)
+    }
+  }
+
+  static File findPluginIntroXmlFile(Project project) {
+    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+      File f = new File(dir, 'intro/introContent.xml')
+      f.exists() ? f : null
+    }
+    if(result)
+      log.info '{}: Found eclipse plugin intro xml: {}', project.name, result
+    return result
+  }
+
+  static File findPluginManifestFile(Project project) {
+    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+      File f = new File(dir, 'META-INF/MANIFEST.MF')
+      f.exists() ? f : null
+    }
+    if(result)
+      log.info '{}: Found manifest: {}', project.name, result
+    return result
+  }
+
+  static File findPluginSplashFile(Project project) {
     File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
       File f = new File(dir, 'splash.bmp')
       f.exists() ? f : null
     }
     if(result)
       log.info '{}: Found eclipse plugin splash: {}', project.name, result
+    return result
+  }
+
+  /**
+   * Finds eclipse plugin configuration file, 'plugin.xml'.
+   *
+   * @param project project being analyzed, not modified.
+   * @return groovy.util.Node, containing DOM-tree for 'plugin.xml', or null, if such file does not exist.
+   */
+  static Node findPluginXml(Project project) {
+    findPluginXmlFile(project)?.withReader('UTF-8') {
+      new XmlParser().parse(it)
+    }
+  }
+
+  /**
+   * Finds eclipse plugin configuration file, 'plugin.xml'.
+   *
+   * @param project project being analyzed, not modified.
+   * @return java.io.File, pointing to 'plugin.xml', or null, if such file does not exist.
+   */
+  static File findPluginXmlFile(Project project) {
+    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+      File f = new File(dir, 'plugin.xml')
+      f.exists() ? f : null
+    }
+    if(result)
+      log.info '{}: Found eclipse plugin configuration: {}', project.name, result
     return result
   }
 
@@ -250,6 +278,10 @@ final class PluginUtils {
 
   static File getExtraDir(Project project) {
     new File(project.buildDir, 'extra')
+  }
+
+  static File getExtraIntroXmlFile(Project project) {
+    new File(getExtraDir(project), 'intro/introContent.xml')
   }
 
   static File getExtraPluginXmlFile(Project project) {

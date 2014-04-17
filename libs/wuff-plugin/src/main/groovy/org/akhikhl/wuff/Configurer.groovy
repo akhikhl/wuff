@@ -84,10 +84,7 @@ class Configurer {
     unpuzzleConfigurer.apply()
     unpuzzleConfigurer.installEclipse()
 
-    project.configurations {
-      privateLib
-      compile.extendsFrom privateLib
-    }
+    createConfigurations()
 
     applyModuleAction('configure')
   }
@@ -120,18 +117,6 @@ class Configurer {
     project.tasks.jar {
       dependsOn project.tasks.createExtraFiles
       from PluginUtils.getExtraDir(project)
-      // Normally these files should be placed in src/main/resources.
-      // We support them in root to be backward-compatible with eclipse project layout.
-      from 'splash.bmp'
-      from 'OSGI-INF', {
-        into 'OSGI-INF'
-      }
-      from 'intro', {
-        into 'intro'
-      }
-      from 'nl', {
-        into 'nl'
-      }
     }
   }
 
@@ -159,6 +144,9 @@ class Configurer {
         }
         includeEmptyDirs = false
       }
+  }
+
+  protected void createConfigurations() {
   }
 
   protected void createExtensions() {

@@ -56,6 +56,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       description = 'prepares run configuration in buildDir/run'
       dependsOn project.tasks.jar
       dependsOn project.tasks.wrapLibs
+      inputs.files { project.tasks.jar.archivePath }
       inputs.files { project.configurations.runtime }
       outputs.files runConfigFile
       doLast {
@@ -116,7 +117,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
           String eclipseProductId = PluginUtils.getEclipseProductId(project)
           if(eclipseProductId)
             configWriter.println "eclipse.product=$eclipseProductId"
-          File splashFile = PluginUtils.findPluginSplash(project)
+          File splashFile = PluginUtils.findPluginSplashFile(project)
           if(splashFile)
             configWriter.println "osgi.splashLocation=${splashFile.absolutePath}"
           File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
@@ -142,7 +143,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       '-consoleLog'
     ]
 
-    if(PluginUtils.findPluginSplash(project))
+    if(PluginUtils.findPluginSplashFile(project))
       programArgs.add '-showSplash'
 
     programArgs.addAll project.run.args

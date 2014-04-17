@@ -124,6 +124,7 @@ class EquinoxProductConfigurer {
       dependsOn project.tasks.wrapLibs
       project.tasks.build.dependsOn task
 
+      inputs.files { project.tasks.jar.archivePath }
       inputs.files { project.configurations.runtime }
 
       if(productConfig)
@@ -139,7 +140,7 @@ class EquinoxProductConfigurer {
 
         def launchParameters = project.products.launchParameters.clone()
 
-        if(PluginUtils.findPluginSplash(project))
+        if(PluginUtils.findPluginSplashFile(project))
           launchParameters.add '-showSplash'
 
         if(language) {
@@ -280,7 +281,7 @@ class EquinoxProductConfigurer {
       configWriter.println "osgi.framework=file\\:plugins/${osgiFrameworkFile.name}"
       configWriter.println 'osgi.bundles.defaultStartLevel=4'
       configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
-      if(PluginUtils.findPluginSplash(project))
+      if(PluginUtils.findPluginSplashFile(project))
         configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
     }
   }
@@ -328,7 +329,7 @@ class EquinoxProductConfigurer {
       javaLocation = '%~dp0\\jre\\bin\\'
     File launchScriptFile = new File(productOutputDir, "${project.name}.bat")
     String scriptText = "${javaLocation}java.exe -jar $equinoxLauncherName$launchParametersStr %*"
-    if(PluginUtils.findPluginSplash(project))
+    if(PluginUtils.findPluginSplashFile(project))
       scriptText = '@start /min cmd /c ' + scriptText
     launchScriptFile.text = scriptText
   }

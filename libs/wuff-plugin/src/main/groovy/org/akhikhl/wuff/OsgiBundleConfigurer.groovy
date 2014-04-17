@@ -53,10 +53,29 @@ class OsgiBundleConfigurer extends Configurer {
   private void configureTask_Jar() {
 
     project.tasks.jar {
+
       dependsOn project.tasks.createOsgiManifest
-      File generatedManifestFile = getGeneratedManifestFile()
-      inputs.files generatedManifestFile
+
+      inputs.files { getGeneratedManifestFile() }
+
       from { project.configurations.privateLib }
+
+      // Normally these files should be placed in src/main/resources.
+      // We support them in root to be backward-compatible with eclipse project layout.
+      from 'splash.bmp'
+      from 'OSGI-INF', {
+        into 'OSGI-INF'
+      }
+
+      inputs.dir 'intro'
+      from 'intro', {
+        into 'intro'
+      }
+      
+      from 'nl', {
+        into 'nl'
+      }
+
       manifest {
 
         def mergeManifest = {
@@ -79,7 +98,8 @@ class OsgiBundleConfigurer extends Configurer {
         // attention: call order is important here!
         if(userManifestFile != null)
           from userManifestFile.absolutePath, mergeManifest
-        from generatedManifestFile.absolutePath, mergeManifest
+
+        from getGeneratedManifestFile().absolutePath, mergeManifest
       }
       mainSpec.eachFile { FileCopyDetails details ->
         [project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
@@ -96,6 +116,14 @@ class OsgiBundleConfigurer extends Configurer {
       }
     }
   } // configureTask_Jar
+
+  @Override
+  protected void createConfigurations() {
+    project.configurations {
+      privateLib
+      compile.extendsFrom privateLib
+    }
+  }
 
   @Override
   protected void createExtraFiles() {
