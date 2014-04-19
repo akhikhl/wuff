@@ -52,6 +52,11 @@ class OsgiBundleConfigurer extends Configurer {
 
   private void configureTask_Jar() {
 
+    Map projectProperties = [ project: project,
+      current_os: PlatformConfig.current_os,
+      current_arch: PlatformConfig.current_arch,
+      current_language: PlatformConfig.current_language ]
+
     project.tasks.jar {
 
       dependsOn project.tasks.createOsgiManifest
@@ -68,10 +73,24 @@ class OsgiBundleConfigurer extends Configurer {
       }
 
       from 'intro', {
+        include '**/*.html', '**/*.htm'
+        expand projectProperties
+        into 'intro'
+      }
+
+      from 'intro', {
+        exclude '**/*.html', '**/*.htm'
         into 'intro'
       }
 
       from 'nl', {
+        include '**/*.html', '**/*.htm'
+        expand projectProperties
+        into 'nl'
+      }
+
+      from 'nl', {
+        exclude '**/*.html', '**/*.htm'
         into 'nl'
       }
 

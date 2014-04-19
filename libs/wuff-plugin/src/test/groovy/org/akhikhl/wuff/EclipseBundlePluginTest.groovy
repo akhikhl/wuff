@@ -15,7 +15,7 @@ import spock.lang.Specification
  *
  * @author akhikhl
  */
-class EclipseBundlePluginTest extends Specification {
+class BundlePluginTest extends Specification {
 
   private Project project
   private EclipseBundlePlugin plugin
