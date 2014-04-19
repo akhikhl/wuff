@@ -2,6 +2,7 @@ buildscript {
   repositories {
     mavenLocal()
     jcenter()
+    mavenCentral()
   }
   dependencies {
     classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.3'
@@ -49,6 +50,7 @@ subprojects {
   repositories {
     mavenLocal()
     jcenter()
+    mavenCentral()
   }
 
   group = rootProject.ext.group
