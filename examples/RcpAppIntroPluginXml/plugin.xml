@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+  <extension id="application" point="org.eclipse.core.runtime.applications">
+    <application>
+      <run class="rcpappintro.Application"/>
+    </application>
+  </extension>
+  <extension id="product" point="org.eclipse.core.runtime.products">
+    <product application="RcpAppIntro.application" name="RcpAppIntro"/>
+  </extension>
+  <extension point="org.eclipse.ui.intro">
+    <intro id="RcpAppIntro.intro" class="org.eclipse.ui.intro.config.CustomizableIntroPart"/>
+    <introProductBinding introId="RcpAppIntro.intro" productId="RcpAppIntro.product"/>
+  </extension>
+  <extension point="org.eclipse.ui.intro.config">
+    <config id="RcpAppIntro.introConfigId" introId="RcpAppIntro.intro" content="$nl$/intro/introContent.xml">
+      <presentation home-page-id="homePageId" standby-page-id="homePageId">
+        <implementation kind="html" os="win32,linux,macosx"/>
+      </presentation>
+    </config>
+  </extension>
+</plugin>

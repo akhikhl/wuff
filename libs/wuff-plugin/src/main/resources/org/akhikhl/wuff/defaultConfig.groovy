@@ -198,6 +198,8 @@ wuff {
 
       postConfigure { project ->
 
+        boolean hasIntro = PluginUtils.getEclipseIntroId(project)
+
         project.dependencies {
           compile "${eclipseMavenGroup}:javax.annotation:+"
           compile "${eclipseMavenGroup}:javax.inject:+"
@@ -207,6 +209,8 @@ wuff {
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
           compile "${eclipseMavenGroup}:org.eclipse.ui:+"
+          if(hasIntro)
+            runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
         }
 
         project.tasks.jar.manifest {
@@ -215,6 +219,8 @@ wuff {
           instruction 'Require-Bundle', 'org.eclipse.jface'
           instruction 'Require-Bundle', 'org.eclipse.swt'
           instruction 'Require-Bundle', 'org.eclipse.ui'
+          if(hasIntro)
+            instruction 'Require-Bundle', 'org.eclipse.ui.intro'
         }
 
         supported_oses.each { platform ->
@@ -231,6 +237,8 @@ wuff {
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.nl_${language}:+"
+              if(hasIntro)
+                project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
             }
           }
         }
@@ -285,8 +293,6 @@ wuff {
 
       postConfigure { project ->
 
-        boolean hasIntro = PluginUtils.getEclipseIntroId(project)
-
         project.dependencies {
           runtime "${eclipseMavenGroup}:org.eclipse.ui.ide.application:+"
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.p2.engine:+"
@@ -295,14 +301,10 @@ wuff {
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.p2.metadata:+"
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.p2.metadata.repository:+"
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.p2.repository:+"
-          if(hasIntro)
-            runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
         }
 
         project.tasks.jar.manifest {
           instruction 'Require-Bundle', 'org.eclipse.ui.ide.application'
-          if(hasIntro)
-            instruction 'Require-Bundle', 'org.eclipse.ui.intro'
         }
 
         supported_oses.each { platform ->
@@ -315,8 +317,6 @@ wuff {
               String localizedConfigName = "product_eclipseIde_${platform}_${arch}_${language}"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.ide.nl_${language}:+"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.ide.application.nl_${language}:+"
-              if(hasIntro)
-                project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
             }
           }
         }

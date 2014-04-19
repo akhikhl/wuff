@@ -101,7 +101,7 @@ class OsgiBundleConfigurer extends Configurer {
         from getGeneratedManifestFile().absolutePath, mergeManifest
       }
       mainSpec.eachFile { FileCopyDetails details ->
-        [project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
+        [project.projectDir, project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
           if(details.file.absolutePath.startsWith(dir.absolutePath)) {
             String relPath = dir.toPath().relativize(details.file.toPath()).toString()
             File extraFile = new File(PluginUtils.getExtraDir(project), relPath)
@@ -210,20 +210,12 @@ class OsgiBundleConfigurer extends Configurer {
   }
 
   protected void createPluginXml() {
-    def existingConfig = PluginUtils.findPluginXml(project)
-    StringWriter writer = new StringWriter()
-    def xml = new MarkupBuilder(writer)
-    xml.doubleQuotes = true
-    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
-    xml.pi eclipse: [version: '3.2']
-    xml.plugin {
-      existingConfig?.children().each {
-        XmlUtils.writeNode(xml, it)
-      }
-      populatePluginXml(xml, existingConfig)
-    }
-    def pluginXml = new XmlParser().parseText(writer.toString())
+    def pluginXml = new XmlParser().parseText(createPluginXmlBuilder().buildPluginXml())
     project.ext.pluginXml = (pluginXml.iterator() as boolean) ? pluginXml : null
+  }
+
+  protected PluginXmlBuilder createPluginXmlBuilder() {
+    new PluginXmlBuilder(project)
   }
 
   @Override
@@ -274,9 +266,6 @@ class OsgiBundleConfigurer extends Configurer {
       return writer.toString()
     }
     return null
-  }
-
-  protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
   }
 
   protected void populatePluginCustomization(Properties props) {

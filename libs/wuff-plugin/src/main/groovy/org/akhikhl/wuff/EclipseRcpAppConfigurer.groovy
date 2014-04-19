@@ -21,8 +21,74 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   @Override
-  protected String getScaffoldResourceDir() {
-    'scaffold/eclipse-rcp-app/'
+  protected void createExtraFiles() {
+    super.createExtraFiles()
+    FileUtils.stringToFile(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project))
+    for(File dir in PluginUtils.getLocalizationDirs(project))
+      FileUtils.stringToFile(getIntroXmlString(dir.name), PluginUtils.getExtraIntroXmlFile(project, dir.name))
+  }
+
+  private void createIntroXml() {
+    createIntroXml(null)
+    for(File dir in PluginUtils.getLocalizationDirs(project))
+      createIntroXml(dir.name)
+  }
+
+  private void createIntroXml(String language) {
+    def existingConfig = PluginUtils.findPluginIntroXml(project, language)
+    StringWriter writer = new StringWriter()
+    def xml = new MarkupBuilder(writer)
+    xml.doubleQuotes = true
+    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
+    xml.introContent {
+      existingConfig?.children().each {
+        XmlUtils.writeNode(xml, it)
+      }
+      populatePluginIntroXml(xml, existingConfig, language)
+    }
+    def introXml = new XmlParser().parseText(writer.toString())
+    String key = language == null ? 'introXml' : "introXml_$language"
+    project.ext[key] = (introXml.iterator() as boolean) ? introXml : null
+  }
+
+  @Override
+  protected PluginXmlBuilder createPluginXmlBuilder() {
+    new EclipseRcpAppPluginXmlBuilder(project)
+  }
+
+  @Override
+  protected void createVirtualConfigurations() {
+    super.createVirtualConfigurations()
+    createIntroXml()
+  }
+
+  @Override
+  protected boolean extraFilesUpToDate() {
+    if(!FileUtils.stringToFileUpToDate(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project)))
+      return false
+    for(File dir in PluginUtils.getLocalizationDirs(project))
+      if(!FileUtils.stringToFileUpToDate(getIntroXmlString(dir.name), PluginUtils.getExtraIntroXmlFile(project, dir.name)))
+        return false
+    return super.extraFilesUpToDate()
+  }
+
+  @Override
+  protected Map getExtraFilesProperties() {
+    Map result = super.getExtraFilesProperties()
+    result.introXml = getIntroXmlString()
+    for(File dir in PluginUtils.getLocalizationDirs(project))
+      result["introXml_${dir.name}"] = getIntroXmlString(dir.name)
+    return result
+  }
+
+  protected final String getIntroXmlString(String language = null) {
+    String key = language == null ? 'introXml' : "introXml_$language"
+    if(project.hasProperty(key) && project[key] != null) {
+      def writer = new StringWriter()
+      new XmlNodePrinter(new PrintWriter(writer)).print(project[key])
+      return writer.toString()
+    }
+    return null
   }
 
   @Override
@@ -35,18 +101,16 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   @Override
-  protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
-    super.populatePluginXml(pluginXml, existingPluginXml)
-    populatePerspective(pluginXml, existingPluginXml)
+  protected String getScaffoldResourceDir() {
+    'scaffold/eclipse-rcp-app/'
   }
 
-  protected void populatePerspective(MarkupBuilder pluginXml, Node existingConfig) {
-    if(!existingConfig?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })) {
-      String perspectiveClass = PluginUtils.findClassInSources(project, '**/*Perspective.groovy', '**/*Perspective.java')
-      if(perspectiveClass)
-        pluginXml.extension(point: 'org.eclipse.ui.perspectives') {
-          perspective id: "${project.name}.perspective", name: project.name, 'class': perspectiveClass
-        }
+  protected void populatePluginIntroXml(MarkupBuilder pluginIntroXml, Node existingPluginIntroXml, String language) {
+    File introFile = PluginUtils.findPluginIntroHtmlFile(project, language)
+    if(introFile) {
+      String homePageId = project.pluginXml?.extension?.find({ it.'@point' == 'org.eclipse.ui.intro.config' })?.config?.presentation?.'@home-page-id'?.text()
+      if(homePageId && !existingPluginIntroXml?.page.find { it.'@id' == homePageId })
+        pluginIntroXml.page id: homePageId, url: introFile.name
     }
   }
 

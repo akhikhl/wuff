@@ -202,6 +202,11 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   }
 
   @Override
+  protected PluginXmlBuilder createPluginXmlBuilder() {
+    new EquinoxAppPluginXmlBuilder(project)
+  }
+
+  @Override
   protected String getScaffoldResourceDir() {
     'scaffold/eclipse-equinox-app/'
   }
@@ -213,18 +218,5 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
 
   protected String getProductConfigPrefix() {
     'product_equinox_'
-  }
-
-  @Override
-  protected void populatePluginXml(MarkupBuilder pluginXml, Node existingPluginXml) {
-    if(!existingPluginXml?.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })) {
-      String appClass = PluginUtils.findClassInSources(project, '**/*Application.groovy', '**/*Application.java')
-      if(appClass)
-        pluginXml.extension(id: 'application', point: 'org.eclipse.core.runtime.applications') {
-          application {
-            run class: appClass
-          }
-        }
-    }
   }
 }
