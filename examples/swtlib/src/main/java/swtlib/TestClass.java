@@ -7,8 +7,9 @@ import org.eclipse.swt.widgets.Shell;
 
 public final class TestClass {
 
+  private static ResourceBundle res = ResourceBundle.getBundle(TestClass.class.getName(), Locale.getDefault());
+
   public static void showMessageDialog(Shell shell) {
-    ResourceBundle res = ResourceBundle.getBundle(TestClass.class.getName(), Locale.getDefault());
     MessageDialog.openQuestion(shell, res.getString("DialogTitle"), res.getString("DialogMessage"));
   }
 }

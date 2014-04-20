@@ -1,7 +1,7 @@
 package swtapp;
 
-import java.util.Arrays;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -16,14 +16,16 @@ import swtlib.TestClass;
 
 public final class Main {
 
+  private static ResourceBundle res = ResourceBundle.getBundle(Main.class.getName(), Locale.getDefault());
+
   public static void main(String[] args) {
     Display display = new Display();
     try {
       final Shell shell = new Shell(display);
-      shell.setText("Hello, world!");
+      shell.setText(res.getString("WindowTitle"));
       shell.setLayout(new GridLayout(5, true));
       Button btnShowDialog = new Button(shell, SWT.PUSH);
-      btnShowDialog.setText("Show message dialog");
+      btnShowDialog.setText(res.getString("btnShowDialog_Label"));
       btnShowDialog.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
       btnShowDialog.addSelectionListener(new SelectionAdapter() {
         @Override
