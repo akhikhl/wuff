@@ -14,10 +14,29 @@ package org.akhikhl.wuff
 class SwtAppProductsExtension {
 
   boolean archiveProducts = false
+  List productList = []
+  List additionalProductFiles = []
+  List excludeProductFile = []
+  List launchParameters = []
+  String jvmMinMemory
+  String jvmMaxMemory
 
-  def productList = []
+  void additionalProductFiles(newValue) {
+    if(newValue instanceof Collection)
+      additionalProductFiles.addAll newValue
+    else
+      additionalProductFiles.add newValue
+  }
 
-  def product(newValue) {
+  void excludeProductFile(Closure newValue) {
+    excludeProductFile.add newValue
+  }
+
+  void launchParameter(String newValue) {
+    launchParameters.add newValue
+  }
+
+  void product(newValue) {
     productList.add newValue
   }
 }

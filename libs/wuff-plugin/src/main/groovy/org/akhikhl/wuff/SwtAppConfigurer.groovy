@@ -50,6 +50,11 @@ class SwtAppConfigurer extends Configurer {
     }
 
     project.onejar.archiveProducts = project.products.archiveProducts
+    project.onejar.additionalProductFiles = project.products.additionalProductFiles
+    project.onejar.excludeProductFile = project.products.excludeProductFile
+    project.onejar.launchParameters = project.products.launchParameters
+    project.onejar.jvmMinMemory = project.products.jvmMinMemory
+    project.onejar.jvmMaxMemory = project.products.jvmMaxMemory
   }
 
   @Override
