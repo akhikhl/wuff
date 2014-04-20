@@ -1,7 +1,12 @@
 apply plugin: 'java'
 apply plugin: 'eclipse-ide-app'
 
+description = 'Test IDE application with plugin.xml'
+
 dependencies {
   compile project(':ide-bundle-1')
 }
 
+wuff {
+  filterPluginXml = true
+}

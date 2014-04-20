@@ -35,6 +35,7 @@ class Config {
   private Map<String, EclipseVersionConfig> versionConfigs = null
   List<Closure> lazyWrappedLibs = []
   private WrappedLibsConfig wrappedLibs = null
+  boolean filterPluginXml = false
 
   void eclipseVersion(String versionString, Closure closure) {
     List<Closure> closureList = lazyVersions[versionString]

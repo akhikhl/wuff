@@ -52,7 +52,7 @@ class OsgiBundleConfigurer extends Configurer {
 
   private void configureTask_Jar() {
 
-    Map projectProperties = [ project: project,
+    Map binding = [ project: project,
       current_os: PlatformConfig.current_os,
       current_arch: PlatformConfig.current_arch,
       current_language: PlatformConfig.current_language ]
@@ -72,12 +72,12 @@ class OsgiBundleConfigurer extends Configurer {
 
       from '.', {
         include 'plugin*.properties'
-        expand projectProperties
+        expand binding
       }
 
       from 'OSGI-INF', {
         include '**/*.properties'
-        expand projectProperties
+        expand binding
         into 'OSGI-INF'
       }
 
@@ -88,7 +88,7 @@ class OsgiBundleConfigurer extends Configurer {
 
       from 'intro', {
         include '**/*.html', '**/*.htm'
-        expand projectProperties
+        expand binding
         into 'intro'
       }
 
@@ -99,7 +99,7 @@ class OsgiBundleConfigurer extends Configurer {
 
       from 'nl', {
         include '**/*.html', '**/*.htm'
-        expand projectProperties
+        expand binding
         into 'nl'
       }
 

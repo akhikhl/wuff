@@ -21,9 +21,22 @@ class PluginXmlBuilder {
 
   PluginXmlBuilder(Project project) {
     this.project = project
-    this.existingConfig = PluginUtils.findPluginXmlFile(project)?.withReader('UTF-8') {
-      new XmlParser().parse(it)
-    }
+    File pluginXmlFile = PluginUtils.findPluginXmlFile(project)
+    if(pluginXmlFile) {
+      if(project.wuff.filterPluginXml) {
+        String pluginXmlText = pluginXmlFile.getText('UTF-8')
+        Map binding = [ project: project,
+          current_os: PlatformConfig.current_os,
+          current_arch: PlatformConfig.current_arch,
+          current_language: PlatformConfig.current_language ]
+        pluginXmlText = new groovy.text.SimpleTemplateEngine().createTemplate(pluginXmlText).make(binding).toString()
+        this.existingConfig = new XmlParser().parseText(pluginXmlText)
+      } else
+        this.existingConfig = pluginXmlFile.withReader('UTF-8') {
+          new XmlParser().parse(it)
+        }
+    } else
+      this.existingConfig = null
   }
 
   String buildPluginXml() {
