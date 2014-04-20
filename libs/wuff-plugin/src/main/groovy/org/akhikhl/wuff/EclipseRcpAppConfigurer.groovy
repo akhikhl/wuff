@@ -35,7 +35,9 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   private void createIntroXml(String language) {
-    def existingConfig = PluginUtils.findPluginIntroXml(project, language)
+    def existingConfig = PluginUtils.findPluginIntroXmlFile(project, language)?.withReader('UTF-8') {
+      new XmlParser().parse(it)
+    }
     StringWriter writer = new StringWriter()
     def xml = new MarkupBuilder(writer)
     xml.doubleQuotes = true

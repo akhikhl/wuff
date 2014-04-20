@@ -21,7 +21,9 @@ class PluginXmlBuilder {
 
   PluginXmlBuilder(Project project) {
     this.project = project
-    this.existingConfig = PluginUtils.findPluginXml(project)
+    this.existingConfig = PluginUtils.findPluginXmlFile(project)?.withReader('UTF-8') {
+      new XmlParser().parse(it)
+    }
   }
 
   String buildPluginXml() {

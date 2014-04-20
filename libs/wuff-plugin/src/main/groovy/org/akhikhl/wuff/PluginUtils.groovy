@@ -101,11 +101,6 @@ final class PluginUtils {
     }
   }
 
-  static Node findExtraPluginXml(Project project) {
-    File f = getExtraPluginXmlFile(project)
-    f.exists() ? new XmlParser().parse(f) : null
-  }
-
   /**
    * Finds list of import-packages in the given plugin configuration file, 'plugin.xml'.
    *
@@ -140,20 +135,6 @@ final class PluginUtils {
   }
 
   /**
-   * Finds eclipse plugin configuration file, 'plugin.xml'.
-   *
-   * @param project project being analyzed, not modified.
-   * @return groovy.util.Node, containing DOM-tree for 'plugin.xml', or null, if such file does not exist.
-   */
-  static Properties findPluginCustomization(Project project) {
-    findPluginCustomizationFile(project)?.withReader('UTF-8') {
-      def props = new Properties()
-      props.load(it)
-      props
-    }
-  }
-
-  /**
    * Finds eclipse plugin customization file, 'plugin_customization.ini'.
    *
    * @param project project being analyzed, not modified.
@@ -182,12 +163,6 @@ final class PluginUtils {
     if(result)
       log.info '{}: Found eclipse plugin intro html: {}', project.name, result
     return result
-  }
-
-  static Node findPluginIntroXml(Project project, String language = null) {
-    findPluginIntroXmlFile(project, language)?.withReader('UTF-8') {
-      new XmlParser().parse(it)
-    }
   }
 
   static File findPluginIntroXmlFile(Project project, String language = null) {
@@ -220,18 +195,6 @@ final class PluginUtils {
     if(result)
       log.info '{}: Found eclipse plugin splash: {}', project.name, result
     return result
-  }
-
-  /**
-   * Finds eclipse plugin configuration file, 'plugin.xml'.
-   *
-   * @param project project being analyzed, not modified.
-   * @return groovy.util.Node, containing DOM-tree for 'plugin.xml', or null, if such file does not exist.
-   */
-  static Node findPluginXml(Project project) {
-    findPluginXmlFile(project)?.withReader('UTF-8') {
-      new XmlParser().parse(it)
-    }
   }
 
   /**
@@ -325,4 +288,3 @@ final class PluginUtils {
     return new File(project.buildDir, 'wrappedLibs')
   }
 }
-

@@ -235,11 +235,12 @@ class OsgiBundleConfigurer extends Configurer {
   } // createManifest
 
   protected void createPluginCustomization() {
-    Properties customization = PluginUtils.findPluginCustomization(project)
-    if(customization == null)
-      customization = new Properties()
-    populatePluginCustomization(customization)
-    project.ext.pluginCustomization = customization.isEmpty() ? null : customization
+    Properties props = new Properties()
+    PluginUtils.findPluginCustomizationFile(project)?.withReader('UTF-8') {
+      props.load(it)
+    }
+    populatePluginCustomization(props)
+    project.ext.pluginCustomization = props.isEmpty() ? null : props
   }
 
   protected void createPluginXml() {
