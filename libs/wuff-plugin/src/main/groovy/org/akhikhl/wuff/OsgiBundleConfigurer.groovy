@@ -110,15 +110,24 @@ class OsgiBundleConfigurer extends Configurer {
 
       manifest {
 
+        def templateEngine
+
         def mergeManifest = {
           eachEntry { details ->
-            def newValue
+            String mergeValue
+            if(project.wuff.filterManifest && details.mergeValue) {
+              if(!templateEngine)
+                templateEngine = new groovy.text.SimpleTemplateEngine()
+              mergeValue = templateEngine.createTemplate(details.mergeValue).make(binding).toString()
+            } else
+              mergeValue = details.mergeValue
+            String newValue
             if(details.key == 'Require-Bundle')
-              newValue = ManifestUtils.mergeRequireBundle(details.baseValue, details.mergeValue)
+              newValue = ManifestUtils.mergeRequireBundle(details.baseValue, mergeValue)
             else if(details.key == 'Import-Package' || details.key == 'Export-Package')
-              newValue = ManifestUtils.mergePackageList(details.baseValue, details.mergeValue)
+              newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
             else
-              newValue = details.mergeValue ?: details.baseValue
+              newValue = mergeValue ?: details.baseValue
             if(newValue)
               details.value = newValue
             else

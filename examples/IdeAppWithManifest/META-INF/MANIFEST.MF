@@ -1,4 +1,4 @@
 Bundle-Version: 2.0.0.0
-Special-Field: HelloWorld123
+Special-Field: ${project.description}
 Require-Bundle: org.eclipse.core.resources
 
