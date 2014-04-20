@@ -65,10 +65,24 @@ class OsgiBundleConfigurer extends Configurer {
 
       from { project.configurations.privateLib }
 
-      // Normally these files should be placed in src/main/resources.
+      // Normally the following resources should be placed in src/main/resources.
       // We support them in root to be backward-compatible with eclipse project layout.
+
       from 'splash.bmp'
+
+      from '.', {
+        include 'plugin*.properties'
+        expand projectProperties
+      }
+
       from 'OSGI-INF', {
+        include '**/*.properties'
+        expand projectProperties
+        into 'OSGI-INF'
+      }
+
+      from 'OSGI-INF', {
+        exclude '**/*.properties'
         into 'OSGI-INF'
       }
 
