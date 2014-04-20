@@ -1,20 +1,24 @@
 apply plugin: 'java'
 apply plugin: 'swt-app'
 
+// Here we add usual gradle dependencies.
+// No need to add SWT-dependencies, they are added by swt-app automatically.
 dependencies {
   compile project(':swtlib')
 }
 
-jar {
-  manifest { attributes 'Main-Class': 'swtapp.Main' }
+// This is required. Here we specify main class.
+ext {
+  mainClass = 'swtapp.Main'
 }
 
+// This is optional. Here we define products to be generated in build/output directory.
 products {
   product platform: 'linux', arch: 'x86_32'
   product platform: 'linux', arch: 'x86_64'
   product platform: 'windows', arch: 'x86_32'
   product platform: 'windows', arch: 'x86_64'
-  // you can create language specific products by adding language parameter:
+  // It's possible to generate language-specific products by adding language parameter:
   product platform: 'linux', arch: 'x86_64', language: 'de'
   product platform: 'windows', arch: 'x86_64', language: 'de'
   archiveProducts = true
