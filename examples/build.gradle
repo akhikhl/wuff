@@ -5,7 +5,6 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.2'
     classpath 'org.akhikhl.wuff:wuff-plugin:0.0.1'
   }
 }
