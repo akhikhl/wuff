@@ -1,0 +1,19 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.1'
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse-rcp-app'
+
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
