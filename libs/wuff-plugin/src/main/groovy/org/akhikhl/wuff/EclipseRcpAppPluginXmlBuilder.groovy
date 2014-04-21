@@ -17,6 +17,7 @@ import org.gradle.api.Project
 class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
 
   protected String productId
+  protected List perspectiveIds = []
 
   EclipseRcpAppPluginXmlBuilder(Project project) {
     super(project)
@@ -26,7 +27,8 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
   protected void populate(MarkupBuilder pluginXml) {
     populateApplication(pluginXml)
     populateProduct(pluginXml)
-    populatePerspective(pluginXml)
+    populatePerspectives(pluginXml)
+    populateViews(pluginXml)
     populateIntro(pluginXml)
   }
 
@@ -56,13 +58,22 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     }
   }
 
-  protected void populatePerspective(MarkupBuilder pluginXml) {
-    if(!existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectives' })) {
-      String perspectiveClass = PluginUtils.findClassInSources(project, '**/*Perspective.groovy', '**/*Perspective.java')
-      if(perspectiveClass)
+  protected void populatePerspectives(MarkupBuilder pluginXml) {
+    List perspectiveClasses = PluginUtils.findClassesInSources(project, '**/*Perspective.groovy', '**/*Perspective.java', '**/Perspective*.groovy', '**/Perspective*.java')
+    for(String perspectiveClass in perspectiveClasses) {
+      def existingPerspectiveDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectives' && it.perspective?.'@class' == perspectiveClass })
+      String perspectiveId
+      if(existingPerspectiveDef)
+        perspectiveId = existingPerspectiveDef.perspective.'@id'?.text()
+      else {
+        int dotPos = perspectiveClass.lastIndexOf('.')
+        String simpleClassName = dotPos >= 0 ? perspectiveClass.substring(dotPos + 1) : perspectiveClass
+        perspectiveId = "${project.name}.${simpleClassName}"
         pluginXml.extension(point: 'org.eclipse.ui.perspectives') {
-          perspective id: "${project.name}.perspective", name: project.name, 'class': perspectiveClass
+          perspective id: perspectiveId, name: "${project.name} ${simpleClassName}", 'class': perspectiveClass
         }
+      }
+      perspectiveIds.add(perspectiveId)
     }
   }
 
@@ -75,6 +86,36 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
         product application: applicationId, name: project.name
       }
       productId = "${project.name}.product"
+    }
+  }
+
+  protected void populateViews(MarkupBuilder pluginXml) {
+    List<String> viewClasses = PluginUtils.findClassesInSources(project, '**/*View.groovy', '**/*View.java', '**/View*.groovy', '**/View*.java')
+    Map viewClassToViewId = [:]
+    for(String viewClass in viewClasses) {
+      def existingViewDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.views' && it.view?.'@class' == viewClass })
+      String viewId
+      if(existingViewDef)
+        viewId = existingViewDef.view.'@id'?.text()
+      else {
+        int dotPos = viewClass.lastIndexOf('.')
+        String simpleClassName = dotPos >= 0 ? viewClass.substring(dotPos + 1) : viewClass
+        viewId = "${project.name}.${simpleClassName}"
+        pluginXml.extension(point: 'org.eclipse.ui.views') {
+          view id: viewId, name: "${project.name} ${simpleClassName}", 'class': viewClass
+        }
+      }
+      viewClassToViewId[viewClass] = viewId
+    }
+    if(perspectiveIds.size() == 1 && viewClasses.size() == 1) {
+      String viewId = viewClassToViewId[viewClasses[0]]
+      def existingPerspectiveExtension = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectiveExtensions' && it.perspectiveExtension?.view?.'@id' == viewId })
+      if(!existingPerspectiveExtension)
+        pluginXml.extension(point: 'org.eclipse.ui.perspectiveExtensions') {
+          perspectiveExtension(targetID: perspectiveIds[0]) {
+            view id: viewId, standalone: true, minimized: false, relative: 'org.eclipse.ui.editorss', relationship: 'left'
+          }
+        }
     }
   }
 }

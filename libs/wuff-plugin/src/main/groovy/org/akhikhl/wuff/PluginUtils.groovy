@@ -85,20 +85,35 @@ final class PluginUtils {
   }
 
   /**
-   * Finds a class in the sources of the project.
+   * Finds classes in the sources of the project.
    *
-   * @param project project being analyzed, not modified.
-   * @return qualified name (package.class) of the found class or null, if class is not found.
+   * @param project - the project being analyzed, not modified.
+   * @param sourceMasks - list of Ant-style file patterns
+   * @return list of qualified names (package.class) of the found classes or empty list, if classes are not found.
    */
-  static String findClassInSources(Project project, String... sourceMasks) {
-    sourceMasks.findResult { String sourceMask ->
-      project.sourceSets.main.allSource.srcDirs.findResult { File srcDir ->
-        project.fileTree(srcDir).include(sourceMask).files.findResult { File sourceFile ->
+  static List<String> findClassesInSources(Project project, String... sourceMasks) {
+    Set result = new LinkedHashSet()
+    sourceMasks.each { String sourceMask ->
+      project.sourceSets.main.allSource.srcDirs.each { File srcDir ->
+        project.fileTree(srcDir).include(sourceMask).files.each { File sourceFile ->
           String path = Paths.get(srcDir.absolutePath).relativize(Paths.get(sourceFile.absolutePath)).toString()
-          FilenameUtils.removeExtension(path).replace(File.separator, '.')
+          result.add(FilenameUtils.removeExtension(path).replace(File.separator, '.'))
         }
       }
     }
+    return result as List
+  }
+
+  /**
+   * Finds a class in the sources of the project.
+   *
+   * @param project - the project being analyzed, not modified.
+   * @param sourceMasks - list of Ant-style file patterns
+   * @return qualified name (package.class) of the found class or null, if class is not found.
+   */
+  static String findClassInSources(Project project, String... sourceMasks) {
+    List classes = findClassesInSources(project, sourceMasks)
+    return classes ? classes[0] : null
   }
 
   /**

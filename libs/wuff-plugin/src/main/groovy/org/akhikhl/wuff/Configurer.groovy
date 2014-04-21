@@ -135,7 +135,7 @@ class Configurer {
         into project.projectDir
         include "${resourceDir}**"
         rename ~/(.+)\.java_$/, '$1.java'
-        expand projectName: project.name, packageName: packageName
+        expand project: project, packageName: packageName
         eachFile { details ->
           String rpath = details.relativePath.toString()
           rpath = rpath.substring(resourceDir.length())
