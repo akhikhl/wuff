@@ -1,1 +1,1 @@
-This example corresponds to [Prepare Equinox app for multiproject build](Prepare-Equinox-app-for-multiproject-build) tutorial.
+This example corresponds to [Prepare Equinox app for multiproject build](../../../../wiki/Prepare-Equinox-app-for-multiproject-build) tutorial.
