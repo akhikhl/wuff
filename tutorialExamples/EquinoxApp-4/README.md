@@ -1,1 +1,1 @@
-This example corresponds to steps 1-12 of [Equinox application tutorial](https://github.com/akhikhl/wuff/wiki/Equinox-application).
+This example corresponds to [Create OSGi bundle and use it in Equinox app](../../../../wiki/Create-OSGi-bundle-and-use-it-in-Equinox-app) tutorial.
