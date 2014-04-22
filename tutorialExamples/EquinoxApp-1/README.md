@@ -1,1 +1,1 @@
-This example corresponds to steps 1-3 of [Equinox application tutorial](https://github.com/akhikhl/wuff/wiki/Equinox-application).
+This example corresponds to [Create first Equinox application](../../../../wiki/Create-first-equinox-application) tutorial.
