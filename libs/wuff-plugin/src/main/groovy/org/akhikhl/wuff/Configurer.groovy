@@ -8,6 +8,7 @@
 package org.akhikhl.wuff
 
 import org.gradle.api.Project
+import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.Copy
 import org.slf4j.Logger
@@ -84,6 +85,7 @@ class Configurer {
     unpuzzleConfigurer.apply()
     unpuzzleConfigurer.installEclipse()
 
+    createSourceSets()
     createConfigurations()
 
     applyModuleAction('configure')
@@ -95,11 +97,12 @@ class Configurer {
 
   protected void configureTasks() {
     configureTask_createExtraFiles()
+    configureTask_processResources()
     configureTask_Jar()
     configureTask_scaffold()
   }
 
-  private void configureTask_createExtraFiles() {
+  protected void configureTask_createExtraFiles() {
     project.task('createExtraFiles') {
       group = 'wuff'
       description = 'creates project-specific extra files in buildDir/extra'
@@ -113,14 +116,35 @@ class Configurer {
     }
   }
 
-  private void configureTask_Jar() {
-    project.tasks.jar {
+  protected void configureTask_Jar() {
+  }
+
+  protected void configureTask_processResources() {
+    project.tasks.processResources {
       dependsOn project.tasks.createExtraFiles
       from PluginUtils.getExtraDir(project)
+      // Here we exclude any resources/classes that are present in project,
+      // but overridden by extra-files.
+      // Typical example would be "plugin.xml": this file may be present (or not) in project,
+      // so we always generate extra-file "plugin.xml" which should be processed
+      // as a resource instead of original "plugin.xml".
+      mainSpec.eachFile { FileCopyDetails details ->
+        [project.projectDir, project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
+          if(details.file.absolutePath.startsWith(dir.absolutePath)) {
+            String relPath = dir.toPath().relativize(details.file.toPath()).toString()
+            File extraFile = new File(PluginUtils.getExtraDir(project), relPath)
+            if(extraFile.exists()) {
+              log.debug 'excluding {}', details.file
+              log.debug 'including {}', extraFile
+              details.exclude()
+            }
+          }
+        }
+      }
     }
   }
 
-  private void configureTask_scaffold() {
+  protected void configureTask_scaffold() {
     String resourceDir = getScaffoldResourceDir()
     if(resourceDir != null)
       project.task('scaffold', type: Copy) {
@@ -154,6 +178,9 @@ class Configurer {
   }
 
   protected void createExtraFiles() {
+  }
+
+  protected void createSourceSets() {
   }
 
   protected void createVirtualConfigurations() {

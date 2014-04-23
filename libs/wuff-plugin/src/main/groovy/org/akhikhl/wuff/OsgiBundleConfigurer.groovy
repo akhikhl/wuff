@@ -9,7 +9,6 @@ package org.akhikhl.wuff
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
-import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.plugins.osgi.OsgiManifest
 
@@ -19,18 +18,23 @@ import org.gradle.api.plugins.osgi.OsgiManifest
  */
 class OsgiBundleConfigurer extends Configurer {
 
+  protected final Map expandBinding
+
   OsgiBundleConfigurer(Project project) {
     super(project)
+    expandBinding = [ project: project,
+      current_os: PlatformConfig.current_os,
+      current_arch: PlatformConfig.current_arch,
+      current_language: PlatformConfig.current_language ]
   }
 
   @Override
   protected void configureTasks() {
     super.configureTasks()
     configureTask_createOsgiManifest()
-    configureTask_Jar()
   }
 
-  private void configureTask_createOsgiManifest() {
+  protected void configureTask_createOsgiManifest() {
 
     project.task('createOsgiManifest') {
       group = 'wuff'
@@ -50,63 +54,18 @@ class OsgiBundleConfigurer extends Configurer {
     }
   } // configureTask_createOsgiManifest
 
-  private void configureTask_Jar() {
+  @Override
+  protected void configureTask_Jar() {
 
-    Map binding = [ project: project,
-      current_os: PlatformConfig.current_os,
-      current_arch: PlatformConfig.current_arch,
-      current_language: PlatformConfig.current_language ]
+    super.configureTask_Jar()
 
     project.tasks.jar {
 
-      dependsOn project.tasks.createOsgiManifest
+      dependsOn { project.tasks.createOsgiManifest }
 
       inputs.files { getGeneratedManifestFile() }
 
       from { project.configurations.privateLib }
-
-      // Normally the following resources should be placed in src/main/resources.
-      // We support them in root to be backward-compatible with eclipse project layout.
-
-      from 'splash.bmp'
-
-      from '.', {
-        include 'plugin*.properties'
-        expand binding
-      }
-
-      from 'OSGI-INF', {
-        include '**/*.properties'
-        expand binding
-        into 'OSGI-INF'
-      }
-
-      from 'OSGI-INF', {
-        exclude '**/*.properties'
-        into 'OSGI-INF'
-      }
-
-      from 'intro', {
-        include '**/*.html', '**/*.htm'
-        expand binding
-        into 'intro'
-      }
-
-      from 'intro', {
-        exclude '**/*.html', '**/*.htm'
-        into 'intro'
-      }
-
-      from 'nl', {
-        include '**/*.html', '**/*.htm'
-        expand binding
-        into 'nl'
-      }
-
-      from 'nl', {
-        exclude '**/*.html', '**/*.htm'
-        into 'nl'
-      }
 
       manifest {
 
@@ -118,7 +77,7 @@ class OsgiBundleConfigurer extends Configurer {
             if(project.wuff.filterManifest && details.mergeValue) {
               if(!templateEngine)
                 templateEngine = new groovy.text.SimpleTemplateEngine()
-              mergeValue = templateEngine.createTemplate(details.mergeValue).make(binding).toString()
+              mergeValue = templateEngine.createTemplate(details.mergeValue).make(expandBinding).toString()
             } else
               mergeValue = details.mergeValue
             String newValue
@@ -142,21 +101,62 @@ class OsgiBundleConfigurer extends Configurer {
 
         from getGeneratedManifestFile().absolutePath, mergeManifest
       }
-      mainSpec.eachFile { FileCopyDetails details ->
-        [project.projectDir, project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
-          if(details.file.absolutePath.startsWith(dir.absolutePath)) {
-            String relPath = dir.toPath().relativize(details.file.toPath()).toString()
-            File extraFile = new File(PluginUtils.getExtraDir(project), relPath)
-            if(extraFile.exists()) {
-              log.debug 'excluding {}', details.file
-              log.debug 'including {}', extraFile
-              details.exclude()
-            }
-          }
-        }
-      }
     }
   } // configureTask_Jar
+
+  protected void configureTask_processResources() {
+
+    super.configureTask_processResources()
+
+    project.tasks.processResources {
+
+      from project.projectDir, {
+        include 'splash.bmp'
+        // "plugin.xml" and "plugin_customization.ini" are not included here,
+        // because they are generated as extra-files in createExtraFiles
+      }
+
+      from project.sourceSets.main.resources.srcDirs, {
+        include '**/*.properties', '**/*.html', '**/*.htm'
+        expand expandBinding
+      }
+
+      from project.projectDir, {
+        include '*.properties'
+        expand expandBinding
+      }
+
+      from project.file('OSGI-INF'), {
+        into 'OSGI-INF'
+      }
+
+      from project.file('OSGI-INF'), {
+        include '**/*.properties'
+        expand expandBinding
+        into 'OSGI-INF'
+      }
+
+      from project.file('intro'), {
+        into 'intro'
+      }
+
+      from project.file('intro'), {
+        include '**/*.html', '**/*.htm'
+        expand expandBinding
+        into 'intro'
+      }
+
+      from project.file('nl'), {
+        into 'nl'
+      }
+
+      from project.file('nl'), {
+        include '**/*.html', '**/*.htm'
+        expand expandBinding
+        into 'nl'
+      }
+    }
+  }
 
   @Override
   protected void createConfigurations() {
@@ -171,6 +171,20 @@ class OsgiBundleConfigurer extends Configurer {
     super.createExtraFiles()
     FileUtils.stringToFile(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))
     FileUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
+  }
+
+  protected void createSourceSets() {
+    project.sourceSets {
+      main {
+        resources {
+          include 'splash.bmp'
+          include 'plugin*.properties'
+          include 'OSGI-INF/**'
+          include 'intro/**'
+          include 'nl/**'
+        }
+      }
+    }
   }
 
   protected Manifest createManifest() {
