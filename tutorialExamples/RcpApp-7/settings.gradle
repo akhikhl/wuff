@@ -1,0 +1,2 @@
+include 'MyPlugin'
+include 'MyRcpApp'
