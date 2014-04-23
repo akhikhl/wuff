@@ -1,0 +1,7 @@
+apply plugin: 'java'
+apply plugin: 'eclipse-ide-bundle'
+
+dependencies {
+  compile "${eclipseMavenGroup}:org.eclipse.core.commands:+"
+}
+
