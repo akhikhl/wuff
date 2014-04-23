@@ -1,0 +1,18 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.1'
+  }
+}
+
+subprojects {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+}
+
