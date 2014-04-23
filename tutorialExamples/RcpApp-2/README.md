@@ -1,1 +1,1 @@
-This example corresponds to [Configure RCP products](../../../../wiki/Configure-RCP-products) tutorial.
+See tutorial: [Configure RCP products](../../../../wiki/Configure-RCP-products).
