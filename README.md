@@ -1,5 +1,3 @@
-# Wuff
-
 ![Wuff logo](media/logo.png "Wuff logo")
 
 Short introduction: 
