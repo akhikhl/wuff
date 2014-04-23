@@ -1,0 +1,26 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.1'
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse-ide-app'
+
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
+products {
+  product platform: 'linux', arch: 'x86_32'
+  product platform: 'linux', arch: 'x86_64'
+  product platform: 'windows', arch: 'x86_32'
+  product platform: 'windows', arch: 'x86_64'
+  archiveProducts = true
+}
