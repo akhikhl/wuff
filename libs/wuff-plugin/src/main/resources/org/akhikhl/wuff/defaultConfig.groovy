@@ -38,8 +38,8 @@ wuff {
       postConfigure { project ->
 
         project.dependencies {
-          compile "${eclipseMavenGroup}:org.eclipse.swt:+"
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
+          compile "${eclipseMavenGroup}:org.eclipse.swt:+"
         }
 
         supported_oses.each { platform ->
@@ -52,6 +52,8 @@ wuff {
 
               String localizedProductConfigName = "product_swtapp_${platform}_${arch}_${language}"
               project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
+              project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.swt.nl_${language}:+"
+              project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
             }
           }
         }
@@ -236,6 +238,8 @@ wuff {
               String localizedConfigName = "product_rcp_${platform}_${arch}_${language}"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.nl_${language}:+"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.nl_${language}:+"
               if(hasIntro)
                 project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
