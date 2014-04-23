@@ -1,2 +1,2 @@
-include 'MyBundle'
+include 'MyPlugin'
 include 'MyRcpApp'

@@ -18,7 +18,7 @@ public class View extends ViewPart {
     btnShowDialog.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent event) {
-        mybundle.HelloWorld.showMessageDialog(parent.getShell());
+        myplugin.HelloWorld.showMessageDialog(parent.getShell());
       }
     });
   }

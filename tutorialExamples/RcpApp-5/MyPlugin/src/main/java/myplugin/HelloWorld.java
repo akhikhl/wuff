@@ -1,4 +1,4 @@
-package mybundle;
+package myplugin;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
