@@ -1,1 +1,1 @@
-This example corresponds to [Create first Equinox app](../../../../wiki/Create-first-Equinox-app) tutorial.
+See tutorial: [Create first Equinox app](../../../../wiki/Create-first-Equinox-app).
