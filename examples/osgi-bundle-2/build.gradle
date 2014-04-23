@@ -1,6 +1,0 @@
-apply plugin: 'java'
-apply plugin: 'osgi-bundle'
-
-dependencies {
-  compile project(':osgi-bundle-1')
-}
