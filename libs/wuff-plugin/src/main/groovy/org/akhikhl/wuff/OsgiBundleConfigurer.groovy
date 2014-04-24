@@ -321,7 +321,7 @@ class OsgiBundleConfigurer extends Configurer {
   }
 
   protected final File getGeneratedManifestFile() {
-    new File(project.buildDir, 'osgi/MANIFEST.MF')
+    new File(project.buildDir, 'tmp-osgi/MANIFEST.MF')
   }
 
   @Override
