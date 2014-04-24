@@ -1,1 +1,1 @@
-See tutorial: [Add intro page to IDE app](../../../../wiki/Add-intro-page-to-IDE-app).
+See tutorial: [Add splash to IDE app](../../../../wiki/Add-splash-to-IDE-app).
