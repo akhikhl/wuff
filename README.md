@@ -13,13 +13,12 @@ If you are new with Wuff, good starting point would be [wiki pages](../../wiki).
 
 If you already use Wuff, it is always a good idea to look in [what's new section](whatsnew.md).
 
-### How I can use Wuff?
+### How to use Wuff?
 
-- Source code: feel free compiling, using and deploying it.
 - Maven artifacts: 'org.akhikhl.wuff:wuff-plugin:+' at jcenter and maven central.
+- Source code: compile, explore, deploy.
 
-Detailed informaion on usage is found in [tutorials](../../wiki/Tutorials).
-
+Detailed information on usage is found in [tutorials](../../wiki/Tutorials).
 
 ### Copyright and License
 
