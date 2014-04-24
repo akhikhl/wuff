@@ -7,6 +7,8 @@
  */
 package org.akhikhl.wuff
 
+import org.apache.commons.lang3.StringEscapeUtils
+import groovy.text.SimpleTemplateEngine
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 import org.gradle.api.java.archives.Manifest
@@ -108,6 +110,21 @@ class OsgiBundleConfigurer extends Configurer {
 
     super.configureTask_processResources()
 
+    def templateEngine = new SimpleTemplateEngine()
+
+    /*
+     * This is special filter for *.property files.
+     * According to javadoc on java.util.Properties, such files need to be
+     * encoded in ISO 8859-1 encoding.
+     * Non-ASCII Unicode characters must be encoded as java unicode escapes
+     * in property files. We use escapeJava for such encoding.
+     */
+    def filterExpandProperties = { line ->
+      def w = new StringWriter()
+      templateEngine.createTemplate(new StringReader(line)).make(expandBinding).writeTo(w)
+      StringEscapeUtils.escapeJava(w.toString())
+    }
+
     project.tasks.processResources {
 
       from project.projectDir, {
@@ -116,14 +133,19 @@ class OsgiBundleConfigurer extends Configurer {
         // because they are generated as extra-files in createExtraFiles
       }
 
+      from project.projectDir, {
+        include '*.properties'
+        filter filterExpandProperties
+      }
+
       from project.sourceSets.main.resources.srcDirs, {
-        include '**/*.properties', '**/*.html', '**/*.htm'
+        include '**/*.html', '**/*.htm'
         expand expandBinding
       }
 
-      from project.projectDir, {
-        include '*.properties'
-        expand expandBinding
+      from project.sourceSets.main.resources.srcDirs, {
+        include '**/*.properties'
+        filter filterExpandProperties
       }
 
       from project.file('OSGI-INF'), {
@@ -132,7 +154,7 @@ class OsgiBundleConfigurer extends Configurer {
 
       from project.file('OSGI-INF'), {
         include '**/*.properties'
-        expand expandBinding
+        filter filterExpandProperties
         into 'OSGI-INF'
       }
 
