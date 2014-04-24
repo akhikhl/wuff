@@ -61,14 +61,17 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
   protected void populatePerspectives(MarkupBuilder pluginXml) {
     List perspectiveClasses = PluginUtils.findClassesInSources(project, '**/*Perspective.groovy', '**/*Perspective.java', '**/Perspective*.groovy', '**/Perspective*.java')
     for(String perspectiveClass in perspectiveClasses) {
-      def existingPerspectiveDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectives' && it.perspective?.'@class' == perspectiveClass })
+      def existingPerspectiveDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectives' && it.perspective?.'@class'?.text() == perspectiveClass })
       String perspectiveId
-      if(existingPerspectiveDef)
+      if(existingPerspectiveDef) {
         perspectiveId = existingPerspectiveDef.perspective.'@id'?.text()
+        log.debug 'perspective class: {}, found existing perspective {}', perspectiveClass, perspectiveId
+      }
       else {
         int dotPos = perspectiveClass.lastIndexOf('.')
         String simpleClassName = dotPos >= 0 ? perspectiveClass.substring(dotPos + 1) : perspectiveClass
         perspectiveId = "${project.name}.${simpleClassName}"
+        log.debug 'perspective class: {}, no existing perspective found, inserting new perspective {}', perspectiveClass, perspectiveId
         pluginXml.extension(point: 'org.eclipse.ui.perspectives') {
           perspective id: perspectiveId, name: "${project.name} ${simpleClassName}", 'class': perspectiveClass
         }

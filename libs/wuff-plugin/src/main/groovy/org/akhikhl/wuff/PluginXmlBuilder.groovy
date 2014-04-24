@@ -9,12 +9,16 @@ package org.akhikhl.wuff
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  *
  * @author akhikhl
  */
 class PluginXmlBuilder {
+
+  protected static final Logger log = LoggerFactory.getLogger(PluginXmlBuilder)
 
   protected final Project project
   protected final Node existingConfig
