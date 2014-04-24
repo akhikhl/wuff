@@ -118,9 +118,9 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
   protected void populatePluginCustomization(Properties props) {
     if(!props.containsKey('org.eclipse.ui/defaultPerspectiveId')) {
-      String perspectiveId = project.pluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })?.perspective?.'@id'?.text()
-      if(perspectiveId)
-        props.setProperty('org.eclipse.ui/defaultPerspectiveId', perspectiveId)
+      List perspectiveIds = project.pluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })?.perspective?.collect { it.'@id' }
+      if(perspectiveIds?.size() == 1)
+        props.setProperty('org.eclipse.ui/defaultPerspectiveId', perspectiveIds[0])
     }
   }
 }
