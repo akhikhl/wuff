@@ -20,6 +20,11 @@ class EclipseBundleConfigurer extends OsgiBundleConfigurer {
   }
 
   @Override
+  protected PluginXmlBuilder createPluginXmlBuilder() {
+    new EclipseBundlePluginXmlBuilder(project)
+  }
+
+  @Override
   protected List<String> getModules() {
     return super.getModules() + [ 'eclipseBundle' ]
   }
