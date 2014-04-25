@@ -1,0 +1,5 @@
+<plugin>
+  <extension point="org.eclipse.ui.views">
+    <view id="myviewid" name="Very nice view" class="myeclipseplugin.MyView"/>
+  </extension>
+</plugin>
