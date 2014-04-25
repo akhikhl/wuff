@@ -26,7 +26,7 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
 
   @Override
   protected void populate(MarkupBuilder pluginXml) {
-    populateApplication(pluginXml)
+    populateApplications(pluginXml)
     populateProduct(pluginXml)
     populatePerspectives(pluginXml)
     populateViews(pluginXml)
@@ -65,13 +65,30 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
 
   protected void populateProduct(MarkupBuilder pluginXml) {
     def existingProductDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.core.runtime.products' })
-    if(existingProductDef)
-      productId = "${project.name}.${existingProductDef.'@id'}"
+    if(existingProductDef) {
+      productId = existingProductDef.'@id'
+      String appId = existingProductDef.product?.'@application'?.text()
+      log.info 'found existing extension-point "org.eclipse.core.runtime.products", id={}, application={}', productId, appId
+      productId = "${project.name}.${productId}"
+    }
     else {
-      pluginXml.extension(id: 'product', point: 'org.eclipse.core.runtime.products') {
-        product application: applicationId, name: project.name
+      if(applicationIds.isEmpty()) {
+        log.error 'Error in rcp application configuration for project {}:', project.name
+        log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
+        log.error 'Reason: extension-point "org.eclipse.core.runtime.applications" is undefined.'
+      } else if (applicationIds.size() > 1) {
+        log.error 'Error in rcp application configuration for project {}:', project.name
+        log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
+        log.error 'Reason: there should be only one extension-point of type "org.eclipse.core.runtime.applications", but there were {} of them.', applicationIds.size()
+      } else {
+        String appId = applicationIds[0]
+        productId = 'product'
+        log.info 'generating extension-point "org.eclipse.core.runtime.products", id={}, application={}', productId, appId
+        pluginXml.extension(id: productId, point: 'org.eclipse.core.runtime.products') {
+          product application: appId, name: project.name
+        }
+        productId = "${project.name}.${productId}"
       }
-      productId = "${project.name}.product"
     }
   }
 

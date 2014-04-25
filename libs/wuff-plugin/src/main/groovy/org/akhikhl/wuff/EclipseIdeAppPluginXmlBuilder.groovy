@@ -22,7 +22,7 @@ class EclipseIdeAppPluginXmlBuilder extends EclipseRcpAppPluginXmlBuilder {
 
   @Override
   protected void populate(MarkupBuilder pluginXml) {
-    applicationId = 'org.eclipse.ui.ide.workbench'
+    applicationIds.add('org.eclipse.ui.ide.workbench')
     populateProduct(pluginXml)
     populatePerspectives(pluginXml)
     populateViews(pluginXml)
