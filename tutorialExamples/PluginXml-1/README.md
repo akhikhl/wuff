@@ -1,0 +1,1 @@
+See tutorial: [plugin.xml for eclipse bundle](../../../../wiki/plugin.xml-for-eclipse-bundle).
