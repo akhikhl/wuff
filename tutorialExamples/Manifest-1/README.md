@@ -1,1 +1,1 @@
-See tutorial: [Default manifest](Default-manifest).
+See tutorial: [Default manifest](../../../../wiki/Default-manifest).
