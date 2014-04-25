@@ -1,9 +1,0 @@
-apply plugin: 'eclipse-ide-app'
-
-version = '1.0.2'
-
-description = 'Eclipse IDE app with filtered manifest'
-
-wuff {
-  filterManifest = true
-}
