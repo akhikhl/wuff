@@ -1,0 +1,33 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.1'
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'osgi-bundle'
+
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
+jar {
+  manifest {
+    instruction 'Bundle-SymbolicName', 'blabla'
+    instruction 'Bundle-Name', 'hurray! hurray!'
+    instruction 'Bundle-Version', '999'
+    instruction 'Bundle-ManifestVersion', '22'
+    instruction 'Bnd-LastModified', '9999999999999'                                    
+    instruction 'Created-By', 'Dr. Who'
+    instruction 'Tool', 'kekek'
+    instruction 'Bundle-Classpath', 'somefolder', 'anotherfolder'
+    instruction 'Require-Bundle', 'ch.qos.logback.classic'
+    instruction 'My-Attribute', 'test'
+  }
+}

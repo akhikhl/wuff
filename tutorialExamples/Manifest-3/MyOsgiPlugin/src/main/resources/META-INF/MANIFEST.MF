@@ -1,0 +1,10 @@
+Bundle-SymbolicName: abcabc
+Bundle-Name: someBundleName
+Bundle-Version: 1212
+Bundle-Classpath: aaaa,bbbb
+Require-Bundle: org.eclipse.jface.text
+Bundle-ManifestVersion: 2323
+Bnd-LastModified: 8888888888888
+Created-By: Batman
+Tool: lololo
+My-Attribute: test2
