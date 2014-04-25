@@ -54,7 +54,7 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
     List<String> viewClasses = PluginUtils.findClassesInSources(project, '**/*View.groovy', '**/*View.java', '**/View*.groovy', '**/View*.java')
     Map viewClassToViewId = [:]
     for(String viewClass in viewClasses) {
-      def existingViewDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.views' && it.view?.'@class' == viewClass })
+      def existingViewDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.views' && it.view?.'@class'?.text() == viewClass })
       String viewId
       if(existingViewDef)
         viewId = existingViewDef.view.'@id'?.text()
@@ -70,7 +70,7 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
     }
     if(perspectiveIds.size() == 1 && viewClasses.size() == 1) {
       String viewId = viewClassToViewId[viewClasses[0]]
-      def existingPerspectiveExtension = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectiveExtensions' && it.perspectiveExtension?.view?.'@id' == viewId })
+      def existingPerspectiveExtension = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectiveExtensions' && it.perspectiveExtension?.view?.'@id'.text() == viewId })
       if(!existingPerspectiveExtension)
         pluginXml.extension(point: 'org.eclipse.ui.perspectiveExtensions') {
           perspectiveExtension(targetID: perspectiveIds[0]) {
