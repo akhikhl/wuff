@@ -1,1 +1,1 @@
-See tutorial: [Manifest attributes in build.gradle](Manifest-attributes-in-build.gradle).
+See tutorial: [Manifest attributes in build.gradle](../../../../wiki/Manifest-attributes-in-build.gradle).
