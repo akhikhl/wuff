@@ -71,6 +71,9 @@ class OsgiBundleConfigurer extends Configurer {
 
       manifest {
 
+        setName(project.name)
+        setVersion(project.version)
+
         def templateEngine
 
         def mergeManifest = {
