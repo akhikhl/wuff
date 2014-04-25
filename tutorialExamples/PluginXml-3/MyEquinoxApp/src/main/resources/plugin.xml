@@ -1,0 +1,7 @@
+<plugin>
+  <extension id="myappid" point="org.eclipse.core.runtime.applications">
+    <application>
+      <run class="myequinoxapp.Application"/>
+    </application>
+  </extension>
+</plugin>
