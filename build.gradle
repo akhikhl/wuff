@@ -23,6 +23,10 @@ apply plugin: 'base' // add "clean" task to the root project.
 
 task('build')
 
+task('wrapper', type: Wrapper) {
+  gradleVersion = '1.11'
+}
+
 task('buildExamples', type: GradleBuild) { task ->
   dir = file('examples')
   tasks = [ 'build' ]
