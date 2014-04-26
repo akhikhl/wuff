@@ -79,7 +79,9 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
       } else if (applicationIds.size() > 1) {
         log.error 'Error in rcp application configuration for project {}:', project.name
         log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
-        log.error 'Reason: there should be only one extension-point of type "org.eclipse.core.runtime.applications", but there were {} of them.', applicationIds.size()
+        log.error 'Reason: there should be only one extension-point of type "org.eclipse.core.runtime.applications",'
+        log.error 'but there were {} of them:', applicationIds.size()
+        log.error '{}', applicationIds
       } else {
         String appId = applicationIds[0]
         productId = 'product'

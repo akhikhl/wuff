@@ -29,9 +29,9 @@ class EquinoxAppPluginXmlBuilder extends PluginXmlBuilder {
 
   protected void populateApplications(MarkupBuilder pluginXml) {
     List simpleAppIds = []
-    existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.each {
-      String appId = it.'@id'?.text()
-      String appClass = it.application?.run?.'@class'?.text()
+    existingConfig?.extension?.findAll({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.each {
+      String appId = it.'@id'
+      String appClass = it.application?.run?.'@class'.text()
       log.info 'found existing extension-point "org.eclipse.core.runtime.applications", id={}, class={}', appId, appClass
       if(!simpleAppIds.contains(appId))
         simpleAppIds.add(appId)
