@@ -2,10 +2,9 @@
 
 ### Introduction
 
-Wuff is a tool for developing and assembling Eclipse applications **independently** of Eclipse-IDE. 
-Typical uses: 1) continuous delivery 2) developing Eclipse applications under non-Eclipse IDE like Netbeans.
+Wuff is a gradle plugin for developing and assembling Eclipse applications and plugins **independently** of Eclipse-IDE. 
 
-If you are familiar with Eclipse Tycho, then think of Wuff as a more powerful, gradle-based, replacement for Tycho.
+If you are familiar with Eclipse Tycho, then think of Wuff as a more powerful, gradle-based, replacement for it.
 
 ### Where to start?
 
