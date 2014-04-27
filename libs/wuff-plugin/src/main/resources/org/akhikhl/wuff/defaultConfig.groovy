@@ -40,6 +40,8 @@ wuff {
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
+          // This is needed to make compiler happy. Excluded later on concrete product assembly.
+          compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
         }
 
         supported_oses.each { platform ->
@@ -83,6 +85,7 @@ wuff {
           compile "${eclipseMavenGroup}:javax.inject:+"
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
+          // This is needed to make compiler happy. Excluded later on concrete product assembly.
           compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
           compile "${eclipseMavenGroup}:org.eclipse.ui:+"
         }
