@@ -1,0 +1,22 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.1'
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'swt-app'
+
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
+ext {
+  mainClass = 'myswtapp.Main'
+}
