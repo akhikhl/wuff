@@ -31,6 +31,12 @@ class OsgiBundleConfigurer extends Configurer {
   }
 
   @Override
+  protected void applyPlugins() {
+    super.applyPlugins()
+    project.apply plugin: 'osgi'
+  }
+
+  @Override
   protected void configureTasks() {
     super.configureTasks()
     configureTask_createOsgiManifest()
@@ -313,6 +319,11 @@ class OsgiBundleConfigurer extends Configurer {
     if(!FileUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project)))
       return false
     return super.extraFilesUpToDate()
+  }
+
+  @Override
+  protected String getDefaultVersion() {
+    '1.0.0.0'
   }
 
   @Override

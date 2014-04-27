@@ -42,7 +42,6 @@ class Configurer {
   }
 
   protected void applyPlugins() {
-    project.apply plugin: 'osgi'
   }
 
   private void applyModuleAction(String action) {
@@ -190,6 +189,10 @@ class Configurer {
     return true
   }
 
+  protected String getDefaultVersion() {
+    '1.0'
+  }
+
   protected String getScaffoldResourceDir() {
     null
   }
@@ -204,7 +207,7 @@ class Configurer {
 
   protected void postConfigure() {
     if(project.version == 'unspecified')
-      project.version = '1.0.0.0'
+      project.version = getDefaultVersion()
     createVirtualConfigurations()
     applyModuleAction('postConfigure')
     configureTasks()
