@@ -1,13 +1,14 @@
 wuff {
 
-  defaultEclipseVersion = '4.3'
+  // Note that defaultEclipseVersion is not specified here.
+  // Effect: defaultEclipseVersion is borrowed from project.unpuzzle.effectiveConfig.defaultEclipseVersion.
 
   eclipseVersion('3.7') {
 
     eclipseMavenGroup = 'eclipse-indigo'
 
     swtlib {
-      postConfigure { project ->
+      postConfigure {
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
@@ -17,7 +18,7 @@ wuff {
     }
 
     swtapp {
-      configure { project ->
+      configure {
 
         supported_oses.each { platform ->
           supported_archs.each { arch ->
@@ -35,7 +36,7 @@ wuff {
         }
       }
 
-      postConfigure { project ->
+      postConfigure {
 
         supported_oses.each { platform ->
           supported_archs.each { arch ->
@@ -57,7 +58,7 @@ wuff {
 
     osgiBundle {
 
-      postConfigure { project ->
+      postConfigure {
 
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.osgi:+"
@@ -71,7 +72,7 @@ wuff {
 
     eclipseBundle {
 
-      postConfigure { project ->
+      postConfigure {
 
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
@@ -91,7 +92,7 @@ wuff {
 
     equinoxApp {
 
-      configure { project ->
+      configure {
 
         supported_oses.each { platform ->
           supported_archs.each { arch ->
@@ -119,7 +120,7 @@ wuff {
         }
       } // configure
 
-      postConfigure { project ->
+      postConfigure {
 
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.core.runtime:+"
@@ -159,7 +160,7 @@ wuff {
 
     rcpApp {
 
-      configure { project ->
+      configure {
 
         supported_oses.each { platform ->
           supported_archs.each { arch ->
@@ -190,7 +191,7 @@ wuff {
         }
       }
 
-      postConfigure { project ->
+      postConfigure {
 
         boolean hasIntro = PluginUtils.getEclipseIntroId(project)
 
@@ -241,7 +242,7 @@ wuff {
 
     eclipseIdeBundle {
 
-      postConfigure { project ->
+      postConfigure {
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.ui.ide:+"
         }
@@ -254,7 +255,7 @@ wuff {
 
     eclipseIdeApp {
 
-      configure { project ->
+      configure {
 
         supported_oses.each { platform ->
           supported_archs.each { arch ->
@@ -285,7 +286,7 @@ wuff {
         }
       }
 
-      postConfigure { project ->
+      postConfigure {
 
         project.dependencies {
           runtime "${eclipseMavenGroup}:org.eclipse.ui.ide.application:+"
@@ -326,7 +327,7 @@ wuff {
 
     eclipseBundle {
 
-      postConfigure { project ->
+      postConfigure {
 
         project.dependencies {
           compile "${eclipseMavenGroup}:javax.annotation:+"
@@ -341,7 +342,7 @@ wuff {
 
     rcpApp {
 
-      postConfigure { project ->
+      postConfigure {
 
         project.dependencies {
           compile "${eclipseMavenGroup}:javax.annotation:+"

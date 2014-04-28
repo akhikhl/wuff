@@ -25,7 +25,6 @@ class Configurer {
   protected final Project project
   protected final Config defaultConfig
   protected Config effectiveConfig
-  protected String eclipseVersion
 
   Configurer(Project project) {
     this.project = project
@@ -42,6 +41,9 @@ class Configurer {
   }
 
   protected void applyPlugins() {
+    def unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
+    unpuzzleConfigurer.apply()
+    unpuzzleConfigurer.installEclipse()
   }
 
   private void applyModuleAction(String action) {
@@ -71,6 +73,7 @@ class Configurer {
         delegate.isLanguageFragment = PlatformConfig.&isLanguageFragment
         delegate.isPlatformFragment = PlatformConfig.&isPlatformFragment
         delegate.PluginUtils = PluginUtils
+        delegate.project = project
       }
       for(String baseVersion in versionConfig.baseVersions)
         applyModuleAction(delegate, baseVersion, moduleName, action)
@@ -79,7 +82,7 @@ class Configurer {
         for(Closure closure in moduleConfig[action]) {
           closure = closure.rehydrate(delegate, closure.owner, closure.thisObject)
           closure.resolveStrategy = Closure.DELEGATE_FIRST
-          closure(project)
+          closure()
         }
       }
     } else
@@ -93,8 +96,8 @@ class Configurer {
 
     setupConfigChain(project)
 
+    defaultConfig.defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
     effectiveConfig = project.wuff.effectiveConfig
-    eclipseVersion = effectiveConfig.defaultEclipseVersion
 
     Project p = project
     while(p != null) {
@@ -104,10 +107,6 @@ class Configurer {
       }
       p = p.parent
     }
-
-    def unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project.rootProject)
-    unpuzzleConfigurer.apply()
-    unpuzzleConfigurer.installEclipse()
 
     createSourceSets()
     createConfigurations()
@@ -249,9 +248,12 @@ class Configurer {
       Project p = project.parent
       while(p != null && !p.extensions.findByName('wuff'))
         p = p.parent
-      if(p == null)
+      if(p == null) {
+        log.debug 'there\'s no parent wuff extension for {}, setting parent to defaultConfig', project.name
         project.wuff.parentConfig = defaultConfig
+      }
       else {
+        log.debug 'setting parent wuff {} -> {}', project.name, p.name
         project.wuff.parentConfig = p.wuff
         setupConfigChain(p)
       }
