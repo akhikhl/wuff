@@ -1,0 +1,97 @@
+/* Script for publishing maven artifacts to bintray and maven central.
+ * Child groovy projects should include it like this:
+ *   apply from: rootProject.file('publish.gradle')
+ * To publish to bintray invoke:
+ *   gradle bintrayUpload
+ * To publish to maven central invoke:
+ *   gradle uploadArchives -PpublishToSonatype=true
+ */
+
+apply plugin: 'signing'
+apply plugin: 'maven-publish'
+apply plugin: 'bintray'
+
+if(project.hasProperty('publishToSonatype')) {
+
+  assert project.hasProperty('signing.keyId')
+  assert project.hasProperty('signing.password')
+  assert project.hasProperty('signing.secretKeyRingFile')
+  assert project.hasProperty('sonatypeUsername')
+  assert project.hasProperty('sonatypePassword')
+
+  signing {
+    sign configurations.archives
+  }
+
+  uploadArchives {
+    repositories {
+      mavenDeployer {
+        beforeDeployment { deployment -> signing.signPom(deployment) }
+
+        repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+          authentication(userName: project.sonatypeUsername, password: project.sonatypePassword)
+        }
+
+        pom.project {
+          name project.name
+          packaging 'jar'
+          description rootProject.ext.description
+          url 'https://github.com/akhikhl/wuff'
+
+          scm {
+            url 'scm:git@github.com:akhikhl/wuff.git'
+            connection 'scm:git@github.com:akhikhl/wuff.git'
+            developerConnection 'scm:git@github.com:akhikhl/wuff.git'
+          }
+
+          licenses {
+            license {
+              name 'The MIT License'
+              url 'https://raw.github.com/akhikhl/wuff/master/license.txt'
+              distribution 'repo'
+            }
+          }
+
+          developers {
+            developer {
+              id 'akhikhl'
+              name 'Andrey Hihlovskiy'
+            }
+          }
+        }
+      }
+    }
+  } // uploadArchives
+} // publishToSonatype
+
+// used by bintray
+publishing {
+  publications {
+    mavenAll(MavenPublication) {
+      if (plugins.hasPlugin('java')) {
+        from components.java
+      }
+      artifact sourcesJar {
+        classifier "sources"
+      }
+      artifact javadocJar {
+        classifier "javadoc"
+      }
+    }
+  }
+} // publishing
+
+def rootProj = rootProject
+bintray {
+  user = project.hasProperty('bintrayUser') ? project.bintrayUser : ''
+  key = project.hasProperty('bintrayKey') ? project.bintrayKey : ''
+  publications = ['mavenAll'] // When uploading Maven-based publication files
+  pkg {
+    repo = 'maven'
+    name = 'wuff'
+    desc = rootProj.ext.description
+    licenses = ['MIT']
+    labels = ['gradle', 'plugin', 'eclipse', 'rcp', 'osgi']
+  }
+  dryRun = false
+}

@@ -1,0 +1,31 @@
+/* Script for configuring a groovy library.
+ * Child groovy projects should include it like this:
+ *   apply from: rootProject.file('commonGroovy.gradle')
+ */
+
+apply plugin: 'maven' // add "install" task
+apply plugin: 'groovy'
+
+dependencies {
+  compile "org.codehaus.groovy:groovy-all:${groovy_version}"
+  testCompile "org.spockframework:spock-core:${spock_version}"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes, description: 'Creates sources jar') {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, description: 'Creates javadoc jar') {
+  dependsOn javadoc
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+  if(tasks.findByName('groovydoc')) {
+    dependsOn groovydoc
+    from groovydoc.destinationDir
+  }
+}
+
+artifacts {
+  archives sourcesJar, javadocJar
+}
