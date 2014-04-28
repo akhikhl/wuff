@@ -1,1 +1,1 @@
-See tutorial: [Manifest expression injection](../../../../wiki/Manifest-expression-injection).
+See wiki: [Manifest expression injection](../../../../wiki/Manifest-expression-injection).

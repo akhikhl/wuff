@@ -1,1 +1,1 @@
-See tutorial: [Manifest attributes in MANIFEST.MF](../../../../wiki/Manifest-attributes-in-MANIFEST.MF).
+See wiki: [Manifest attributes in MANIFEST.MF](../../../../wiki/Manifest-attributes-in-MANIFEST.MF).

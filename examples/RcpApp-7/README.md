@@ -1,1 +1,1 @@
-See tutorial: [Localize RCP app](../../../../wiki/Localize-RCP-app).
+See wiki: [Localize RCP app](../../../../wiki/Localize-RCP-app).

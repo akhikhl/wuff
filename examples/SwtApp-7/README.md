@@ -1,1 +1,1 @@
-See tutorial: [Localize SWT app](../../../../wiki/Localize-SWT-app).
+See wiki: [Localize SWT app](../../../../wiki/Localize-SWT-app).

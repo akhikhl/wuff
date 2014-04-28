@@ -1,1 +1,1 @@
-See tutorial: [Create first IDE app](../../../../wiki/Create-first-IDE-app).
+See wiki: [Create first IDE app](../../../../wiki/Create-first-IDE-app).

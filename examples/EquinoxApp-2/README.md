@@ -1,1 +1,1 @@
-See tutorial: [Configure Equinox products](../../../../wiki/Configure-Equinox-products).
+See wiki: [Configure Equinox products](../../../../wiki/Configure-Equinox-products).

@@ -1,1 +1,1 @@
-See tutorial: [Configure SWT products](../../../../wiki/Configure-SWT-products).
+See wiki: [Configure SWT products](../../../../wiki/Configure-SWT-products).

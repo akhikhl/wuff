@@ -1,1 +1,1 @@
-See tutorial: [Localize IDE app](../../../../wiki/Localize-IDE-app).
+See wiki: [Localize IDE app](../../../../wiki/Localize-IDE-app).

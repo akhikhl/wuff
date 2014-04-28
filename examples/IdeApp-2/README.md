@@ -1,1 +1,1 @@
-See tutorial: [Configure IDE products](../../../../wiki/Configure-IDE-products).
+See wiki: [Configure IDE products](../../../../wiki/Configure-IDE-products).

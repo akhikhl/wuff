@@ -1,1 +1,1 @@
-See tutorial: [Configure RCP products](../../../../wiki/Configure-RCP-products).
+See wiki: [Configure RCP products](../../../../wiki/Configure-RCP-products).

@@ -1,1 +1,1 @@
-See tutorial: [Create SWT library and use it in SWT app](../../../../wiki/Create-SWT-library-and-use-it-in-SWT-app).
+See wiki: [Create SWT library and use it in SWT app](../../../../wiki/Create-SWT-library-and-use-it-in-SWT-app).
