@@ -170,6 +170,11 @@ class Configurer {
   }
 
   protected void createConfigurations() {
+    if(!project.configurations.findByName('provided'))
+      project.configurations {
+        provided
+        compile.extendsFrom provided
+      }
   }
 
   protected void createExtensions() {

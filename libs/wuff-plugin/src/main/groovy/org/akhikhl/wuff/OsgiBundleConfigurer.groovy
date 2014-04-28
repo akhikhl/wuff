@@ -191,10 +191,12 @@ class OsgiBundleConfigurer extends Configurer {
 
   @Override
   protected void createConfigurations() {
-    project.configurations {
-      privateLib
-      compile.extendsFrom privateLib
-    }
+    super.createConfigurations()
+    if(!project.configurations.findByName('privateLib'))
+      project.configurations {
+        privateLib
+        compile.extendsFrom privateLib
+      }
   }
 
   @Override

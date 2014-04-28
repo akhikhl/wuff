@@ -256,9 +256,9 @@ class EquinoxProductConfigurer {
     if(wrappedLibsDir.exists())
       wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
 
-    project.configurations.runtime.each {
-      if(ManifestUtils.isBundle(project, it) && !ProjectUtils.findFileInProducts(project, it))
-        addBundle it
+    project.configurations.runtime.each { file ->
+      if(ManifestUtils.isBundle(project, file) && !(project.configurations.provided.find { it == file }))
+        addBundle file
     }
 
     productConfig?.each {

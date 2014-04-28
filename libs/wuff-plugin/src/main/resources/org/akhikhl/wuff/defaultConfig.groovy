@@ -11,7 +11,7 @@ wuff {
         project.dependencies {
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-          compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
+          provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
         }
       }
     }
@@ -36,13 +36,6 @@ wuff {
       }
 
       postConfigure { project ->
-
-        project.dependencies {
-          compile "${eclipseMavenGroup}:org.eclipse.jface:+"
-          compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-          // This is needed to make compiler happy. Excluded later on concrete product assembly.
-          compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
-        }
 
         supported_oses.each { platform ->
           supported_archs.each { arch ->
@@ -85,8 +78,7 @@ wuff {
           compile "${eclipseMavenGroup}:javax.inject:+"
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-          // This is needed to make compiler happy. Excluded later on concrete product assembly.
-          compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
+          provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
           compile "${eclipseMavenGroup}:org.eclipse.ui:+"
         }
 
@@ -139,7 +131,7 @@ wuff {
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.ds:+"
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.event:+"
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
-          runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}.${current_arch_suffix}:+"
+          provided "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}.${current_arch_suffix}:+"
           runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
           compile "${eclipseMavenGroup}:org.eclipse.osgi:+"
           runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
@@ -212,7 +204,7 @@ wuff {
           runtime "${eclipseMavenGroup}:org.eclipse.core.net:+"
           compile "${eclipseMavenGroup}:org.eclipse.jface:+"
           compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-          compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
+          provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
           compile "${eclipseMavenGroup}:org.eclipse.ui:+"
           if(hasIntro)
             runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"

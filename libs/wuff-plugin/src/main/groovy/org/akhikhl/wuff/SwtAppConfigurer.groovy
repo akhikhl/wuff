@@ -13,7 +13,7 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class SwtAppConfigurer extends Configurer {
+class SwtAppConfigurer extends SwtLibConfigurer {
 
   private static final launchers = [ 'linux' : 'shell', 'windows' : 'windows' ]
 
@@ -65,7 +65,6 @@ class SwtAppConfigurer extends Configurer {
 
   @Override
   protected List<String> getModules() {
-    return [ 'swtapp' ]
+    return super.getModules() + [ 'swtapp' ]
   }
 }
-

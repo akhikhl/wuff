@@ -1,6 +1,6 @@
 dependencies {
   compile gradleApi()
-  compile 'org.akhikhl.gradle-onejar:gradle-onejar:0.0.9'
+  compile 'org.akhikhl.gradle-onejar:gradle-onejar:0.0.10'
   compile 'org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.3'
   compile 'commons-io:commons-io:2.4'
   compile 'commons-codec:commons-codec:1.9'
