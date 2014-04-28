@@ -17,7 +17,7 @@ If you already use Wuff, it is always a good idea to look in [what's new section
 - Maven artifacts: 'org.akhikhl.wuff:wuff-plugin:+' at jcenter and maven central.
 - Source code: compile, explore, deploy.
 
-See more information in [prerequisites and usage](../../wiki/Prerequisites-and-usage) wiki section.
+See more information on [prerequisites and usage](../../wiki/Prerequisites-and-usage) wiki page.
 
 ### Copyright and License
 
