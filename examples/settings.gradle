@@ -1,7 +1,0 @@
-// This script automatically discovers sub-projects.
-// It should not contain any project-specific information.
-
-rootProject.projectDir.listFiles({ new File(it, 'build.gradle').isFile() } as FileFilter).each { File subdir ->
-  include subdir.absolutePath.substring(rootProject.projectDir.absolutePath.length() + 1).replace(File.separator, ':')
-}
-

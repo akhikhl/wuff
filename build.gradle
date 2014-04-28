@@ -32,8 +32,6 @@ task('buildExamples', type: GradleBuild) { task ->
   tasks = [ 'build' ]
 }
 
-tasks.build.finalizedBy tasks.buildExamples
-
 task('cleanExamples', type: GradleBuild) { task ->
   dir = file('examples')
   tasks = [ 'clean' ]
