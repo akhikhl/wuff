@@ -10,11 +10,10 @@ buildscript {
 }
 
 apply plugin: 'unpuzzle'
+apply plugin: 'eclipse-config'
 
 unpuzzle {
-  eclipseVersion('4.3') {
-    source "$eclipseMirror/eclipse//technology/babel/babel_language_packs/R0.11.1/kepler/BabelLanguagePack-eclipse-de_4.3.0.v20131123020001.zip", languagePacksOnly: true
-  }
+  languagePack 'de'
 }
 
 subprojects {
