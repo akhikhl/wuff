@@ -1,0 +1,36 @@
+// we don't manage examples in a project tree, because each example is designed
+// as completely self-sufficient project, allowing isolated build.
+
+import java.nio.file.Paths
+
+task('build')
+task('clean')
+
+def subdirs = projectDir.listFiles({ it.isDirectory() } as FileFilter) as List
+
+subdirs = subdirs.findResults { subdir ->
+  def f = new File(subdir, 'build.gradle')
+  if(f.isFile())
+    subdir
+  else
+    subdir.listFiles({ it.isDirectory() && new File(it, 'build.gradle').isFile() } as FileFilter)
+}
+
+subdirs = subdirs.flatten()
+
+subdirs.each { subdir ->
+  String taskSuffix = Paths.get(projectDir.absolutePath).relativize(Paths.get(subdir.absolutePath))
+  taskSuffix = taskSuffix.replaceAll($/-|/|\\/$, '_')
+
+  task("build_$taskSuffix", type: GradleBuild) { task ->
+    dir = subdir
+    tasks = [ 'build' ]
+    project.tasks.build.dependsOn task
+  }
+
+  task("clean_$taskSuffix", type: GradleBuild) { task ->
+    dir = subdir
+    tasks = [ 'clean' ]
+    project.tasks.clean.dependsOn task
+  }
+}  

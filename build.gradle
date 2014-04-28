@@ -12,7 +12,7 @@ buildscript {
 ext {
   group = 'org.akhikhl.wuff'
   version = '0.0.1'
-  description = 'Gradle plugin for assembling eclipse applications'
+  description = 'Set of gradle plugins for developing and assembling Eclipse applications and plugins'
   groovy_version = '1.8.6'
   spock_version = '0.7-groovy-1.8'
   logback_version = '1.1.1'
@@ -27,17 +27,19 @@ task('wrapper', type: Wrapper) {
   gradleVersion = '1.11'
 }
 
-task('buildExamples', type: GradleBuild) { task ->
+// we exclude buildExamples from main build,
+// because building all examples might be too slow
+task('buildExamples', type: GradleBuild) {
   dir = file('examples')
   tasks = [ 'build' ]
 }
 
-task('cleanExamples', type: GradleBuild) { task ->
+// we exclude cleanExamples from main build,
+// because cleaning all examples might be too slow
+task('cleanExamples', type: GradleBuild) {
   dir = file('examples')
   tasks = [ 'clean' ]
 }
-
-tasks.clean.dependsOn tasks.cleanExamples
 
 subprojects {
   if(project.parent.name != 'libs')
