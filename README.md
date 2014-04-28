@@ -2,9 +2,9 @@
 
 ### Introduction
 
-Wuff is a set of gradle plugins for developing and assembling Eclipse applications and plugins **independently** of Eclipse-IDE. 
+Wuff is a set of gradle plugins for developing and assembling Eclipse applications and plugins *independently* of Eclipse-IDE. 
 
-If you are familiar with Eclipse Tycho, then think of Wuff as a more powerful, gradle-based, replacement for it.
+If you are familiar with Eclipse Tycho, then think of Wuff as a more powerful, gradle-based, alternative.
 
 ### Where to start?
 
@@ -17,7 +17,7 @@ If you already use Wuff, it is always a good idea to look in [what's new section
 - Maven artifacts: 'org.akhikhl.wuff:wuff-plugin:+' at jcenter and maven central.
 - Source code: compile, explore, deploy.
 
-Detailed information on usage is found in [tutorials](../../wiki/Tutorials).
+See more information on [prerequisites and usage](../../wiki/Prerequisites-and-usage) wiki page.
 
 ### Copyright and License
 
