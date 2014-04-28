@@ -7,11 +7,16 @@
  */
 package org.akhikhl.wuff
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 /**
  * Holds plugin configuration.
  * @author akhikhl
  */
 class Config {
+
+  protected static final Logger log = LoggerFactory.getLogger(Config)
 
   private static void merge(Config target, Config source) {
     if(source.parentConfig)
@@ -52,6 +57,30 @@ class Config {
     return result
   }
 
+  private void importModulesFromBaseConfigs(EclipseVersionConfig versionConfig) {
+    def importModules
+    importModules = { List<String> baseVersions ->
+      for(String baseVersion in baseVersions) {
+        EclipseVersionConfig baseVersionConfig = versionConfigs[baseVersion]
+        if(baseVersionConfig == null)
+          log.error 'base eclipse version {} is not defined', baseVersion
+        else {
+          baseVersionConfig.moduleConfigs.each { String moduleName, EclipseModuleConfig sourceModuleConfig ->
+            EclipseModuleConfig targetModuleConfig = versionConfig.moduleConfigs[moduleName]
+            if(targetModuleConfig == null)
+              targetModuleConfig = versionConfig.moduleConfigs[moduleName] = new EclipseModuleConfig()
+            for(Closure c in sourceModuleConfig.configure)
+              targetModuleConfig.configure.add(c.rehydrate(c.delegate, c.owner, c.thisObject))
+            for(Closure c in sourceModuleConfig.postConfigure)
+              targetModuleConfig.postConfigure.add(c.rehydrate(c.delegate, c.owner, c.thisObject))
+          }
+          importModules(baseVersionConfig.baseVersions)
+        }
+      }
+    }
+    importModules(versionConfig, versionConfig.baseVersions)
+  }
+
   Map<String, EclipseVersionConfig> getVersionConfigs() {
     if(versionConfigs == null) {
       versionConfigs = [:]
@@ -62,6 +91,9 @@ class Config {
           closure.resolveStrategy = Closure.DELEGATE_FIRST
           closure()
         }
+      }
+      versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
+        importModulesFromBaseConfigs(versionConfig)
       }
     }
     return versionConfigs

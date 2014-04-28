@@ -19,10 +19,19 @@ class EclipseVersionConfig {
   String eclipseMavenGroup
 
   /**
+   * names of other EclipseVersionConfig's, from which this one extends
+   */
+  List<String> baseVersions = []
+
+  /**
    * module configurations of this eclipse version.
    * Key is module name, value is module configuration.
    */
   Map<String, EclipseModuleConfig> moduleConfigs = [:]
+
+  void extendsFrom(String baseVersion) {
+    baseVersions.add(baseVersion)
+  }
 
   def methodMissing(String moduleName, args) {
     EclipseModuleConfig moduleConfig = moduleConfigs[moduleName]
