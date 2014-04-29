@@ -61,8 +61,9 @@ class ConfigHierarchyTest extends Specification {
 
   def 'should support module inheritance'() {
   setup:
-    Project parentProject = ProjectBuilder.builder().build()
-    parentProject.extensions.create('wuff', Config)
+    def theModule = module
+    Project parentProject = ProjectBuilder.builder().withName('PARENT_PROJ').build()
+    new EclipseConfigPlugin().apply(parentProject)
     parentProject.wuff.with {
       defaultEclipseVersion 'a'
       eclipseVersion 'a', {
@@ -79,13 +80,14 @@ class ConfigHierarchyTest extends Specification {
         }
       }
     }
-    Project project = ProjectBuilder.builder().withParent(parentProject).build()
+    Project project = ProjectBuilder.builder().withName('PROJ').withParent(parentProject).build()
     project.apply(plugin: 'java')
-    /*project.repositories {
-      mavenLocal()
-      mavenCentral()
-    }*/
-    project.extensions.create('wuff', Config)
+    def configurer = new Configurer(project) {
+      protected List<String> getModules() {
+        [ theModule ]
+      }
+    }
+    configurer.apply()
     project.wuff.with {
       eclipseVersion 'a', {
         moduleA {
@@ -100,9 +102,8 @@ class ConfigHierarchyTest extends Specification {
         }
       }
     }
-    Configurer.setupConfigChain(project)
-    new ModuleConfigurer(project).configureModules(project.wuff.effectiveConfig.versionConfigs['a'].moduleNames)
-
+    parentProject.evaluate()
+    project.evaluate()
   expect:
     project.configurations.compile.dependencies.collect { "${it.group}:${it.name}" } == dependencyList
 

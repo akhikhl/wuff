@@ -8,16 +8,12 @@
 package org.akhikhl.wuff
 
 import org.gradle.api.Project
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 /**
  * Holds plugin configuration.
  * @author akhikhl
  */
 class Config {
-
-  protected static final Logger log = LoggerFactory.getLogger(Config)
 
   private static void merge(Config target, Config source) {
     if(source.parentConfig)
@@ -52,7 +48,7 @@ class Config {
     versionConfigs = null
   }
 
-  Config getEffectiveConfig() {
+  protected Config getEffectiveConfig() {
     Config result = new Config()
     merge(result, this)
     return result

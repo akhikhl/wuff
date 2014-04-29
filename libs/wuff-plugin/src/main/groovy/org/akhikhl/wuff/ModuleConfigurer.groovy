@@ -20,15 +20,13 @@ class ModuleConfigurer {
   protected static final Logger log = LoggerFactory.getLogger(ModuleConfigurer)
 
   private final Project project
-  private final Config effectiveConfig
   private final Expando delegate
 
   ModuleConfigurer(Project project) {
     this.project = project
-    effectiveConfig = project.wuff.effectiveConfig
-    log.warn 'Project {} is using eclipse version {}', project.name, effectiveConfig.defaultEclipseVersion
+    log.debug 'ModuleConfigurer {}: using eclipse version {}', project.name, project.effectiveWuff.defaultEclipseVersion
     delegate = new Expando()
-    delegate.eclipseMavenGroup = effectiveConfig.defaultEclipseVersion
+    delegate.eclipseMavenGroup = project.eclipseMavenGroup
     delegate.supported_oses = PlatformConfig.supported_oses
     delegate.supported_archs = PlatformConfig.supported_archs
     delegate.supported_languages = PlatformConfig.supported_languages
@@ -49,14 +47,14 @@ class ModuleConfigurer {
   }
 
   private EclipseVersionConfig findVersionConfig(String versionString) {
-    EclipseVersionConfig versionConfig = effectiveConfig.versionConfigs[versionString]
+    EclipseVersionConfig versionConfig = project.effectiveWuff.versionConfigs[versionString]
     if(versionConfig == null)
       log.error 'Eclipse version {} is not configured', versionString
     return versionConfig
   }
 
   void configureModules(Iterable<String> modules) {
-    EclipseVersionConfig versionConfig = findVersionConfig(effectiveConfig.defaultEclipseVersion)
+    EclipseVersionConfig versionConfig = findVersionConfig(project.effectiveWuff.defaultEclipseVersion)
     if(versionConfig != null)
       for(String moduleName in modules)
         configureModule(versionConfig, moduleName)

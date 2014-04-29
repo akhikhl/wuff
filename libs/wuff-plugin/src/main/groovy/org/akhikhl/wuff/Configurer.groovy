@@ -21,24 +21,6 @@ class Configurer {
 
   protected static final Logger log = LoggerFactory.getLogger(Configurer)
 
-  static void setupConfigChain(Project project) {
-    if(project.wuff.parentConfig == null) {
-      Project p = project.parent
-      while(p != null && !p.extensions.findByName('wuff'))
-        p = p.parent
-      if(p == null) {
-        log.warn '{}.wuff.parentConfig <- defaultConfig', project.name
-        project.wuff.parentConfig = new ConfigReader().readFromResource('defaultConfig.groovy')
-      }
-      else {
-        log.warn '{}.wuff.parentConfig <- {}.wuff', project.name, p.name
-        project.wuff.parentConfig = p.wuff
-        setupConfigChain(p)
-      }
-    } else
-      log.warn '{}.wuff already has parentConfig, setupConfigChain skipped', project.name
-  }
-
   protected final Project project
 
   Configurer(Project project) {
@@ -49,7 +31,7 @@ class Configurer {
     project.afterEvaluate(closure)
   }
 
-  void apply() {
+  final void apply() {
     preConfigure()
     configure()
     afterEvaluate(this.&postConfigure)
@@ -115,7 +97,25 @@ class Configurer {
   }
 
   protected void createExtensions() {
-    project.extensions.create('wuff', Config)
+
+    if(!project.extensions.findByName('wuff'))
+      project.extensions.create('wuff', Config)
+
+    project.metaClass {
+
+      getEffectiveWuff = {
+        if(!project.ext.has('_effectiveWuff')) {
+          getRootConfig().defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
+          project.ext._effectiveWuff = project.wuff.getEffectiveConfig()
+          assert project.has('_effectiveWuff')
+        }
+        project._effectiveWuff
+      }
+
+      getEclipseMavenGroup = {
+        project.effectiveWuff.versionConfigs[project.effectiveWuff.defaultEclipseVersion]?.eclipseMavenGroup
+      }
+    }
   }
 
   protected void createExtraFiles() {
@@ -160,18 +160,6 @@ class Configurer {
     if(project.version == 'unspecified')
       project.version = getDefaultVersion()
 
-    Config rootConfig = getRootConfig()
-    rootConfig.defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
-    def c = project.wuff
-    while(c != null) {
-      log.warn '{}: chain {} defaultEclipseVersion={}', project.name, c, c.defaultEclipseVersion
-      c = c.parentConfig
-    }
-
-    log.warn '{}: rootConfig {} defaultEclipseVersion={}', project.name, rootConfig, rootConfig.defaultEclipseVersion
-
-    project.ext.eclipseMavenGroup = project.wuff.effectiveConfig.defaultEclipseVersion
-
     createVirtualConfigurations()
 
     new ModuleConfigurer(project).configureModules(getModules())
@@ -184,5 +172,23 @@ class Configurer {
     createExtensions()
     setupConfigChain(project)
     createConfigurations()
+  }
+
+  private static void setupConfigChain(Project project) {
+    if(project.wuff.parentConfig == null) {
+      Project p = project.parent
+      while(p != null && !p.extensions.findByName('wuff'))
+        p = p.parent
+      if(p == null) {
+        log.debug '{}.wuff.parentConfig <- defaultConfig', project.name
+        project.wuff.parentConfig = new ConfigReader().readFromResource('defaultConfig.groovy')
+      }
+      else {
+        log.debug '{}.wuff.parentConfig <- {}.wuff', project.name, p.name
+        project.wuff.parentConfig = p.wuff
+        setupConfigChain(p)
+      }
+    } else
+      log.debug '{}.wuff already has parentConfig, setupConfigChain skipped', project.name
   }
 }
