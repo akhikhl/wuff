@@ -21,6 +21,26 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   @Override
+  protected void createConfigurations() {
+
+    super.createConfigurations()
+
+    PlatformConfig.supported_oses.each { platform ->
+      PlatformConfig.supported_archs.each { arch ->
+
+        def productConfig = project.configurations.create("product_rcp_${platform}_${arch}")
+        productConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}")
+
+        PlatformConfig.supported_languages.each { language ->
+          def localizedConfig = project.configurations.create("product_rcp_${platform}_${arch}_${language}")
+          localizedConfig.extendsFrom productConfig
+          localizedConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}_${language}")
+        }
+      }
+    }
+  }
+
+  @Override
   protected void createExtraFiles() {
     super.createExtraFiles()
     FileUtils.stringToFile(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project))

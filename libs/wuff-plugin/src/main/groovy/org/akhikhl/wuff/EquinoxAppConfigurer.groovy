@@ -195,6 +195,24 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
   }
 
   @Override
+  protected void createConfigurations() {
+
+    super.createConfigurations()
+
+    PlatformConfig.supported_oses.each { platform ->
+      PlatformConfig.supported_archs.each { arch ->
+
+        def productConfig = project.configurations.create("product_equinox_${platform}_${arch}")
+
+        PlatformConfig.supported_languages.each { language ->
+          def localizedConfig = project.configurations.create("product_equinox_${platform}_${arch}_${language}")
+          localizedConfig.extendsFrom productConfig
+        }
+      }
+    }
+  }
+
+  @Override
   protected void createExtensions() {
     super.createExtensions()
     project.extensions.create('run', RunExtension)

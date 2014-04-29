@@ -58,6 +58,27 @@ class SwtAppConfigurer extends SwtLibConfigurer {
   }
 
   @Override
+  protected void createConfigurations() {
+
+    super.createConfigurations()
+
+    PlatformConfig.supported_oses.each { platform ->
+      PlatformConfig.supported_archs.each { arch ->
+
+        String productConfigName = "product_swtapp_${platform}_${arch}"
+        project.configurations.create(productConfigName)
+
+        PlatformConfig.supported_languages.each { language ->
+
+          String localizedProductConfigName = "product_swtapp_${platform}_${arch}_${language}"
+          def localizedConfig = project.configurations.create(localizedProductConfigName)
+          localizedConfig.extendsFrom project.configurations[productConfigName]
+        }
+      }
+    }
+  }
+
+  @Override
   protected void createExtensions() {
     super.createExtensions()
     project.extensions.create('products', SwtAppProductsExtension)

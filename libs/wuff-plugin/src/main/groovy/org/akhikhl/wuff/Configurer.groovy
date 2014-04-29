@@ -21,13 +21,28 @@ class Configurer {
 
   protected static final Logger log = LoggerFactory.getLogger(Configurer)
 
+  static void setupConfigChain(Project project) {
+    if(project.wuff.parentConfig == null) {
+      Project p = project.parent
+      while(p != null && !p.extensions.findByName('wuff'))
+        p = p.parent
+      if(p == null) {
+        log.warn '{}.wuff.parentConfig <- defaultConfig', project.name
+        project.wuff.parentConfig = new ConfigReader().readFromResource('defaultConfig.groovy')
+      }
+      else {
+        log.warn '{}.wuff.parentConfig <- {}.wuff', project.name, p.name
+        project.wuff.parentConfig = p.wuff
+        setupConfigChain(p)
+      }
+    } else
+      log.warn '{}.wuff already has parentConfig, setupConfigChain skipped', project.name
+  }
+
   protected final Project project
-  protected final Config defaultConfig
-  protected Config effectiveConfig
 
   Configurer(Project project) {
     this.project = project
-    this.defaultConfig = new ConfigReader().readFromResource('defaultConfig.groovy')
   }
 
   protected void afterEvaluate(Closure closure) {
@@ -48,51 +63,7 @@ class Configurer {
     }
   }
 
-  private void applyModuleAction(String action) {
-    for(String moduleName in getModules())
-      applyModuleAction(null, effectiveConfig.defaultEclipseVersion, moduleName, action)
-  }
-
-  private void applyModuleAction(delegate, String versionString, String moduleName, String action) {
-    EclipseVersionConfig versionConfig = effectiveConfig.versionConfigs[versionString]
-    if(versionConfig) {
-      if(delegate == null) {
-        delegate = new Expando()
-        delegate.eclipseMavenGroup = versionConfig.eclipseMavenGroup
-        delegate.supported_oses = PlatformConfig.supported_oses
-        delegate.supported_archs = PlatformConfig.supported_archs
-        delegate.supported_languages = PlatformConfig.supported_languages
-        delegate.current_os = PlatformConfig.current_os
-        delegate.current_arch = PlatformConfig.current_arch
-        delegate.current_language = PlatformConfig.current_language
-        delegate.supported_oses = PlatformConfig.supported_oses
-        delegate.map_os_to_suffix = PlatformConfig.map_os_to_suffix
-        delegate.map_os_to_filesystem_suffix = PlatformConfig.map_os_to_filesystem_suffix
-        delegate.map_arch_to_suffix = PlatformConfig.map_arch_to_suffix
-        delegate.current_os_suffix = PlatformConfig.current_os_suffix
-        delegate.current_os_filesystem_suffix = PlatformConfig.current_os_filesystem_suffix
-        delegate.current_arch_suffix = PlatformConfig.current_arch_suffix
-        delegate.isLanguageFragment = PlatformConfig.&isLanguageFragment
-        delegate.isPlatformFragment = PlatformConfig.&isPlatformFragment
-        delegate.PluginUtils = PluginUtils
-        delegate.project = project
-      }
-      for(String baseVersion in versionConfig.baseVersions)
-        applyModuleAction(delegate, baseVersion, moduleName, action)
-      EclipseModuleConfig moduleConfig = versionConfig.moduleConfigs[moduleName]
-      if(moduleConfig) {
-        for(Closure closure in moduleConfig[action]) {
-          closure = closure.rehydrate(delegate, closure.owner, closure.thisObject)
-          closure.resolveStrategy = Closure.DELEGATE_FIRST
-          closure()
-        }
-      }
-    } else
-      log.error 'Eclipse version {} is not configured', versionString
-  }
-
   protected void configure() {
-    applyModuleAction('configure')
   }
 
   protected void configureTasks() {
@@ -173,57 +144,45 @@ class Configurer {
     return []
   }
 
+  protected final Config getRootConfig() {
+    Project p = project
+    if(p.extensions.findByName('wuff')) {
+      Config c = p.wuff
+      while(c.parentConfig != null)
+        c = c.parentConfig
+      return c
+    }
+    return null
+  }
+
   protected void postConfigure() {
+
     if(project.version == 'unspecified')
       project.version = getDefaultVersion()
+
+    Config rootConfig = getRootConfig()
+    rootConfig.defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
+    def c = project.wuff
+    while(c != null) {
+      log.warn '{}: chain {} defaultEclipseVersion={}', project.name, c, c.defaultEclipseVersion
+      c = c.parentConfig
+    }
+
+    log.warn '{}: rootConfig {} defaultEclipseVersion={}', project.name, rootConfig, rootConfig.defaultEclipseVersion
+
+    project.ext.eclipseMavenGroup = project.wuff.effectiveConfig.defaultEclipseVersion
+
     createVirtualConfigurations()
-    applyModuleAction('postConfigure')
+
+    new ModuleConfigurer(project).configureModules(getModules())
+
     configureTasks()
   }
 
   protected void preConfigure() {
-
     applyPlugins()
     createExtensions()
-
     setupConfigChain(project)
-
-    defaultConfig.defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
-    def c = project.wuff
-    while(c != null) {
-      log.warn 'DBG wuff-chain defaultEclipseVersion={}', c.defaultEclipseVersion
-      c = c.parentConfig
-    }
-    //log.warn '{}: defaultConfig eclipse version {}', project.name, defaultConfig.defaultEclipseVersion
-    effectiveConfig = project.wuff.effectiveConfig
-    log.warn '{}: using eclipse version {}', project.name, effectiveConfig.defaultEclipseVersion
-
-    Project p = project
-    while(p != null) {
-      if(p.extensions.findByName('wuff')) {
-        def econf = p.wuff.effectiveConfig
-        p.ext.eclipseMavenGroup = econf.versionConfigs[econf.defaultEclipseVersion]?.eclipseMavenGroup
-      }
-      p = p.parent
-    }
-
     createConfigurations()
-  }
-
-  private void setupConfigChain(Project project) {
-    if(project.wuff.parentConfig == null) {
-      Project p = project.parent
-      while(p != null && !p.extensions.findByName('wuff'))
-        p = p.parent
-      if(p == null) {
-        log.debug 'there\'s no parent wuff extension for {}, setting parent to defaultConfig', project.name
-        project.wuff.parentConfig = defaultConfig
-      }
-      else {
-        log.debug 'setting parent wuff {} -> {}', project.name, p.name
-        project.wuff.parentConfig = p.wuff
-        setupConfigChain(p)
-      }
-    }
   }
 }

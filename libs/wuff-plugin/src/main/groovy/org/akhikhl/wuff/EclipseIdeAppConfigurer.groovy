@@ -23,6 +23,26 @@ class EclipseIdeAppConfigurer extends EclipseRcpAppConfigurer {
   }
 
   @Override
+  protected void createConfigurations() {
+
+    super.createConfigurations()
+
+    PlatformConfig.supported_oses.each { platform ->
+      PlatformConfig.supported_archs.each { arch ->
+
+        def productConfig = project.configurations.create("product_eclipseIde_${platform}_${arch}")
+        productConfig.extendsFrom project.configurations.findByName("product_rcp_${platform}_${arch}")
+
+        PlatformConfig.supported_languages.each { language ->
+          def localizedConfig = project.configurations.create("product_eclipseIde_${platform}_${arch}_${language}")
+          localizedConfig.extendsFrom productConfig
+          localizedConfig.extendsFrom project.configurations.findByName("product_rcp_${platform}_${arch}_${language}")
+        }
+      }
+    }
+  }
+
+  @Override
   protected PluginXmlBuilder createPluginXmlBuilder() {
     new EclipseIdeAppPluginXmlBuilder(project)
   }

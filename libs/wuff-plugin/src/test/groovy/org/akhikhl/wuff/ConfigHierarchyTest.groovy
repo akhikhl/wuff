@@ -61,52 +61,51 @@ class ConfigHierarchyTest extends Specification {
 
   def 'should support module inheritance'() {
   setup:
-    def c1 = new Config(defaultEclipseVersion: 'a')
-    c1.eclipseVersion 'a', {
-      eclipseMavenGroup = 'eclipse1'
-      moduleA {
-        configure { proj ->
-          proj.dependencies {
+    Project parentProject = ProjectBuilder.builder().build()
+    parentProject.extensions.create('wuff', Config)
+    parentProject.wuff.with {
+      defaultEclipseVersion 'a'
+      eclipseVersion 'a', {
+        eclipseMavenGroup = 'eclipse1'
+        moduleA {
+          project.dependencies {
             compile "${eclipseMavenGroup}:dep1:+"
           }
         }
-      }
-      moduleB {
-        configure { proj ->
-          proj.dependencies {
+        moduleB {
+          project.dependencies {
             compile "${eclipseMavenGroup}:dep2:+"
           }
         }
       }
     }
-    def c2 = new Config(parentConfig: c1)
-    c2.eclipseVersion 'a', {
-      moduleA {
-        configure { proj ->
-          proj.dependencies {
+    Project project = ProjectBuilder.builder().withParent(parentProject).build()
+    project.apply(plugin: 'java')
+    /*project.repositories {
+      mavenLocal()
+      mavenCentral()
+    }*/
+    project.extensions.create('wuff', Config)
+    project.wuff.with {
+      eclipseVersion 'a', {
+        moduleA {
+          project.dependencies {
             compile "${eclipseMavenGroup}:dep3:+"
           }
         }
-      }
-      moduleC {
-        configure { proj ->
-          proj.dependencies {
+        moduleC {
+          project.dependencies {
             compile "${eclipseMavenGroup}:dep4:+"
           }
         }
       }
     }
-    Project project = ProjectBuilder.builder().build()
-    project.apply(plugin: 'java')
-    project.repositories {
-      mavenLocal()
-      mavenCentral()
-    }
-    c2.effectiveConfig.versionConfigs.a.moduleConfigs[module].configure.each {
-      it(project)
-    }
+    Configurer.setupConfigChain(project)
+    new ModuleConfigurer(project).configureModules(project.wuff.effectiveConfig.versionConfigs['a'].moduleNames)
+
   expect:
     project.configurations.compile.dependencies.collect { "${it.group}:${it.name}" } == dependencyList
+
   where:
     module    | dependencyList
     'moduleA' | ['eclipse1:dep1', 'eclipse1:dep3']
@@ -114,4 +113,3 @@ class ConfigHierarchyTest extends Specification {
     'moduleC' | ['eclipse1:dep4']
   }
 }
-

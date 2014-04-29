@@ -27,24 +27,24 @@ class EclipseVersionConfig {
    * module configurations of this eclipse version.
    * Key is module name, value is module configuration.
    */
-  Map<String, EclipseModuleConfig> moduleConfigs = [:]
+  Map<String, List<Closure>> lazyModules = [:]
 
   void extendsFrom(String baseVersion) {
     baseVersions.add(baseVersion)
   }
 
+  List<String> getModuleNames() {
+    lazyModules.keySet() as List
+  }
+
   def methodMissing(String moduleName, args) {
-    EclipseModuleConfig moduleConfig = moduleConfigs[moduleName]
-    if(moduleConfig == null)
-      moduleConfig = moduleConfigs[moduleName] = new EclipseModuleConfig()
+    List<Closure> closureList = lazyModules[moduleName]
+    if(closureList == null)
+      closureList = lazyModules[moduleName] = []
     args.each { arg ->
       if(!(arg instanceof Closure))
         throw new RuntimeException("Argument to ${moduleName} is expected to be a closure")
-      if(arg instanceof Closure) {
-        arg.resolveStrategy = Closure.DELEGATE_FIRST
-        arg.delegate = moduleConfig
-        arg()
-      }
+      closureList.add(arg)
     }
   }
 }
