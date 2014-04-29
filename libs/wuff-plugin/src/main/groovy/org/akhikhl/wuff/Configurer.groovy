@@ -8,7 +8,6 @@
 package org.akhikhl.wuff
 
 import org.gradle.api.Project
-import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.Copy
 import org.slf4j.Logger
@@ -36,14 +35,17 @@ class Configurer {
   }
 
   void apply() {
+    preConfigure()
     configure()
     afterEvaluate(this.&postConfigure)
   }
 
   protected void applyPlugins() {
-    def unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
-    unpuzzleConfigurer.apply()
-    unpuzzleConfigurer.installEclipse()
+    if(!project.extensions.findByName('unpuzzle')) {
+      def unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
+      unpuzzleConfigurer.apply()
+      unpuzzleConfigurer.installEclipse()
+    }
   }
 
   private void applyModuleAction(String action) {
@@ -90,38 +92,11 @@ class Configurer {
   }
 
   protected void configure() {
-
-    applyPlugins()
-    createExtensions()
-
-    setupConfigChain(project)
-
-    defaultConfig.defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
-    effectiveConfig = project.wuff.effectiveConfig
-
-    Project p = project
-    while(p != null) {
-      if(p.extensions.findByName('wuff')) {
-        def econf = p.wuff.effectiveConfig
-        p.ext.eclipseMavenGroup = econf.versionConfigs[econf.defaultEclipseVersion]?.eclipseMavenGroup
-      }
-      p = p.parent
-    }
-
-    createSourceSets()
-    createConfigurations()
-
     applyModuleAction('configure')
-  }
-
-  protected void configureProducts() {
-    // by default there are no products
   }
 
   protected void configureTasks() {
     configureTask_createExtraFiles()
-    configureTask_processResources()
-    configureTask_Jar()
     configureTask_scaffold()
   }
 
@@ -135,34 +110,6 @@ class Configurer {
       }
       doLast {
         createExtraFiles()
-      }
-    }
-  }
-
-  protected void configureTask_Jar() {
-  }
-
-  protected void configureTask_processResources() {
-    project.tasks.processResources {
-      dependsOn project.tasks.createExtraFiles
-      from PluginUtils.getExtraDir(project)
-      // Here we exclude any resources/classes that are present in project,
-      // but overridden by extra-files.
-      // Typical example would be "plugin.xml": this file may be present (or not) in project,
-      // so we always generate extra-file "plugin.xml" which should be processed
-      // as a resource instead of original "plugin.xml".
-      mainSpec.eachFile { FileCopyDetails details ->
-        [project.projectDir, project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
-          if(details.file.absolutePath.startsWith(dir.absolutePath)) {
-            String relPath = dir.toPath().relativize(details.file.toPath()).toString()
-            File extraFile = new File(PluginUtils.getExtraDir(project), relPath)
-            if(extraFile.exists()) {
-              log.debug 'excluding {}', details.file
-              log.debug 'including {}', extraFile
-              details.exclude()
-            }
-          }
-        }
       }
     }
   }
@@ -194,11 +141,6 @@ class Configurer {
   }
 
   protected void createConfigurations() {
-    if(!project.configurations.findByName('provided'))
-      project.configurations {
-        provided
-        compile.extendsFrom provided
-      }
   }
 
   protected void createExtensions() {
@@ -206,9 +148,6 @@ class Configurer {
   }
 
   protected void createExtraFiles() {
-  }
-
-  protected void createSourceSets() {
   }
 
   protected void createVirtualConfigurations() {
@@ -240,7 +179,35 @@ class Configurer {
     createVirtualConfigurations()
     applyModuleAction('postConfigure')
     configureTasks()
-    configureProducts()
+  }
+
+  protected void preConfigure() {
+
+    applyPlugins()
+    createExtensions()
+
+    setupConfigChain(project)
+
+    defaultConfig.defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
+    def c = project.wuff
+    while(c != null) {
+      log.warn 'DBG wuff-chain defaultEclipseVersion={}', c.defaultEclipseVersion
+      c = c.parentConfig
+    }
+    //log.warn '{}: defaultConfig eclipse version {}', project.name, defaultConfig.defaultEclipseVersion
+    effectiveConfig = project.wuff.effectiveConfig
+    log.warn '{}: using eclipse version {}', project.name, effectiveConfig.defaultEclipseVersion
+
+    Project p = project
+    while(p != null) {
+      if(p.extensions.findByName('wuff')) {
+        def econf = p.wuff.effectiveConfig
+        p.ext.eclipseMavenGroup = econf.versionConfigs[econf.defaultEclipseVersion]?.eclipseMavenGroup
+      }
+      p = p.parent
+    }
+
+    createConfigurations()
   }
 
   private void setupConfigChain(Project project) {

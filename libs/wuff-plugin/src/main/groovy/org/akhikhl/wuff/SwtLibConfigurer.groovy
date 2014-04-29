@@ -13,7 +13,7 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class SwtLibConfigurer extends Configurer {
+class SwtLibConfigurer extends JavaConfigurer {
 
   SwtLibConfigurer(Project project) {
     super(project)
@@ -21,7 +21,7 @@ class SwtLibConfigurer extends Configurer {
 
   @Override
   protected List<String> getModules() {
-    return [ 'swtlib' ]
+    return super.getModules() + [ 'swtlib' ]
   }
 }
 

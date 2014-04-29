@@ -18,7 +18,7 @@ import org.gradle.api.plugins.osgi.OsgiManifest
  *
  * @author akhikhl
  */
-class OsgiBundleConfigurer extends Configurer {
+class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected final Map expandBinding
 
@@ -342,7 +342,7 @@ class OsgiBundleConfigurer extends Configurer {
 
   @Override
   protected List<String> getModules() {
-    return [ 'osgiBundle' ]
+    return super.getModules() + [ 'osgiBundle' ]
   }
 
   protected final String getPluginCustomizationString() {
