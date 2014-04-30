@@ -7,6 +7,6 @@ public class Perspective implements IPerspectiveFactory {
 
 	public void createInitialLayout(IPageLayout layout) {
 		layout.setEditorAreaVisible(false);
-		layout.setFixed(true);
+		// layout.setFixed(true); // enable this for fixed layout
 	}
 }
