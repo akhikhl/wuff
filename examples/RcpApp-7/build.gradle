@@ -12,11 +12,6 @@ buildscript {
 apply plugin: 'unpuzzle'
 apply plugin: 'eclipse-config'
 
-unpuzzle {
-  defaultEclipseVersion = '3.7'
-  languagePack 'de'
-}
-
 subprojects {
   repositories {
     mavenLocal()
