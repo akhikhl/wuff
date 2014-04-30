@@ -64,6 +64,9 @@ class ConfigHierarchyTest extends Specification {
     def theModule = module
     Project parentProject = ProjectBuilder.builder().withName('PARENT_PROJ').build()
     new EclipseConfigPlugin().apply(parentProject)
+    parentProject.unpuzzle.with {
+      eclipseVersion 'a', {}
+    }
     parentProject.wuff.with {
       selectedEclipseVersion 'a'
       eclipseVersion 'a', {

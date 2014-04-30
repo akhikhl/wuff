@@ -22,6 +22,7 @@ class Configurer {
   protected static final Logger log = LoggerFactory.getLogger(Configurer)
 
   protected final Project project
+  private unpuzzleConfigurer
 
   Configurer(Project project) {
     this.project = project
@@ -39,9 +40,9 @@ class Configurer {
 
   protected void applyPlugins() {
     if(!project.extensions.findByName('unpuzzle')) {
-      def unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
+      unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
       unpuzzleConfigurer.apply()
-      unpuzzleConfigurer.installEclipse()
+      assert project.extensions.findByName('unpuzzle')
     }
   }
 
@@ -110,7 +111,7 @@ class Configurer {
       }
 
       getEclipseMavenGroup = {
-        self.getEffectiveConfig().selectedVersionConfig?.eclipseMavenGroup
+        self.getSelectedEclipseMavenGroup()
       }
     }
   }
@@ -133,10 +134,23 @@ class Configurer {
     if(!project.ext.has('_effectiveWuff')) {
       project.ext._effectiveWuff = project.wuff.getEffectiveConfig()
       assert project.has('_effectiveWuff')
-      // TODO: replace it with metaClass extension for unpuzzle
-      project.unpuzzle.selectedEclipseVersion = project.ext._effectiveWuff.selectedEclipseVersion
     }
-    project._effectiveWuff
+    return project._effectiveWuff
+  }
+
+  String getSelectedEclipseMavenGroup() {
+    if(!project.ext.has('_selectedEclipseMavenGroup')) {
+      project.ext._selectedEclipseMavenGroup = effectiveConfig.selectedVersionConfig?.eclipseMavenGroup
+      assert project.ext.has('_selectedEclipseMavenGroup')
+      project.unpuzzle.selectedEclipseVersion = effectiveConfig.selectedEclipseVersion
+      effectiveConfig.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
+        def unpuzzleVersionConfig = project.unpuzzle.versionConfigs[versionConfig]
+        if(unpuzzleVersionConfig)
+          unpuzzleVersionConfig.eclipseMavenGroup = versionConfig.eclipseMavenGroup
+      }
+      unpuzzleConfigurer.installEclipse()
+    }
+    return project.ext._selectedEclipseMavenGroup
   }
 
   protected String getScaffoldResourceDir() {
@@ -166,6 +180,8 @@ class Configurer {
 
     if(project.version == 'unspecified')
       project.version = getDefaultVersion()
+
+    unpuzzleConfigurer.installEclipse()
 
     createVirtualConfigurations()
 

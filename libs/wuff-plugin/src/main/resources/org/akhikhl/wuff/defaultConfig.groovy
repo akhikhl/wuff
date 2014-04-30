@@ -1,7 +1,6 @@
 wuff {
 
-  // Note that selectedEclipseVersion is not specified here.
-  // Effect: selectedEclipseVersion is borrowed from project.unpuzzle.effectiveConfig.selectedEclipseVersion.
+  selectedEclipseVersion = '4.3'
 
   eclipseVersion('3.7') {
 
