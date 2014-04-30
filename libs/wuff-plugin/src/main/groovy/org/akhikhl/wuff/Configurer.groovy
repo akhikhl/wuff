@@ -144,9 +144,9 @@ class Configurer {
       assert project.ext.has('_selectedEclipseMavenGroup')
       project.unpuzzle.selectedEclipseVersion = effectiveConfig.selectedEclipseVersion
       effectiveConfig.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
-        def unpuzzleVersionConfig = project.unpuzzle.versionConfigs[versionConfig]
-        if(unpuzzleVersionConfig)
-          unpuzzleVersionConfig.eclipseMavenGroup = versionConfig.eclipseMavenGroup
+        project.unpuzzle.eclipseVersion(versionString) {
+          eclipseMavenGroup = versionConfig.eclipseMavenGroup
+        }
       }
       unpuzzleConfigurer.installEclipse()
     }
