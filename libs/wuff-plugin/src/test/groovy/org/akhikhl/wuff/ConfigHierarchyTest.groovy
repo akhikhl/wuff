@@ -17,24 +17,24 @@ import spock.lang.Specification
  */
 class ConfigHierarchyTest extends Specification {
 
-  def 'should support defaultEclipseVersion inheritance'() {
+  def 'should support selectedEclipseVersion inheritance'() {
   when:
-    def c1 = new Config(defaultEclipseVersion: 'a')
+    def c1 = new Config(selectedEclipseVersion: 'a')
     def c2 = new Config(parentConfig: c1)
-    def c3 = new Config(parentConfig: c2, defaultEclipseVersion: 'b')
+    def c3 = new Config(parentConfig: c2, selectedEclipseVersion: 'b')
     def c4 = new Config(parentConfig: c3)
     def c5 = new Config(parentConfig: c4)
   then:
-    c1.effectiveConfig.defaultEclipseVersion == 'a'
-    c2.effectiveConfig.defaultEclipseVersion == 'a'
-    c3.effectiveConfig.defaultEclipseVersion == 'b'
-    c4.effectiveConfig.defaultEclipseVersion == 'b'
-    c5.effectiveConfig.defaultEclipseVersion == 'b'
+    c1.effectiveConfig.selectedEclipseVersion == 'a'
+    c2.effectiveConfig.selectedEclipseVersion == 'a'
+    c3.effectiveConfig.selectedEclipseVersion == 'b'
+    c4.effectiveConfig.selectedEclipseVersion == 'b'
+    c5.effectiveConfig.selectedEclipseVersion == 'b'
   }
 
   def 'should support eclipseMavenGroup inheritance'() {
   when:
-    def c1 = new Config(defaultEclipseVersion: 'a')
+    def c1 = new Config(selectedEclipseVersion: 'a')
     c1.eclipseVersion 'a', {
       eclipseMavenGroup = 'x'
     }
@@ -65,7 +65,7 @@ class ConfigHierarchyTest extends Specification {
     Project parentProject = ProjectBuilder.builder().withName('PARENT_PROJ').build()
     new EclipseConfigPlugin().apply(parentProject)
     parentProject.wuff.with {
-      defaultEclipseVersion 'a'
+      selectedEclipseVersion 'a'
       eclipseVersion 'a', {
         eclipseMavenGroup = 'eclipse1'
         moduleA {

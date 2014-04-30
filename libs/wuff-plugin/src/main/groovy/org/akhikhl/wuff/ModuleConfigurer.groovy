@@ -24,7 +24,7 @@ class ModuleConfigurer {
 
   ModuleConfigurer(Project project) {
     this.project = project
-    log.debug 'ModuleConfigurer {}: using eclipse version {}', project.name, project.effectiveWuff.defaultEclipseVersion
+    log.debug 'ModuleConfigurer {}: using eclipse version {}', project.name, project.effectiveWuff.selectedEclipseVersion
     delegate = new Expando()
     delegate.eclipseMavenGroup = project.eclipseMavenGroup
     delegate.supported_oses = PlatformConfig.supported_oses
@@ -54,7 +54,7 @@ class ModuleConfigurer {
   }
 
   void configureModules(Iterable<String> modules) {
-    EclipseVersionConfig versionConfig = findVersionConfig(project.effectiveWuff.defaultEclipseVersion)
+    EclipseVersionConfig versionConfig = findVersionConfig(project.effectiveWuff.selectedEclipseVersion)
     if(versionConfig != null)
       for(String moduleName in modules)
         configureModule(versionConfig, moduleName)

@@ -25,15 +25,15 @@ class ConfigReaderTest extends Specification {
   when:
     Config config = reader.readFromResource('emptyConfig.groovy')
   then:
-    config.defaultEclipseVersion == null
+    config.selectedEclipseVersion == null
     config.versionConfigs.isEmpty()
   }
 
-  def 'should read default eclipse version'() {
+  def 'should read selected eclipse version'() {
   when:
-    Config config = reader.readFromResource('defaultEclipseVersionConfig.groovy')
+    Config config = reader.readFromResource('selectedEclipseVersionConfig.groovy')
   then:
-    config.defaultEclipseVersion == '4.3'
+    config.selectedEclipseVersion == '4.3'
     config.versionConfigs.isEmpty()
   }
 

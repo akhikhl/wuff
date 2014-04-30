@@ -1,5 +1,5 @@
 wuff {
-  defaultEclipseVersion = '4.3'
+  selectedEclipseVersion = '4.3'
 
   eclipseVersion('3.7') {
 

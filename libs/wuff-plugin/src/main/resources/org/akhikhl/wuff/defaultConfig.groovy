@@ -1,7 +1,7 @@
 wuff {
 
-  // Note that defaultEclipseVersion is not specified here.
-  // Effect: defaultEclipseVersion is borrowed from project.unpuzzle.effectiveConfig.defaultEclipseVersion.
+  // Note that selectedEclipseVersion is not specified here.
+  // Effect: selectedEclipseVersion is borrowed from project.unpuzzle.effectiveConfig.selectedEclipseVersion.
 
   eclipseVersion('3.7') {
 

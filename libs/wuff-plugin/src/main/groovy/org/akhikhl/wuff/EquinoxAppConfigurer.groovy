@@ -180,7 +180,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       outputs.dir { PluginUtils.getWrappedLibsDir(project) }
       doLast {
         inputs.files.each { lib ->
-          def wrapper = new LibWrapper(project, lib, project.effectiveWuff.wrappedLibs)
+          def wrapper = new LibWrapper(project, lib, effectiveConfig.wrappedLibs)
           wrapper.wrap()
         }
       }

@@ -36,7 +36,7 @@ class EclipseBundlePluginTest extends Specification {
     project.evaluate()
   then:
     project.extensions.findByName('wuff')
-    project.wuff.effectiveConfig.defaultEclipseVersion == '4.3'
+    project.wuff.effectiveConfig.selectedEclipseVersion == '4.3'
     project.configurations.findByName('compile')
     project.configurations.findByName('provided')
     project.configurations.findByName('privateLib')

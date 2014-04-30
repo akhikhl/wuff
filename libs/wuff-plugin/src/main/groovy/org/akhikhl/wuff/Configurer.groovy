@@ -101,19 +101,16 @@ class Configurer {
     if(!project.extensions.findByName('wuff'))
       project.extensions.create('wuff', Config)
 
+    def self = this
+
     project.metaClass {
 
       getEffectiveWuff = {
-        if(!project.ext.has('_effectiveWuff')) {
-          getRootConfig().defaultEclipseVersion = project.unpuzzle.effectiveConfig.defaultEclipseVersion
-          project.ext._effectiveWuff = project.wuff.getEffectiveConfig()
-          assert project.has('_effectiveWuff')
-        }
-        project._effectiveWuff
+        self.getEffectiveConfig()
       }
 
       getEclipseMavenGroup = {
-        project.effectiveWuff.versionConfigs[project.effectiveWuff.defaultEclipseVersion]?.eclipseMavenGroup
+        self.getEffectiveConfig().selectedVersionConfig?.eclipseMavenGroup
       }
     }
   }
@@ -130,6 +127,16 @@ class Configurer {
 
   protected String getDefaultVersion() {
     '1.0'
+  }
+
+  Config getEffectiveConfig() {
+    if(!project.ext.has('_effectiveWuff')) {
+      project.ext._effectiveWuff = project.wuff.getEffectiveConfig()
+      assert project.has('_effectiveWuff')
+      // TODO: replace it with metaClass extension for unpuzzle
+      project.unpuzzle.selectedEclipseVersion = project.ext._effectiveWuff.selectedEclipseVersion
+    }
+    project._effectiveWuff
   }
 
   protected String getScaffoldResourceDir() {

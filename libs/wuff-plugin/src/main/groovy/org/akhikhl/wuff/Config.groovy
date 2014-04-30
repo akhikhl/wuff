@@ -15,23 +15,9 @@ import org.gradle.api.Project
  */
 class Config {
 
-  private static void merge(Config target, Config source) {
-    if(source.parentConfig)
-      merge(target, source.parentConfig)
-    if(source.defaultEclipseVersion != null)
-      target.defaultEclipseVersion = source.defaultEclipseVersion
-    source.lazyVersions.each { String versionString, List<Closure> sourceClosureList ->
-      List<Closure> targetClosureList = target.lazyVersions[versionString]
-      if(targetClosureList == null)
-        targetClosureList = target.lazyVersions[versionString] = []
-      targetClosureList.addAll(sourceClosureList)
-    }
-    target.lazyWrappedLibs.addAll(source.lazyWrappedLibs)
-  }
-
   Config parentConfig
 
-  String defaultEclipseVersion = null
+  String selectedEclipseVersion = null
 
   Map<String, List<Closure>> lazyVersions = [:]
   private Map<String, EclipseVersionConfig> versionConfigs = null
@@ -52,6 +38,10 @@ class Config {
     Config result = new Config()
     merge(result, this)
     return result
+  }
+
+  EclipseVersionConfig getSelectedVersionConfig() {
+    getVersionConfigs()[selectedEclipseVersion]
   }
 
   Map<String, EclipseVersionConfig> getVersionConfigs() {
@@ -79,6 +69,20 @@ class Config {
       }
     }
     return wrappedLibs
+  }
+
+  private static void merge(Config target, Config source) {
+    if(source.parentConfig)
+      merge(target, source.parentConfig)
+    if(source.selectedEclipseVersion != null)
+      target.selectedEclipseVersion = source.selectedEclipseVersion
+    source.lazyVersions.each { String versionString, List<Closure> sourceClosureList ->
+      List<Closure> targetClosureList = target.lazyVersions[versionString]
+      if(targetClosureList == null)
+        targetClosureList = target.lazyVersions[versionString] = []
+      targetClosureList.addAll(sourceClosureList)
+    }
+    target.lazyWrappedLibs.addAll(source.lazyWrappedLibs)
   }
 
   void wrappedLibs(Closure closure) {
