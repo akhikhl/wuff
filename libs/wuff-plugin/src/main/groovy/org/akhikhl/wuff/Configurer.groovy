@@ -39,8 +39,8 @@ class Configurer {
   }
 
   protected void applyPlugins() {
+    unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
     if(!project.extensions.findByName('unpuzzle')) {
-      unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
       unpuzzleConfigurer.apply()
       assert project.extensions.findByName('unpuzzle')
     }
