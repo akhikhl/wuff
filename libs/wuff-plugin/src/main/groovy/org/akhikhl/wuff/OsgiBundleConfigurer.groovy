@@ -146,48 +146,56 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       from project.projectDir, {
         include '*.properties'
-        filter filterExpandProperties
+        if(effectiveConfig.filterProperties)
+          filter filterExpandProperties
       }
 
-      from project.sourceSets.main.resources.srcDirs, {
-        include '**/*.html', '**/*.htm'
-        expand expandBinding
-      }
+      from project.sourceSets.main.resources.srcDirs
 
-      from project.sourceSets.main.resources.srcDirs, {
-        include '**/*.properties'
-        filter filterExpandProperties
-      }
+      if(effectiveConfig.filterHtml)
+        from project.sourceSets.main.resources.srcDirs, {
+          include '**/*.html', '**/*.htm'
+          expand expandBinding
+        }
+
+      if(effectiveConfig.filterProperties)
+        from project.sourceSets.main.resources.srcDirs, {
+          include '**/*.properties'
+          filter filterExpandProperties
+        }
 
       from project.file('OSGI-INF'), {
         into 'OSGI-INF'
       }
 
-      from project.file('OSGI-INF'), {
-        include '**/*.properties'
-        filter filterExpandProperties
-        into 'OSGI-INF'
-      }
+      if(effectiveConfig.filterProperties)
+        from project.file('OSGI-INF'), {
+          include '**/*.properties'
+          filter filterExpandProperties
+          into 'OSGI-INF'
+        }
 
       from project.file('intro'), {
         into 'intro'
       }
 
-      from project.file('intro'), {
-        include '**/*.html', '**/*.htm'
-        expand expandBinding
-        into 'intro'
-      }
+      if(effectiveConfig.filterHtml)
+        from project.file('intro'), {
+          include '**/*.html', '**/*.htm'
+          expand expandBinding
+          into 'intro'
+        }
 
       from project.file('nl'), {
         into 'nl'
       }
 
-      from project.file('nl'), {
-        include '**/*.html', '**/*.htm'
-        expand expandBinding
-        into 'nl'
-      }
+      if(effectiveConfig.filterHtml)
+        from project.file('nl'), {
+          include '**/*.html', '**/*.htm'
+          expand expandBinding
+          into 'nl'
+        }
     }
   }
 

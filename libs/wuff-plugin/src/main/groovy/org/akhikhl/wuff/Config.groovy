@@ -26,6 +26,8 @@ class Config {
   private WrappedLibsConfig wrappedLibs = null
   boolean filterPluginXml = false
   boolean filterManifest = false
+  boolean filterProperties = false
+  boolean filterHtml = false
 
   void eclipseVersion(String versionString, Closure closure) {
     List<Closure> closureList = lazyVersions[versionString]
@@ -82,6 +84,14 @@ class Config {
       targetClosureList.addAll(sourceClosureList)
     }
     target.lazyWrappedLibs.addAll(source.lazyWrappedLibs)
+    if(source.filterPluginXml)
+      target.filterPluginXml = true
+    if(source.filterManifest)
+      target.filterManifest = true
+    if(source.filterProperties)
+      target.filterProperties = true
+    if(source.filterHtml)
+      target.filterHtml = true
   }
 
   void wrappedLibs(Closure closure) {
