@@ -162,6 +162,9 @@ class Configurer {
 
   private void populateUnpuzzleConfig() {
     project.unpuzzle.selectedEclipseVersion = project.wuff.selectedEclipseVersion
+    project.wuff.languagePacks.each {
+      project.unpuzzle.languagePack it
+    }
     project.wuff.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
       project.unpuzzle.eclipseVersion(versionString) {
         eclipseMavenGroup = versionConfig.eclipseMavenGroup

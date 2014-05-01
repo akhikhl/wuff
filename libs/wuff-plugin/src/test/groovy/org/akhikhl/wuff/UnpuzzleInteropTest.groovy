@@ -68,6 +68,35 @@ class UnpuzzleInteropTest extends Specification {
     emavengroup << ['group1', 'group2', 'group3']
   }
 
+  def 'should pass sources to unpuzzle'() {
+  when:
+    Project p1 = ProjectBuilder.builder().withName('p1').build()
+    configPlugin.apply(p1)
+    p1.wuff.with {
+      selectedEclipseVersion = 'a'
+      eclipseVersion 'a', {
+        sources {
+          source 'source-1'
+          source 'source-2'
+        }
+      }
+      eclipseVersion 'b', {
+      }
+      eclipseVersion 'c', {
+        sources {
+          source 'source-3'
+          source 'source-4'
+        }
+      }
+    }
+    p1.unpuzzle.dryRun = true
+    p1.evaluate()
+  then:
+    p1.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['source-1', 'source-2']
+    p1.effectiveUnpuzzle.versionConfigs.b.sources.collect { it.url } == []
+    p1.effectiveUnpuzzle.versionConfigs.c.sources.collect { it.url } == ['source-3', 'source-4']
+  }
+
   def 'should support source inheritance'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
@@ -107,15 +136,32 @@ class UnpuzzleInteropTest extends Specification {
     p1.evaluate()
     p2.evaluate()
   then:
-    p1.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['source-1', 'source-2']
-    p1.effectiveUnpuzzle.versionConfigs.b.sources.collect { it.url } == []
-    p1.effectiveUnpuzzle.versionConfigs.c.sources.collect { it.url } == ['source-3', 'source-4']
     p2.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['source-1', 'source-2', 'source-5']
     p2.effectiveUnpuzzle.versionConfigs.b.sources.collect { it.url } == ['source-6']
     p2.effectiveUnpuzzle.versionConfigs.c.sources.collect { it.url } == ['source-3', 'source-4']
   }
 
-  def 'should support mirror override'() {
+  def 'should pass eclipseMirror to unpuzzle'() {
+  when:
+    Project p1 = ProjectBuilder.builder().withName('p1').build()
+    configPlugin.apply(p1)
+    p1.wuff.with {
+      selectedEclipseVersion = 'a'
+      eclipseVersion 'a', {
+        eclipseMirror = 'aaa'
+        sources {
+          source "${eclipseMirror}/source-1"
+          source "${eclipseMirror}/source-2"
+        }
+      }
+    }
+    p1.unpuzzle.dryRun = true
+    p1.evaluate()
+  then:
+    p1.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['aaa/source-1', 'aaa/source-2']
+  }
+
+  def 'should support eclipseMirror override'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
     configPlugin.apply(p1)
@@ -143,8 +189,54 @@ class UnpuzzleInteropTest extends Specification {
     p1.evaluate()
     p2.evaluate()
   then:
-    p1.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['aaa/source-1', 'aaa/source-2']
     p2.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['bbb/source-1', 'bbb/source-2', 'bbb/source-3']
+  }
+
+  def 'should pass language packs to unpuzzle'() {
+  when:
+    Project p1 = ProjectBuilder.builder().withName('p1').build()
+    configPlugin.apply(p1)
+    p1.wuff.with {
+      selectedEclipseVersion = 'a'
+      eclipseVersion 'a', {
+        eclipseMirror = 'aaa'
+        sources {
+          // intentional: string, not GString (resolved when language pack is applied)
+          languagePackTemplate '${eclipseMirror}/someFolder/somePackage_${language}.tar.gz'
+          languagePack 'de'
+        }
+      }
+    }
+    p1.unpuzzle.dryRun = true
+    p1.evaluate()
+  then:
+    p1.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['aaa/someFolder/somePackage_de.tar.gz']
+  }
+
+  def 'should pass top-level language packs to unpuzzle'() {
+  when:
+    Project p1 = ProjectBuilder.builder().withName('p1').build()
+    configPlugin.apply(p1)
+    p1.wuff.with {
+      selectedEclipseVersion = 'a'
+      languagePack 'de'
+      languagePack 'fr'
+      eclipseVersion 'a', {
+        eclipseMirror = 'aaa'
+        sources {
+          // intentional: string, not GString (resolved when language pack is applied)
+          languagePackTemplate '${eclipseMirror}/someFolder/somePackage_${language}.tar.gz'
+          languagePack 'es'
+        }
+      }
+    }
+    p1.unpuzzle.dryRun = true
+    p1.evaluate()
+  then:
+    p1.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == [
+      'aaa/someFolder/somePackage_es.tar.gz',
+      'aaa/someFolder/somePackage_de.tar.gz',
+      'aaa/someFolder/somePackage_fr.tar.gz' ]
   }
 
   def 'should support language pack templates'() {
@@ -178,6 +270,9 @@ class UnpuzzleInteropTest extends Specification {
     p2.evaluate()
   then:
     p1.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['aaa/someFolder/somePackage_de.tar.gz']
-    p2.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == ['bbb/someFolder/somePackage_de.tar.gz', 'bbb/someFolder/somePackage_fr.tar.gz', 'bbb/someFolder/somePackage_es.tar.gz']
+    p2.effectiveUnpuzzle.versionConfigs.a.sources.collect { it.url } == [
+      'bbb/someFolder/somePackage_de.tar.gz',
+      'bbb/someFolder/somePackage_fr.tar.gz',
+      'bbb/someFolder/somePackage_es.tar.gz' ]
   }
 }

@@ -21,6 +21,7 @@ class Config {
 
   Map<String, List<Closure>> lazyVersions = [:]
   private Map<String, EclipseVersionConfig> versionConfigs = null
+  Set<String> languagePacks = new LinkedHashSet()
   List<Closure> lazyWrappedLibs = []
   private WrappedLibsConfig wrappedLibs = null
   boolean filterPluginXml = false
@@ -63,6 +64,10 @@ class Config {
       }
     }
     return wrappedLibs
+  }
+
+  void languagePack(String language) {
+    languagePacks.add(language)
   }
 
   protected static void merge(Config target, Config source) {
