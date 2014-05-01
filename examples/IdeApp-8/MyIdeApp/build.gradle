@@ -1,6 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'eclipse-ide-app'
 
+dependencies {
+  compile project(':MyIdePlugin')
+}
+
 products {
   product platform: 'linux', arch: 'x86_32'
   product platform: 'linux', arch: 'x86_32', language: 'de'
@@ -11,8 +15,4 @@ products {
   product platform: 'windows', arch: 'x86_64'
   product platform: 'windows', arch: 'x86_64', language: 'de'
   archiveProducts = true
-}
-
-dependencies {
-  compile project(':MyIdePlugin')
 }

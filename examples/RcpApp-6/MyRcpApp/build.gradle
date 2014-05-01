@@ -1,6 +1,14 @@
 apply plugin: 'java'
 apply plugin: 'eclipse-rcp-app'
 
+dependencies {
+  compile project(':MyPlugin')
+}
+
+wuff {
+  filterHtml = true
+}
+
 products {
   product platform: 'linux', arch: 'x86_32'
   product platform: 'linux', arch: 'x86_64'
@@ -8,8 +16,3 @@ products {
   product platform: 'windows', arch: 'x86_64'
   archiveProducts = true
 }
-
-dependencies {
-  compile project(':MyPlugin')
-}
-
