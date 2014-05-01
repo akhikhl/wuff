@@ -12,51 +12,77 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 /**
- *
+ * Test for hierarchical wuff configurations
  * @author akhikhl
  */
 class ConfigHierarchyTest extends Specification {
 
-  def 'should support selectedEclipseVersion inheritance'() {
+  private EclipseConfigPlugin configPlugin
+
+  def setup() {
+    configPlugin = new EclipseConfigPlugin()
+  }
+
+  def 'should support selectedEclipseVersion inheritance and override'() {
   when:
-    def c1 = new Config(selectedEclipseVersion: 'a')
-    def c2 = new Config(parentConfig: c1)
-    def c3 = new Config(parentConfig: c2, selectedEclipseVersion: 'b')
-    def c4 = new Config(parentConfig: c3)
-    def c5 = new Config(parentConfig: c4)
+    Project p1 = ProjectBuilder.builder().withName('p1').build()
+    configPlugin.apply(p1)
+    p1.wuff.with {
+      selectedEclipseVersion = 'a'
+      eclipseVersion 'a', {}
+    }
+    Project p2 = ProjectBuilder.builder().withName('p2').withParent(p1).build()
+    configPlugin.apply(p2)
+    Project p3 = ProjectBuilder.builder().withName('p3').withParent(p2).build()
+    configPlugin.apply(p3)
+    p3.wuff.with {
+      selectedEclipseVersion = 'b'
+      eclipseVersion 'b', {}
+    }
+    Project p4 = ProjectBuilder.builder().withName('p4').withParent(p3).build()
+    configPlugin.apply(p4)
+    Project p5 = ProjectBuilder.builder().withName('p5').withParent(p4).build()
+    configPlugin.apply(p5)
   then:
-    c1.effectiveConfig.selectedEclipseVersion == 'a'
-    c2.effectiveConfig.selectedEclipseVersion == 'a'
-    c3.effectiveConfig.selectedEclipseVersion == 'b'
-    c4.effectiveConfig.selectedEclipseVersion == 'b'
-    c5.effectiveConfig.selectedEclipseVersion == 'b'
+    p1.effectiveWuff.selectedEclipseVersion == 'a'
+    p2.effectiveWuff.selectedEclipseVersion == 'a'
+    p3.effectiveWuff.selectedEclipseVersion == 'b'
+    p4.effectiveWuff.selectedEclipseVersion == 'b'
+    p5.effectiveWuff.selectedEclipseVersion == 'b'
   }
 
   def 'should support eclipseMavenGroup inheritance'() {
   when:
-    def c1 = new Config(selectedEclipseVersion: 'a')
-    c1.eclipseVersion 'a', {
-      eclipseMavenGroup = 'x'
+    Project p1 = ProjectBuilder.builder().withName('p1').build()
+    configPlugin.apply(p1)
+    p1.wuff.with {
+      selectedEclipseVersion = 'a'
+      eclipseVersion 'a', {
+        eclipseMavenGroup = 'x'
+      }
+      eclipseVersion 'b', {
+      }
+      eclipseVersion 'c', {
+        eclipseMavenGroup = 'x1'
+      }
     }
-    c1.eclipseVersion 'b', {
-    }
-    c1.eclipseVersion 'c', {
-      eclipseMavenGroup = 'x1'
-    }
-    def c2 = new Config(parentConfig: c1)
-    c2.eclipseVersion 'a', {
-      eclipseMavenGroup = 'y'
-    }
-    c2.eclipseVersion 'b', {
-      eclipseMavenGroup = 'z'
+    Project p2 = ProjectBuilder.builder().withName('p2').withParent(p1).build()
+    configPlugin.apply(p2)
+    p2.wuff.with {
+      eclipseVersion 'a', {
+        eclipseMavenGroup = 'y'
+      }
+      eclipseVersion 'b', {
+        eclipseMavenGroup = 'z'
+      }
     }
   then:
-    c1.effectiveConfig.versionConfigs.a.eclipseMavenGroup == 'x'
-    c1.effectiveConfig.versionConfigs.b.eclipseMavenGroup == null
-    c1.effectiveConfig.versionConfigs.c.eclipseMavenGroup == 'x1'
-    c2.effectiveConfig.versionConfigs.a.eclipseMavenGroup == 'y'
-    c2.effectiveConfig.versionConfigs.b.eclipseMavenGroup == 'z'
-    c2.effectiveConfig.versionConfigs.c.eclipseMavenGroup == 'x1'
+    p1.effectiveWuff.versionConfigs.a.eclipseMavenGroup == 'x'
+    p1.effectiveWuff.versionConfigs.b.eclipseMavenGroup == null
+    p1.effectiveWuff.versionConfigs.c.eclipseMavenGroup == 'x1'
+    p2.effectiveWuff.versionConfigs.a.eclipseMavenGroup == 'y'
+    p2.effectiveWuff.versionConfigs.b.eclipseMavenGroup == 'z'
+    p2.effectiveWuff.versionConfigs.c.eclipseMavenGroup == 'x1'
   }
 
   def 'should support module inheritance'() {
@@ -64,9 +90,6 @@ class ConfigHierarchyTest extends Specification {
     def theModule = module
     Project parentProject = ProjectBuilder.builder().withName('PARENT_PROJ').build()
     new EclipseConfigPlugin().apply(parentProject)
-    parentProject.unpuzzle.with {
-      eclipseVersion 'a', {}
-    }
     parentProject.wuff.with {
       selectedEclipseVersion 'a'
       eclipseVersion 'a', {
@@ -105,6 +128,7 @@ class ConfigHierarchyTest extends Specification {
         }
       }
     }
+    parentProject.unpuzzle.dryRun = true
     parentProject.evaluate()
     project.evaluate()
   expect:

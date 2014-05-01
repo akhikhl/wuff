@@ -13,21 +13,12 @@ package org.akhikhl.wuff
  */
 class EclipseVersionConfig {
 
-  /**
-   * maven group containing artifacts of this eclipse version.
-   */
   String eclipseMavenGroup
-
-  /**
-   * names of other EclipseVersionConfig's, from which this one extends
-   */
+  String eclipseMirror
+  String eclipseArchiveMirror
   List<String> baseVersions = []
-
-  /**
-   * module configurations of this eclipse version.
-   * Key is module name, value is module configuration.
-   */
   Map<String, List<Closure>> lazyModules = [:]
+  List<Closure> lazySources = []
 
   void extendsFrom(String baseVersion) {
     baseVersions.add(baseVersion)
@@ -46,6 +37,10 @@ class EclipseVersionConfig {
         throw new RuntimeException("Argument to ${moduleName} is expected to be a closure")
       closureList.add(arg)
     }
+  }
+
+  void sources(Closure closure) {
+    lazySources.add(closure)
   }
 }
 

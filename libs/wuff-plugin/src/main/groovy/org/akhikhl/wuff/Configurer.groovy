@@ -132,8 +132,9 @@ class Configurer {
 
   Config getEffectiveConfig() {
     if(!project.ext.has('_effectiveWuff')) {
-      project.ext._effectiveWuff = project.wuff.getEffectiveConfig()
-      assert project.has('_effectiveWuff')
+      Config econfig = new Config()
+      Config.merge(econfig, project.wuff)
+      project.ext._effectiveWuff = econfig
     }
     return project._effectiveWuff
   }
@@ -141,13 +142,7 @@ class Configurer {
   String getSelectedEclipseMavenGroup() {
     if(!project.ext.has('_selectedEclipseMavenGroup')) {
       project.ext._selectedEclipseMavenGroup = effectiveConfig.selectedVersionConfig?.eclipseMavenGroup
-      assert project.ext.has('_selectedEclipseMavenGroup')
-      project.unpuzzle.selectedEclipseVersion = effectiveConfig.selectedEclipseVersion
-      effectiveConfig.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
-        project.unpuzzle.eclipseVersion(versionString) {
-          eclipseMavenGroup = versionConfig.eclipseMavenGroup
-        }
-      }
+      populateUnpuzzleConfig()
       unpuzzleConfigurer.installEclipse()
     }
     return project.ext._selectedEclipseMavenGroup
@@ -165,15 +160,19 @@ class Configurer {
     return []
   }
 
-  protected final Config getRootConfig() {
-    Project p = project
-    if(p.extensions.findByName('wuff')) {
-      Config c = p.wuff
-      while(c.parentConfig != null)
-        c = c.parentConfig
-      return c
+  private void populateUnpuzzleConfig() {
+    project.unpuzzle.selectedEclipseVersion = project.wuff.selectedEclipseVersion
+    project.wuff.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
+      project.unpuzzle.eclipseVersion(versionString) {
+        eclipseMavenGroup = versionConfig.eclipseMavenGroup
+        if(versionConfig.eclipseMirror)
+          eclipseMirror = versionConfig.eclipseMirror
+        if(versionConfig.eclipseArchiveMirror)
+          eclipseArchiveMirror = versionConfig.eclipseArchiveMirror
+        for(Closure sourcesClosure in versionConfig.lazySources)
+          sources sourcesClosure
+      }
     }
-    return null
   }
 
   protected void postConfigure() {
@@ -181,7 +180,8 @@ class Configurer {
     if(project.version == 'unspecified')
       project.version = getDefaultVersion()
 
-    unpuzzleConfigurer.installEclipse()
+    // guarded actuation of unpuzzle
+    getSelectedEclipseMavenGroup()
 
     createVirtualConfigurations()
 

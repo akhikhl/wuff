@@ -34,12 +34,6 @@ class Config {
     versionConfigs = null
   }
 
-  protected Config getEffectiveConfig() {
-    Config result = new Config()
-    merge(result, this)
-    return result
-  }
-
   EclipseVersionConfig getSelectedVersionConfig() {
     getVersionConfigs()[selectedEclipseVersion]
   }
@@ -71,7 +65,7 @@ class Config {
     return wrappedLibs
   }
 
-  private static void merge(Config target, Config source) {
+  protected static void merge(Config target, Config source) {
     if(source.parentConfig)
       merge(target, source.parentConfig)
     if(source.selectedEclipseVersion != null)

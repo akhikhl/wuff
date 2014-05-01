@@ -25,7 +25,25 @@ class EclipseBundlePluginTest extends Specification {
     plugin = new EclipseBundlePlugin()
   }
 
-  def 'supports eclipse bundle definition'() {
+  def 'should create wuff extension'() {
+  when:
+    project.apply(plugin: 'java')
+    plugin.apply(project)
+  then:
+    project.extensions.findByName('wuff')
+  }
+
+  def 'should create configurations'() {
+  when:
+    project.apply(plugin: 'java')
+    plugin.apply(project)
+  then:
+    project.configurations.findByName('compile')
+    project.configurations.findByName('provided')
+    project.configurations.findByName('privateLib')
+  }
+
+  def 'should inject dependencies'() {
   when:
     project.apply(plugin: 'java')
     project.repositories {
@@ -33,13 +51,12 @@ class EclipseBundlePluginTest extends Specification {
       mavenCentral()
     }
     plugin.apply(project)
+    project.wuff {
+      selectedEclipseVersion = '4.3'
+    }
     project.evaluate()
   then:
-    project.extensions.findByName('wuff')
-    project.wuff.effectiveConfig.selectedEclipseVersion == '4.3'
-    project.configurations.findByName('compile')
-    project.configurations.findByName('provided')
-    project.configurations.findByName('privateLib')
+    project.effectiveWuff.selectedEclipseVersion == '4.3'
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.swt') }
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.jface') }
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.ui') }
