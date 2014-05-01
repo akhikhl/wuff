@@ -9,8 +9,11 @@ buildscript {
   }
 }
 
-apply plugin: 'unpuzzle'
 apply plugin: 'eclipse-config'
+
+wuff {
+  languagePack 'de'
+}
 
 subprojects {
   repositories {

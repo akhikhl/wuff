@@ -9,9 +9,9 @@ buildscript {
   }
 }
 
-apply plugin: 'unpuzzle'
+apply plugin: 'eclipse-config'
 
-unpuzzle {
+wuff {
   languagePack 'de'
 }
 
