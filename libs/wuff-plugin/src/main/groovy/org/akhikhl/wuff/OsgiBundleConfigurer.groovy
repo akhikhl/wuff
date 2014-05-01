@@ -7,6 +7,8 @@
  */
 package org.akhikhl.wuff
 
+import org.apache.commons.configuration.AbstractFileConfiguration
+import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang3.StringEscapeUtils
 import groovy.text.SimpleTemplateEngine
 import groovy.xml.MarkupBuilder
@@ -291,12 +293,16 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   } // createManifest
 
   protected void createPluginCustomization() {
-    Properties props = new Properties()
-    PluginUtils.findPluginCustomizationFile(project)?.withReader('UTF-8') {
-      props.load(it)
+    def m = [:]
+    def existingFile = PluginUtils.findPluginCustomizationFile(project)
+    if(existingFile) {
+      def props = new PropertiesConfiguration()
+      props.load(existingFile)
+      for(def key in props.getKeys())
+        m[key] = props.getProperty(key)
     }
-    populatePluginCustomization(props)
-    project.ext.pluginCustomization = props.isEmpty() ? null : props
+    populatePluginCustomization(m)
+    project.ext.pluginCustomization = m.isEmpty() ? null : m
   }
 
   protected void createPluginXml() {
@@ -316,10 +322,14 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   protected boolean extraFilesUpToDate() {
-    if(!FileUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project)))
+    if(!FileUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))) {
+      log.debug '{}: plugin-xml is not up-to-date', project.name
       return false
-    if(!FileUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project)))
+    }
+    if(!FileUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))) {
+      log.debug '{}: plugin-customization is not up-to-date', project.name
       return false
+    }
     return super.extraFilesUpToDate()
   }
 
@@ -346,9 +356,13 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   protected final String getPluginCustomizationString() {
-    if(project.hasProperty('pluginCustomization') && project.pluginCustomization != null) {
+    if(project.hasProperty('pluginCustomization')) {
+      def props = new PropertiesConfiguration()
+      project.pluginCustomization.each { key, value ->
+        props.setProperty(key, value)
+      }
       def writer = new StringWriter()
-      project.pluginCustomization.store(writer, null)
+      props.save(writer)
       return writer.toString()
     }
     return null
@@ -363,6 +377,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     return null
   }
 
-  protected void populatePluginCustomization(Properties props) {
+  protected void populatePluginCustomization(Map props) {
   }
 }

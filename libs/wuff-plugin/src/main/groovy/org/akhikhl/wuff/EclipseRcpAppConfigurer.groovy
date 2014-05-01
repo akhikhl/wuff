@@ -86,11 +86,15 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
   @Override
   protected boolean extraFilesUpToDate() {
-    if(!FileUtils.stringToFileUpToDate(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project)))
+    if(!FileUtils.stringToFileUpToDate(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project))) {
+      log.debug '{}: intro-xml is not up-to-date', project.name
       return false
+    }
     for(File dir in PluginUtils.getLocalizationDirs(project))
-      if(!FileUtils.stringToFileUpToDate(getIntroXmlString(dir.name), PluginUtils.getExtraIntroXmlFile(project, dir.name)))
+      if(!FileUtils.stringToFileUpToDate(getIntroXmlString(dir.name), PluginUtils.getExtraIntroXmlFile(project, dir.name))) {
+        log.debug '{}: intro-xml for {} is not up-to-date', project.name, dir.name
         return false
+      }
     return super.extraFilesUpToDate()
   }
 
@@ -136,11 +140,11 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
     }
   }
 
-  protected void populatePluginCustomization(Properties props) {
+  protected void populatePluginCustomization(Map props) {
     if(!props.containsKey('org.eclipse.ui/defaultPerspectiveId')) {
       List perspectiveIds = project.pluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })?.perspective?.collect { it.'@id' }
       if(perspectiveIds?.size() == 1)
-        props.setProperty('org.eclipse.ui/defaultPerspectiveId', perspectiveIds[0])
+        props['org.eclipse.ui/defaultPerspectiveId'] = perspectiveIds[0]
     }
   }
 }
