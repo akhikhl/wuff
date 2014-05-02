@@ -5,6 +5,10 @@ dependencies {
   compile project(':MyIdePlugin')
 }
 
+wuff {
+  filterHtml = true
+}
+
 products {
   product platform: 'linux', arch: 'x86_32'
   product platform: 'linux', arch: 'x86_32', language: 'de'
