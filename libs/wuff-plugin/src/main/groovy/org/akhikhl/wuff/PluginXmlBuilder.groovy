@@ -35,8 +35,8 @@ class PluginXmlBuilder {
           current_language: PlatformConfig.current_language ]
         pluginXmlText = new groovy.text.SimpleTemplateEngine().createTemplate(pluginXmlText).make(binding).toString()
         this.existingConfig = new XmlParser().parseText(pluginXmlText)
-      } else
-        this.existingConfig = pluginXmlFile.withReader('UTF-8') {
+      } else        
+        this.existingConfig = pluginXmlFile.withInputStream {
           new XmlParser().parse(it)
         }
     } else
