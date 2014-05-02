@@ -181,7 +181,17 @@ class EquinoxProductConfigurer {
 
       dependsOn "buildProduct_${productTaskSuffix}"
       project.tasks.build.dependsOn it
+
+      baseName = project.name
+      classifier = productFileSuffix
+      destinationDir = productOutputDir.parentFile
+      if(archiveType == Tar) {
+        extension = 'tar.gz'
+        compression = Compression.GZIP
+      }
+
       from productOutputDir, { into project.name }
+
       def addedFiles = new HashSet()
       def addFileToArchive = { f, Closure closure ->
         File file = f instanceof File ? f : new File(f)
@@ -214,12 +224,7 @@ class EquinoxProductConfigurer {
           into project.name
           rename 'appicon.xpm', "${project.name}.xpm"
         }
-      destinationDir = productOutputDir.parentFile
-      classifier = productFileSuffix
-      if(archiveType == Tar) {
-        extension = 'tar.gz'
-        compression = Compression.GZIP
-      }
+
       doLast {
         ant.checksum file: it.archivePath
       }
