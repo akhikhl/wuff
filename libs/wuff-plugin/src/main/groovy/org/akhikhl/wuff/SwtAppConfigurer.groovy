@@ -37,16 +37,12 @@ class SwtAppConfigurer extends SwtLibConfigurer {
   @Override
   protected void configureProducts() {
 
-    def productList = project.products.productList ?: [[]]
+    def productList = project.products.productList ?: [[:]]
 
     productList.each { product ->
       def platform = product.platform ?: PlatformConfig.current_os
       def arch = product.arch ?: PlatformConfig.current_arch
-      def language = product.language ?: ''
-      if(language)
-        project.onejar.product name: "swtapp_${platform}_${arch}_${language}", launcher: launchers[platform], suffix: "${platform}-${arch}-${language}", platform: platform, arch: arch, language: language
-      else
-        project.onejar.product name: "swtapp_${platform}_${arch}", launcher: launchers[platform], suffix: "${platform}-${arch}", platform: platform, arch: arch
+      project.onejar.product configBaseName: 'swtapp', launcher: launchers[platform], platform: platform, arch: arch, language: product.language
     }
 
     project.onejar.archiveProducts = project.products.archiveProducts

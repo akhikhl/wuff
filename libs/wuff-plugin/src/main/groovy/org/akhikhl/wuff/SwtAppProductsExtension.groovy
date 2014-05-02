@@ -36,8 +36,8 @@ class SwtAppProductsExtension {
     launchParameters.add newValue
   }
 
-  void product(newValue) {
-    productList.add newValue
+  void product(Map productSpec) {
+    productList.add productSpec
   }
 }
 
