@@ -364,7 +364,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   protected final String getPluginCustomizationString() {
-    if(project.hasProperty('pluginCustomization')) {
+    if(project.hasProperty('pluginCustomization') && project.pluginCustomization != null) {
       def props = new PropertiesConfiguration()
       project.pluginCustomization.each { key, value ->
         props.setProperty(key, value)

@@ -53,15 +53,18 @@ class JavaConfigurer extends Configurer {
       // Typical example would be "plugin.xml": this file may be present (or not) in project,
       // so we always generate extra-file "plugin.xml" which should be processed
       // as a resource instead of original "plugin.xml".
+      File extraDir = PluginUtils.getExtraDir(project)
       mainSpec.eachFile { FileCopyDetails details ->
-        [project.projectDir, project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir].each { dir ->
-          if(details.file.absolutePath.startsWith(dir.absolutePath)) {
-            String relPath = dir.toPath().relativize(details.file.toPath()).toString()
-            File extraFile = new File(PluginUtils.getExtraDir(project), relPath)
-            if(extraFile.exists()) {
-              log.debug 'excluding {}', details.file
-              log.debug 'including {}', extraFile
-              details.exclude()
+        if(!details.file.absolutePath.startsWith(extraDir.absolutePath)) {
+          ([project.projectDir] + project.sourceSets.main.allSource.srcDirs).each { dir ->
+            if(details.file.absolutePath.startsWith(dir.absolutePath)) {
+              String relPath = dir.toPath().relativize(details.file.toPath()).toString()
+              File extraFile = new File(extraDir, relPath)
+              if(extraFile.exists()) {
+                log.debug 'excluding {}', details.file
+                log.debug 'including {}', extraFile
+                details.exclude()
+              }
             }
           }
         }

@@ -103,7 +103,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
     Map result = super.getExtraFilesProperties()
     result.introXml = getIntroXmlString()
     for(File dir in PluginUtils.getLocalizationDirs(project))
-      result["introXml_${dir.name}"] = getIntroXmlString(dir.name)
+      result['introXml_' + dir.name] = getIntroXmlString(dir.name)
     return result
   }
 
