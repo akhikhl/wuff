@@ -51,12 +51,8 @@ class EclipseBundlePluginTest extends Specification {
       mavenCentral()
     }
     plugin.apply(project)
-    project.wuff {
-      selectedEclipseVersion = '4.3'
-    }
     project.evaluate()
   then:
-    project.effectiveWuff.selectedEclipseVersion == '4.3'
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.swt') }
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.jface') }
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.ui') }

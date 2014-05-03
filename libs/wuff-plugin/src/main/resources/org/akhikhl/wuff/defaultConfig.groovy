@@ -1,6 +1,6 @@
 wuff {
 
-  selectedEclipseVersion = '4.3'
+  selectedEclipseVersion = '4.3.2'
 
   eclipseVersion('3.7') {
 
@@ -58,6 +58,7 @@ wuff {
         instruction 'Require-Bundle', 'org.eclipse.swt'
         instruction 'Require-Bundle', 'org.eclipse.jface'
         instruction 'Require-Bundle', 'org.eclipse.ui'
+        instruction 'Require-Bundle', 'org.eclipse.core.expressions'
       }
     }
 
@@ -72,8 +73,6 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
         provided "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}.${current_arch_suffix}:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
-        compile "${eclipseMavenGroup}:org.eclipse.osgi:+"
-        runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
         runtime "${eclipseMavenGroup}:com.ibm.icu:+"
         runtime "${eclipseMavenGroup}:javax.xml:+"
       }
@@ -87,8 +86,6 @@ wuff {
           supported_languages.each { language ->
             String localizedProductConfigName = "product_equinox_${platform}_${arch}_${language}"
             project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
-            project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.osgi.nl_${language}:+"
-            project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.osgi.services.nl_${language}:+"
           }
         }
       }
@@ -119,6 +116,7 @@ wuff {
         instruction 'Require-Bundle', 'org.eclipse.jface'
         instruction 'Require-Bundle', 'org.eclipse.swt'
         instruction 'Require-Bundle', 'org.eclipse.ui'
+        instruction 'Require-Bundle', 'org.eclipse.core.expressions'
         if(hasIntro)
           instruction 'Require-Bundle', 'org.eclipse.ui.intro'
       }
@@ -216,11 +214,18 @@ wuff {
     }
   }
 
-  eclipseVersion('4.3') {
+  eclipseVersion('4.3.1') {
 
     extendsFrom '4.2'
 
-    eclipseMavenGroup = 'eclipse-kepler'
+    eclipseMavenGroup = 'eclipse-kepler-sr1'
+  }
+
+  eclipseVersion('4.3.2') {
+
+    extendsFrom '4.2'
+
+    eclipseMavenGroup = 'eclipse-kepler-sr2'
   }
 
   wrappedLibs {

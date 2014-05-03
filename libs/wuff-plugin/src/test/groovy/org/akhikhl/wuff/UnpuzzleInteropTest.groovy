@@ -45,7 +45,7 @@ class UnpuzzleInteropTest extends Specification {
   expect:
     project.unpuzzle.selectedEclipseVersion == eversion
   where:
-    eversion << ['3.7', '4.2', '4.3']
+    eversion << ['3.7', '4.2', '4.3.1', '4.3.2']
   }
 
   def 'should pass eclipseMavenGroup to unpuzzle'() {
@@ -64,8 +64,8 @@ class UnpuzzleInteropTest extends Specification {
   expect:
     project.unpuzzle.versionConfigs[eversion].eclipseMavenGroup == emavengroup
   where:
-    eversion << ['3.7', '4.2', '4.3']
-    emavengroup << ['group1', 'group2', 'group3']
+    eversion << ['3.7', '4.2', '4.3.1', '4.3.2']
+    emavengroup << ['group1', 'group2', 'group3', 'group4']
   }
 
   def 'should pass sources to unpuzzle'() {
