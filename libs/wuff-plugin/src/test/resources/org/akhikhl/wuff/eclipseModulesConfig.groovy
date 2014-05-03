@@ -1,7 +1,7 @@
 wuff {
-  selectedEclipseVersion = '4.3'
+  selectedEclipseVersion = '4.3.2'
 
-  eclipseVersion('3.7') {
+  eclipseVersion('3.7.2') {
 
     eclipseMavenGroup = 'eclipse-indigo'
 
@@ -12,7 +12,7 @@ wuff {
     }
   }
 
-  eclipseVersion('4.2') {
+  eclipseVersion('4.2.2') {
 
     eclipseMavenGroup = 'eclipse-juno'
 
@@ -23,7 +23,7 @@ wuff {
     }
   }
 
-  eclipseVersion('4.3') {
+  eclipseVersion('4.3.2') {
 
     eclipseMavenGroup = 'eclipse-kepler'
 

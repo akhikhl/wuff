@@ -39,13 +39,15 @@ class UnpuzzleInteropTest extends Specification {
     configPlugin.apply(project)
     project.wuff.with {
       selectedEclipseVersion = eversion
+      eclipseVersion(eversion) {
+      }
     }
     project.unpuzzle.dryRun = true
     project.evaluate()
   expect:
     project.unpuzzle.selectedEclipseVersion == eversion
   where:
-    eversion << ['3.7', '4.2', '4.3.1', '4.3.2']
+    eversion << ['1', '2', '3']
   }
 
   def 'should pass eclipseMavenGroup to unpuzzle'() {
@@ -64,7 +66,7 @@ class UnpuzzleInteropTest extends Specification {
   expect:
     project.unpuzzle.versionConfigs[eversion].eclipseMavenGroup == emavengroup
   where:
-    eversion << ['3.7', '4.2', '4.3.1', '4.3.2']
+    eversion << ['1', '2', '3', '4']
     emavengroup << ['group1', 'group2', 'group3', 'group4']
   }
 

@@ -1,3 +1,3 @@
 wuff {
-  selectedEclipseVersion = '4.3'
+  selectedEclipseVersion = '4.3.2'
 }

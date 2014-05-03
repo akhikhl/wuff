@@ -33,7 +33,7 @@ class ConfigReaderTest extends Specification {
   when:
     Config config = reader.readFromResource('selectedEclipseVersionConfig.groovy')
   then:
-    config.selectedEclipseVersion == '4.3'
+    config.selectedEclipseVersion == '4.3.2'
     config.versionConfigs.isEmpty()
   }
 
@@ -42,12 +42,12 @@ class ConfigReaderTest extends Specification {
     Config config = reader.readFromResource('eclipseVersionsConfig.groovy')
   then:
     config.versionConfigs.size() == 3
-    config.versionConfigs.containsKey('3.7')
-    config.versionConfigs['3.7'].eclipseMavenGroup == 'eclipse-indigo'
-    config.versionConfigs.containsKey('4.2')
-    config.versionConfigs['4.2'].eclipseMavenGroup == 'eclipse-juno'
-    config.versionConfigs.containsKey('4.3')
-    config.versionConfigs['4.3'].eclipseMavenGroup == 'eclipse-kepler'
+    config.versionConfigs.containsKey('3.7.2')
+    config.versionConfigs['3.7.2'].eclipseMavenGroup == 'eclipse-indigo'
+    config.versionConfigs.containsKey('4.2.2')
+    config.versionConfigs['4.2.2'].eclipseMavenGroup == 'eclipse-juno'
+    config.versionConfigs.containsKey('4.3.2')
+    config.versionConfigs['4.3.2'].eclipseMavenGroup == 'eclipse-kepler'
   }
 
   def 'should read eclipse modules configuration'() {
@@ -55,14 +55,14 @@ class ConfigReaderTest extends Specification {
     Config config = reader.readFromResource('eclipseModulesConfig.groovy')
   then:
     config.versionConfigs.size() == 3
-    config.versionConfigs['3.7'].lazyModules.size() == 2
-    config.versionConfigs['3.7'].lazyModules.containsKey('moduleA')
-    config.versionConfigs['3.7'].lazyModules.containsKey('moduleB')
-    config.versionConfigs['4.2'].lazyModules.size() == 2
-    config.versionConfigs['4.2'].lazyModules.containsKey('moduleC')
-    config.versionConfigs['4.2'].lazyModules.containsKey('moduleD')
-    config.versionConfigs['4.3'].lazyModules.size() == 2
-    config.versionConfigs['4.3'].lazyModules.containsKey('moduleE')
-    config.versionConfigs['4.3'].lazyModules.containsKey('moduleF')
+    config.versionConfigs['3.7.2'].lazyModules.size() == 2
+    config.versionConfigs['3.7.2'].lazyModules.containsKey('moduleA')
+    config.versionConfigs['3.7.2'].lazyModules.containsKey('moduleB')
+    config.versionConfigs['4.2.2'].lazyModules.size() == 2
+    config.versionConfigs['4.2.2'].lazyModules.containsKey('moduleC')
+    config.versionConfigs['4.2.2'].lazyModules.containsKey('moduleD')
+    config.versionConfigs['4.3.2'].lazyModules.size() == 2
+    config.versionConfigs['4.3.2'].lazyModules.containsKey('moduleE')
+    config.versionConfigs['4.3.2'].lazyModules.containsKey('moduleF')
   }
 }

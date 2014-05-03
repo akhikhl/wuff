@@ -2,9 +2,9 @@ wuff {
 
   selectedEclipseVersion = '4.3.2'
 
-  eclipseVersion('3.7') {
+  eclipseVersion('3.7.1') {
 
-    eclipseMavenGroup = 'eclipse-indigo'
+    eclipseMavenGroup = 'eclipse-indigo-sr1'
 
     swtlib {
       project.dependencies {
@@ -187,11 +187,16 @@ wuff {
     }
   }
 
-  eclipseVersion('4.2') {
+  eclipseVersion('3.7.2') {
+    extendsFrom '3.7.1'
+    eclipseMavenGroup = 'eclipse-indigo-sr2'
+  }
 
-    extendsFrom '3.7'
+  eclipseVersion('4.2.1') {
 
-    eclipseMavenGroup = 'eclipse-juno'
+    extendsFrom '3.7.2'
+
+    eclipseMavenGroup = 'eclipse-juno-sr1'
 
     eclipseBundle {
 
@@ -214,17 +219,18 @@ wuff {
     }
   }
 
+  eclipseVersion('4.2.2') {
+    extendsFrom '4.2.1'
+    eclipseMavenGroup = 'eclipse-juno-sr2'
+  }
+
   eclipseVersion('4.3.1') {
-
-    extendsFrom '4.2'
-
+    extendsFrom '4.2.2'
     eclipseMavenGroup = 'eclipse-kepler-sr1'
   }
 
   eclipseVersion('4.3.2') {
-
-    extendsFrom '4.2'
-
+    extendsFrom '4.3.1'
     eclipseMavenGroup = 'eclipse-kepler-sr2'
   }
 
