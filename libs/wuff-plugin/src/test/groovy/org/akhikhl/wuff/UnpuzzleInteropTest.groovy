@@ -17,26 +17,36 @@ import spock.lang.Specification
  */
 class UnpuzzleInteropTest extends Specification {
 
-  private EclipseConfigPlugin configPlugin
+  private EclipseConfigPlugin plugin
 
   def setup() {
-    configPlugin = new EclipseConfigPlugin()
+    plugin = new EclipseConfigPlugin()
   }
 
   def 'should automatically create unpuzzle configuration'() {
   setup:
     Project project = ProjectBuilder.builder().withName('PROJ').build()
     project.apply(plugin: 'java')
-    configPlugin.apply(project)
+    plugin.apply(project)
   expect:
     project.extensions.findByName('unpuzzle')
+  }
+
+  def 'should pass wuffDir to unpuzzle as unpuzzleDir'() {
+  when:
+    Project project = ProjectBuilder.builder().withName('PROJ').build()
+    plugin.apply(project)
+    project.unpuzzle.dryRun = true
+    project.evaluate()
+  then:
+    project.effectiveUnpuzzle.unpuzzleDir == new File(System.getProperty('user.home'), '.wuff')
   }
 
   def 'should pass selectedEclipseVersion to unpuzzle'() {
   setup:
     Project project = ProjectBuilder.builder().withName('PROJ').build()
     project.apply(plugin: 'java')
-    configPlugin.apply(project)
+    plugin.apply(project)
     project.wuff.with {
       selectedEclipseVersion = eversion
       eclipseVersion(eversion) {
@@ -54,7 +64,7 @@ class UnpuzzleInteropTest extends Specification {
   setup:
     Project project = ProjectBuilder.builder().withName('PROJ').build()
     project.apply(plugin: 'java')
-    configPlugin.apply(project)
+    plugin.apply(project)
     project.wuff.with {
       selectedEclipseVersion = eversion
       eclipseVersion(eversion) {
@@ -73,7 +83,7 @@ class UnpuzzleInteropTest extends Specification {
   def 'should pass sources to unpuzzle'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
-    configPlugin.apply(p1)
+    plugin.apply(p1)
     p1.wuff.with {
       selectedEclipseVersion = 'a'
       eclipseVersion 'a', {
@@ -102,7 +112,7 @@ class UnpuzzleInteropTest extends Specification {
   def 'should support source inheritance'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
-    configPlugin.apply(p1)
+    plugin.apply(p1)
     p1.wuff.with {
       selectedEclipseVersion = 'a'
       eclipseVersion 'a', {
@@ -121,7 +131,7 @@ class UnpuzzleInteropTest extends Specification {
       }
     }
     Project p2 = ProjectBuilder.builder().withName('p2').withParent(p1).build()
-    configPlugin.apply(p2)
+    plugin.apply(p2)
     p2.wuff.with {
       eclipseVersion 'a', {
         sources {
@@ -146,7 +156,7 @@ class UnpuzzleInteropTest extends Specification {
   def 'should pass eclipseMirror to unpuzzle'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
-    configPlugin.apply(p1)
+    plugin.apply(p1)
     p1.wuff.with {
       selectedEclipseVersion = 'a'
       eclipseVersion 'a', {
@@ -166,7 +176,7 @@ class UnpuzzleInteropTest extends Specification {
   def 'should support eclipseMirror override'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
-    configPlugin.apply(p1)
+    plugin.apply(p1)
     p1.wuff.with {
       selectedEclipseVersion = 'a'
       eclipseVersion 'a', {
@@ -178,7 +188,7 @@ class UnpuzzleInteropTest extends Specification {
       }
     }
     Project p2 = ProjectBuilder.builder().withName('p2').withParent(p1).build()
-    configPlugin.apply(p2)
+    plugin.apply(p2)
     p2.wuff.with {
       eclipseVersion 'a', {
         eclipseMirror = 'bbb'
@@ -197,7 +207,7 @@ class UnpuzzleInteropTest extends Specification {
   def 'should pass language packs to unpuzzle'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
-    configPlugin.apply(p1)
+    plugin.apply(p1)
     p1.wuff.with {
       selectedEclipseVersion = 'a'
       eclipseVersion 'a', {
@@ -218,7 +228,7 @@ class UnpuzzleInteropTest extends Specification {
   def 'should pass top-level language packs to unpuzzle'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
-    configPlugin.apply(p1)
+    plugin.apply(p1)
     p1.wuff.with {
       selectedEclipseVersion = 'a'
       languagePack 'de'
@@ -244,7 +254,7 @@ class UnpuzzleInteropTest extends Specification {
   def 'should support language pack templates'() {
   when:
     Project p1 = ProjectBuilder.builder().withName('p1').build()
-    configPlugin.apply(p1)
+    plugin.apply(p1)
     p1.wuff.with {
       selectedEclipseVersion = 'a'
       eclipseVersion 'a', {
@@ -257,7 +267,7 @@ class UnpuzzleInteropTest extends Specification {
       }
     }
     Project p2 = ProjectBuilder.builder().withName('p2').withParent(p1).build()
-    configPlugin.apply(p2)
+    plugin.apply(p2)
     p2.wuff.with {
       eclipseVersion 'a', {
         eclipseMirror = 'bbb'

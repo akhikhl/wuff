@@ -1,5 +1,9 @@
 apply from: 'unpuzzle.plugin'
 
+unpuzzle {
+  unpuzzleDir = new File(System.getProperty('user.home'), '.wuff')
+}
+
 if(!tasks.findByName('build'))
   task 'build'
   
@@ -15,9 +19,6 @@ afterEvaluate {
   }
   project.tasks.install {
     dependsOn 'installEclipse'
-  }
-  project.tasks.uploadArchives {
-    dependsOn 'uploadEclipse'
   }
 }
 

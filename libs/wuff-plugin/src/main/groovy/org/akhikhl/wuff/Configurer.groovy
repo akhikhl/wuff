@@ -7,6 +7,7 @@
  */
 package org.akhikhl.wuff
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.Copy
@@ -142,7 +143,7 @@ class Configurer {
   String getSelectedEclipseMavenGroup() {
     if(!project.ext.has('_selectedEclipseMavenGroup')) {
       project.ext._selectedEclipseMavenGroup = effectiveConfig.selectedVersionConfig?.eclipseMavenGroup
-      populateUnpuzzleConfig()
+      populateUnpuzzleConfig(project.unpuzzle, project.wuff)
       unpuzzleConfigurer.installEclipse()
     }
     return project.ext._selectedEclipseMavenGroup
@@ -160,21 +161,30 @@ class Configurer {
     return []
   }
 
-  private void populateUnpuzzleConfig() {
-    project.unpuzzle.selectedEclipseVersion = project.wuff.selectedEclipseVersion
-    project.wuff.languagePacks.each {
-      project.unpuzzle.languagePack it
-    }
-    project.wuff.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
-      project.unpuzzle.eclipseVersion(versionString) {
-        eclipseMavenGroup = versionConfig.eclipseMavenGroup
-        if(versionConfig.eclipseMirror)
-          eclipseMirror = versionConfig.eclipseMirror
-        if(versionConfig.eclipseArchiveMirror)
-          eclipseArchiveMirror = versionConfig.eclipseArchiveMirror
-        for(Closure sourcesClosure in versionConfig.lazySources)
-          sources sourcesClosure
+  private void populateUnpuzzleConfig(unpuzzle, wuff) {
+    if(!unpuzzle.hasProperty('_populatedFromWuff')) {
+      unpuzzle.metaClass {
+        _populatedFromWuff = true
       }
+      unpuzzle.localMavenRepositoryDir = wuff.localMavenRepositoryDir
+      unpuzzle.unpuzzleDir = wuff.wuffDir
+      unpuzzle.selectedEclipseVersion = wuff.selectedEclipseVersion
+      wuff.languagePacks.each {
+        unpuzzle.languagePack it
+      }
+      wuff.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
+        unpuzzle.eclipseVersion(versionString) {
+          eclipseMavenGroup = versionConfig.eclipseMavenGroup
+          if(versionConfig.eclipseMirror)
+            eclipseMirror = versionConfig.eclipseMirror
+          if(versionConfig.eclipseArchiveMirror)
+            eclipseArchiveMirror = versionConfig.eclipseArchiveMirror
+          for(Closure sourcesClosure in versionConfig.lazySources)
+            sources sourcesClosure
+        }
+      }
+      if(unpuzzle.parentConfig != null && wuff.parentConfig != null)
+        populateUnpuzzleConfig(unpuzzle.parentConfig, wuff.parentConfig)
     }
   }
 

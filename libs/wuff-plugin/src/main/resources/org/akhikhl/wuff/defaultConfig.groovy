@@ -1,5 +1,9 @@
 wuff {
 
+  localMavenRepositoryDir = new File(System.getProperty('user.home'), '.m2/repository')
+
+  wuffDir = new File(System.getProperty('user.home'), '.wuff')
+
   selectedEclipseVersion = '4.3.2'
 
   eclipseVersion('3.7.1') {

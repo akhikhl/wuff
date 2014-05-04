@@ -17,8 +17,9 @@ class Config {
 
   Config parentConfig
 
+  File localMavenRepositoryDir
+  File wuffDir
   String selectedEclipseVersion = null
-
   Map<String, List<Closure>> lazyVersions = [:]
   private Map<String, EclipseVersionConfig> versionConfigs = null
   Set<String> languagePacks = new LinkedHashSet()
@@ -75,6 +76,10 @@ class Config {
   protected static void merge(Config target, Config source) {
     if(source.parentConfig)
       merge(target, source.parentConfig)
+    if(source.localMavenRepositoryDir != null)
+      target.localMavenRepositoryDir = source.localMavenRepositoryDir
+    if(source.wuffDir != null)
+      target.wuffDir = source.wuffDir
     if(source.selectedEclipseVersion != null)
       target.selectedEclipseVersion = source.selectedEclipseVersion
     source.lazyVersions.each { String versionString, List<Closure> sourceClosureList ->
