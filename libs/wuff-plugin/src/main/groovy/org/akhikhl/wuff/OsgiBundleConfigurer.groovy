@@ -15,6 +15,7 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.plugins.osgi.OsgiManifest
+import org.gradle.api.tasks.bundling.Jar
 
 /**
  *
@@ -59,6 +60,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       sourceSet.java {
         srcDirs = [ sourceDir ]
       }
+      if(sourceSet.compileConfigurationName != 'compile')
+        project.configurations[sourceSet.compileConfigurationName].extendsFrom project.configurations.compile
     }
   }
 
@@ -93,13 +96,36 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     super.configureTask_Jar()
 
-    project.tasks.jar {
+    buildProperties?.source?.each { sourceName, sourceDir ->
+      def sourceSetName = sourceName == '.' ? 'main' : sourceName
+      def sourceSet = project.sourceSets[sourceSetName]
+      def jarTask = project.tasks.findByName(sourceSet.jarTaskName)
+      if(jarTask == null)
+        jarTask = project.task(sourceSet.jarTaskName, type: Jar) {
+          dependsOn project.tasks[sourceSet.classesTaskName]
+          from project.tasks[sourceSet.compileJavaTaskName].destinationDir
+          from project.tasks[sourceSet.processResourcesTaskName].destinationDir
+          destinationDir = new File(project.buildDir, 'libs')
+          archiveName = sourceSetName
+        }
+    }
+
+    project.tasks.jar { thisTask ->
 
       dependsOn { project.tasks.createOsgiManifest }
 
       inputs.files { getGeneratedManifestFile() }
 
       from { project.configurations.privateLib }
+
+      buildProperties?.source?.each { sourceName, sourceDir ->
+        def sourceSetName = sourceName == '.' ? 'main' : sourceName
+        if(sourceSetName != 'main' && buildProperties.bin?.includes?.contains(sourceSetName)) {
+          def thatJarTask = project.tasks[project.sourceSets[sourceSetName].jarTaskName]
+          thisTask.dependsOn thatJarTask
+          thisTask.from thatJarTask.archivePath
+        }
+      }
 
       manifest {
 
