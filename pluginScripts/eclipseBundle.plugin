@@ -1,0 +1,26 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+  
+  dependencies {
+    classpath 'org.akhikhl.wuff:wuff-plugin:+'
+  }
+}
+
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
+apply plugin: 'java'
+
+// if you copy/paste this script into your "build.gradle", you can replace
+// the code below with `apply plugin: 'eclipse-bundle'`
+
+import org.akhikhl.wuff.EclipseBundlePlugin
+
+if (!plugins.findPlugin(EclipseBundlePlugin))
+  apply plugin: EclipseBundlePlugin
+
