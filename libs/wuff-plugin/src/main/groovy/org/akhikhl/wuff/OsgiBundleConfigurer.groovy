@@ -146,6 +146,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       from project.projectDir, {
         include '*.properties'
+        exclude 'build.properties'
         if(effectiveConfig.filterProperties)
           filter filterExpandProperties
       }
@@ -228,6 +229,18 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         }
       }
     }
+  }
+
+  protected void createBuildProperties() {
+    def m = [:]
+    File f = project.file('build.properties')
+    if(f.exists()) {
+      def props = new PropertiesConfiguration()
+      props.load(f)
+      for(def key in props.getKeys())
+        m[key] = props.getProperty(key)
+    }
+    project.ext.buildProperties = m.isEmpty() ? null : m
   }
 
   protected Manifest createManifest() {
@@ -327,6 +340,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     super.createVirtualConfigurations()
     createPluginXml()
     createPluginCustomization()
+    createBuildProperties()
   }
 
   protected boolean extraFilesUpToDate() {
