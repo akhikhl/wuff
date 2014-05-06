@@ -46,8 +46,16 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   @Override
   protected void configureDependencies() {
     userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
-      if(!project.configurations.compile.dependencies.find { it.name == bundle })
-        project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundle:+"
+      def bundleName = bundle.contains(';') ? bundle.split(';')[0] : bundle
+      if(!project.configurations.compile.dependencies.find { it.name == bundleName }) {
+        def proj = project.rootProject.subprojects.find {
+          it.ext.has('bundleSymbolicName') && it.ext.bundleSymbolicName == bundleName
+        }
+        if(proj)
+          project.dependencies.add 'compile', proj
+        else
+          project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
+      }
     }
   }
 
@@ -289,13 +297,13 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     def pluginXml = project.pluginXml
     if(pluginXml) {
-      m.attributes['Bundle-SymbolicName'] = "${project.name}; singleton:=true" as String
+      m.attributes['Bundle-SymbolicName'] = "${project.bundleSymbolicName}; singleton:=true" as String
       Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, pluginXml).collectEntries { [ it, '' ] }
       importPackages << ManifestUtils.parsePackages(m.attributes['Import-Package'])
       m.attributes['Import-Package'] = ManifestUtils.packagesToString(importPackages)
     }
     else
-      m.attributes['Bundle-SymbolicName'] = project.name
+      m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName
 
     def localizationFiles = PluginUtils.collectPluginLocalizationFiles(project)
     if(localizationFiles)
@@ -461,11 +469,17 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected void readManifest() {
     File userManifestFile = PluginUtils.findPluginManifestFile(project)
-    if(userManifestFile)
+    if(userManifestFile) {
       userManifestFile.withInputStream {
         userManifest = new java.util.jar.Manifest(it)
       }
-    else
+      def bundleSymbolicName = userManifest?.mainAttributes?.getValue('Bundle-SymbolicName')
+      bundleSymbolicName = bundleSymbolicName.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
+      project.ext.bundleSymbolicName = bundleSymbolicName
+    }
+    else {
       userManifest = null
+      project.ext.bundleSymbolicName = project.name
+    }
   }
 }
