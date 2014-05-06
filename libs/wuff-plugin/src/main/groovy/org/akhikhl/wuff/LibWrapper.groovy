@@ -51,7 +51,7 @@ class LibWrapper {
       setVersion bundleVersion
       setClassesDir lib
       setClasspath project.files(lib)
-      instruction 'Bundle-Classpath', lib.name
+      instruction 'Bundle-ClassPath', lib.name
       instruction 'Wrapped-Library', lib.name
       if(fragmentHost)
         instruction 'Fragment-Host', fragmentHost

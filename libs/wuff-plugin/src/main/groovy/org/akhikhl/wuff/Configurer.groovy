@@ -50,6 +50,9 @@ class Configurer {
   protected void configure() {
   }
 
+  protected void configureDependencies() {
+  }
+
   protected void configureTasks() {
     configureTask_createExtraFiles()
     configureTask_scaffold()
@@ -141,12 +144,12 @@ class Configurer {
   }
 
   String getSelectedEclipseMavenGroup() {
-    if(!project.ext.has('_selectedEclipseMavenGroup')) {
-      project.ext._selectedEclipseMavenGroup = effectiveConfig.selectedVersionConfig?.eclipseMavenGroup
+    if(!project.ext.has('eclipseMavenGroup')) {
+      project.ext.eclipseMavenGroup = effectiveConfig.selectedVersionConfig?.eclipseMavenGroup
       populateUnpuzzleConfig(project.unpuzzle, project.wuff)
       unpuzzleConfigurer.installEclipse()
     }
-    return project.ext._selectedEclipseMavenGroup
+    return project.ext.eclipseMavenGroup
   }
 
   protected String getScaffoldResourceDir() {
@@ -199,7 +202,7 @@ class Configurer {
     createVirtualConfigurations()
 
     new ModuleConfigurer(project).configureModules(getModules())
-
+    configureDependencies()
     configureTasks()
   }
 

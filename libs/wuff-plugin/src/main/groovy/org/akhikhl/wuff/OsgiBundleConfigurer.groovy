@@ -22,7 +22,10 @@ import org.gradle.api.plugins.osgi.OsgiManifest
  */
 class OsgiBundleConfigurer extends JavaConfigurer {
 
+  protected Map buildProperties
+  protected java.util.jar.Manifest userManifest
   protected final Map expandBinding
+  protected final String snapshotQualifier
 
   OsgiBundleConfigurer(Project project) {
     super(project)
@@ -30,12 +33,33 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       current_os: PlatformConfig.current_os,
       current_arch: PlatformConfig.current_arch,
       current_language: PlatformConfig.current_language ]
+    snapshotQualifier = '.' + (new Date().format('YYYYMMddHHmm'))
   }
 
   @Override
   protected void applyPlugins() {
     super.applyPlugins()
     project.apply plugin: 'osgi'
+  }
+
+  @Override
+  protected void configureDependencies() {
+    userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
+      if(!project.configurations.compile.dependencies.find { it.name == bundle })
+        project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundle:+"
+    }
+  }
+
+  @Override
+  protected void createSourceSets() {
+    super.createSourceSets()
+    buildProperties?.source?.each { sourceName, sourceDir ->
+      def sourceSetName = sourceName == '.' ? 'main' : sourceName
+      def sourceSet = project.sourceSets.findByName(sourceSetName) ?: project.sourceSets.create(sourceSetName)
+      sourceSet.java {
+        srcDirs = [ sourceDir ]
+      }
+    }
   }
 
   @Override
@@ -80,7 +104,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       manifest {
 
         setName(project.name)
-        setVersion(project.version)
+        setVersion(project.version.replace('-SNAPSHOT', snapshotQualifier))
 
         def templateEngine
 
@@ -107,12 +131,13 @@ class OsgiBundleConfigurer extends JavaConfigurer {
           }
         }
 
-        File userManifestFile = PluginUtils.findPluginManifestFile(project)
         // attention: call order is important here!
-        if(userManifestFile != null)
-          from userManifestFile.absolutePath, mergeManifest
 
         from getGeneratedManifestFile().absolutePath, mergeManifest
+
+        File userManifestFile = PluginUtils.findPluginManifestFile(project)
+        if(userManifestFile != null)
+          from userManifestFile.absolutePath, mergeManifest
       }
     }
   } // configureTask_Jar
@@ -136,28 +161,27 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       StringEscapeUtils.escapeJava(w.toString())
     }
 
+    def effectiveResources = [] as Set
+    if(buildProperties) {
+      // "plugin.xml" and "plugin_customization.ini" are not included,
+      // because they are generated as extra-files in createExtraFiles.
+      def virtualResources = ['.', 'META-INF/', 'plugin.xml', 'plugin_customization.ini']
+      buildProperties?.bin?.includes?.each { relPath ->
+        if(!(relPath in virtualResources))
+          effectiveResources.add(relPath)
+      }
+    } else
+      effectiveResources.addAll(['splash.bmp', 'plugin*.properties', 'OSGI-INF/', 'intro/', 'nl/'])
+    log.debug 'configureTask_processResources, effectiveResources: {}', effectiveResources
+
     project.tasks.processResources {
 
-      from project.projectDir, {
-        include 'splash.bmp'
-        // "plugin.xml" and "plugin_customization.ini" are not included here,
-        // because they are generated as extra-files in createExtraFiles
-      }
-
-      from project.projectDir, {
-        include '*.properties'
-        exclude 'build.properties'
+      from project.sourceSets.main.resources.srcDirs, {
         if(effectiveConfig.filterProperties)
-          filter filterExpandProperties
+          exclude '**/*.properties'
+        if(effectiveConfig.filterHtml)
+          exclude '**/*.html', '**/*.htm'
       }
-
-      from project.sourceSets.main.resources.srcDirs
-
-      if(effectiveConfig.filterHtml)
-        from project.sourceSets.main.resources.srcDirs, {
-          include '**/*.html', '**/*.htm'
-          expand expandBinding
-        }
 
       if(effectiveConfig.filterProperties)
         from project.sourceSets.main.resources.srcDirs, {
@@ -165,38 +189,41 @@ class OsgiBundleConfigurer extends JavaConfigurer {
           filter filterExpandProperties
         }
 
-      from project.file('OSGI-INF'), {
-        into 'OSGI-INF'
-      }
-
-      if(effectiveConfig.filterProperties)
-        from project.file('OSGI-INF'), {
-          include '**/*.properties'
-          filter filterExpandProperties
-          into 'OSGI-INF'
-        }
-
-      from project.file('intro'), {
-        into 'intro'
-      }
-
       if(effectiveConfig.filterHtml)
-        from project.file('intro'), {
+        from project.sourceSets.main.resources.srcDirs, {
           include '**/*.html', '**/*.htm'
           expand expandBinding
-          into 'intro'
         }
 
-      from project.file('nl'), {
-        into 'nl'
+      for(String res in effectiveResources) {
+        def f = project.file(res)
+        if(f.isDirectory()) {
+          from f, {
+            if(effectiveConfig.filterProperties)
+              exclude '**/*.properties'
+            if(effectiveConfig.filterHtml)
+              exclude '**/*.html', '**/*.htm'
+            into res
+          }
+          if(effectiveConfig.filterProperties)
+            from f, {
+              include '**/*.properties'
+              filter filterExpandProperties
+              into res
+            }
+          if(effectiveConfig.filterHtml)
+            from f, {
+              include '**/*.html', '**/*.htm'
+              expand expandBinding
+              into res
+            }
+        } else
+          from project.projectDir, {
+            include res
+            if(res.endsWith('.properties') && effectiveConfig.filterProperties)
+              filter filterExpandProperties
+          }
       }
-
-      if(effectiveConfig.filterHtml)
-        from project.file('nl'), {
-          include '**/*.html', '**/*.htm'
-          expand expandBinding
-          into 'nl'
-        }
     }
   }
 
@@ -217,37 +244,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     FileUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
   }
 
-  protected void createSourceSets() {
-    project.sourceSets {
-      main {
-        resources {
-          include 'splash.bmp'
-          include 'plugin*.properties'
-          include 'OSGI-INF/**'
-          include 'intro/**'
-          include 'nl/**'
-        }
-      }
-    }
-  }
-
-  protected void createBuildProperties() {
-    def m = [:]
-    File f = project.file('build.properties')
-    if(f.exists()) {
-      def props = new PropertiesConfiguration()
-      props.load(f)
-      for(def key in props.getKeys())
-        m[key] = props.getProperty(key)
-    }
-    project.ext.buildProperties = m.isEmpty() ? null : m
-  }
-
   protected Manifest createManifest() {
 
     def m = project.osgiManifest {
       setName project.name
-      setVersion project.version
+      setVersion project.version.replace('-SNAPSHOT', snapshotQualifier)
       setClassesDir project.sourceSets.main.output.classesDir
       setClasspath (project.configurations.runtime - project.configurations.privateLib)
     }
@@ -295,7 +296,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
     m.attributes 'Require-Bundle': requiredBundles.sort().join(',')
 
-    def bundleClasspath = m.attributes['Bundle-Classpath']
+    def bundleClasspath = m.attributes['Bundle-ClassPath']
     if(bundleClasspath)
       bundleClasspath = bundleClasspath.split(',\\s*').collect()
     else
@@ -309,7 +310,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     bundleClasspath.unique(true)
 
-    m.attributes['Bundle-Classpath'] = bundleClasspath.join(',')
+    m.attributes['Bundle-ClassPath'] = bundleClasspath.join(',')
     return m
   } // createManifest
 
@@ -340,7 +341,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     super.createVirtualConfigurations()
     createPluginXml()
     createPluginCustomization()
-    createBuildProperties()
   }
 
   protected boolean extraFilesUpToDate() {
@@ -357,7 +357,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   @Override
   protected String getDefaultVersion() {
-    '1.0.0.0'
+    (userManifest?.mainAttributes?.getValue('Bundle-Version') ?: '1.0.0.0').replace('.qualifier', '-SNAPSHOT')
   }
 
   @Override
@@ -400,5 +400,46 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   protected void populatePluginCustomization(Map props) {
+  }
+
+  @Override
+  protected void preConfigure() {
+    // attention: call order is important here!
+    readBuildProperties()
+    super.preConfigure()
+    readManifest()
+  }
+
+  protected void readBuildProperties() {
+    def m = [:]
+    File buildPropertiesFile = project.file('build.properties')
+    if(buildPropertiesFile.exists()) {
+      def props = new PropertiesConfiguration()
+      props.load(buildPropertiesFile)
+      for(String key in props.getKeys()) {
+        def value = props.getProperty(key)
+        int dotPos = key.indexOf('.')
+        if(dotPos >= 0) {
+          String key1 = key.substring(0, dotPos)
+          String key2 = key.substring(dotPos + 1)
+          Map valueMap = m[key1]
+          if(valueMap == null)
+            valueMap = m[key1] = [:]
+          valueMap[key2] = value
+        } else
+          m[key] = value
+      }
+    }
+    buildProperties = m.isEmpty() ? null : m
+  }
+
+  protected void readManifest() {
+    File userManifestFile = PluginUtils.findPluginManifestFile(project)
+    if(userManifestFile)
+      userManifestFile.withInputStream {
+        userManifest = new java.util.jar.Manifest(it)
+      }
+    else
+      userManifest = null
   }
 }
