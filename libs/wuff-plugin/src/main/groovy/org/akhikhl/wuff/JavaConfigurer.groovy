@@ -21,6 +21,12 @@ class JavaConfigurer extends Configurer {
   }
 
   @Override
+  protected void applyPlugins() {
+    super.applyPlugins()
+    project.apply plugin: 'java'
+  }
+
+  @Override
   protected void createConfigurations() {
     super.createConfigurations()
     if(!project.configurations.findByName('provided'))
