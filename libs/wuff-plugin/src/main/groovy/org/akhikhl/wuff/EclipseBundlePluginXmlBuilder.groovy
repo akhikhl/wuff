@@ -70,7 +70,7 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
     }
     if(perspectiveIds.size() == 1 && viewClasses.size() == 1) {
       String viewId = viewClassToViewId[viewClasses[0]]
-      def existingPerspectiveExtension = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectiveExtensions' && it.perspectiveExtension?.view?.'@id'.text() == viewId })
+      def existingPerspectiveExtension = existingConfig?.extension?.find { it.'@point' == 'org.eclipse.ui.perspectiveExtensions' }
       if(!existingPerspectiveExtension)
         pluginXml.extension(point: 'org.eclipse.ui.perspectiveExtensions') {
           perspectiveExtension(targetID: perspectiveIds[0]) {
