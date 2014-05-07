@@ -11,7 +11,7 @@ buildscript {
 
 ext {
   group = 'org.akhikhl.wuff'
-  version = '0.0.2'
+  version = '0.0.3'
   description = 'Set of gradle plugins for developing and assembling Eclipse applications and plugins'
   groovy_version = '1.8.6'
   spock_version = '0.7-groovy-1.8'
