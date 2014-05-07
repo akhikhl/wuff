@@ -1,5 +1,7 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
+[![Latest Version](http://img.shields.io/badge/latest_version-0.0.2-blue.svg)](https://github.com/akhikhl/gretty/tree/v0.0.2) [![License](http://img.shields.io/badge/license-MIT-ff69b4.svg)](#copyright-and-license)
+
 ### Introduction
 
 Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications and plugins *independently* of Eclipse-IDE. If you are familiar with [Eclipse Tycho](https://www.eclipse.org/tycho/), then think of Wuff as a gradle-based alternative.
