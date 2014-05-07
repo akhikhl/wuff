@@ -23,6 +23,8 @@ final class ConfigReader {
       closure.delegate = config
       closure()
     }
+    binding.current_os = PlatformConfig.current_os
+    binding.current_arch = PlatformConfig.current_arch
     binding.PluginUtils = PluginUtils.class
     GroovyShell shell = new GroovyShell(binding)
     this.getClass().getResourceAsStream(resourceName).withReader('UTF-8') {

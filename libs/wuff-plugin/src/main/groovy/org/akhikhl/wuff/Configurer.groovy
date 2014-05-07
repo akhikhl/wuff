@@ -41,6 +41,8 @@ class Configurer {
 
   protected void applyPlugins() {
     unpuzzleConfigurer = new org.akhikhl.unpuzzle.Configurer(project)
+    // We don't use unpuzzle/defaultConfig. Instead, we implement all structures in wuff/defaultConfig.
+    unpuzzleConfigurer.loadDefaultConfig = false
     if(!project.extensions.findByName('unpuzzle')) {
       unpuzzleConfigurer.apply()
       assert project.extensions.findByName('unpuzzle')
