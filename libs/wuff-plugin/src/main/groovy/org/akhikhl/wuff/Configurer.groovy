@@ -147,6 +147,7 @@ class Configurer {
     if(!project.ext.has('eclipseMavenGroup')) {
       project.ext.eclipseMavenGroup = effectiveConfig.selectedVersionConfig?.eclipseMavenGroup
       populateUnpuzzleConfig(project.unpuzzle, project.wuff)
+      unpuzzleConfigurer.updateTasks('wuff')
       unpuzzleConfigurer.installEclipse()
     }
     return project.ext.eclipseMavenGroup
