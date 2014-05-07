@@ -6,9 +6,15 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 ### Where to start?
 
-If you are new with Wuff, good starting point would be [wiki pages](../../wiki).
+If you want to create something from scratch, take a look at the tutorials: 
+[first Equinox app](../../wiki/Create-first-Equinox-app), [first RCP app](../../wiki/Create-first-RCP-app) and [first IDE app](../../wiki/Create-first-IDE-app).
 
-If you already use Wuff, it is always a good idea to look in [what's new section](whatsnew.md).
+If you want to convert bunch of existing Eclipse plugins and apps to Gradle/Wuff, take a look at the tutorial: 
+[../../wiki/Convert-existing-Eclipse-plugins-and-apps-to-Gradle].
+
+You can systematically learn all about Wuff at [wiki pages](../../wiki).
+
+If you already use Wuff, it is always a good idea to look in [what's new](whatsnew.md) file.
 
 ### How to use Wuff?
 
