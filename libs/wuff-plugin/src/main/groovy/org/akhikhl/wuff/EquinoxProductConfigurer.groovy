@@ -106,7 +106,7 @@ class EquinoxProductConfigurer {
       productOutputDirName += '-' + productFileSuffix
     productOutputDir = new File(PluginUtils.getProductOutputBaseDir(project), productOutputDirName)
 
-    osgiExecutionEnvironment = product.osgiExecutionEnvironment ?: 'J2SE-1.4,J2SE-1.5,J2SE-1.6,CDC-1.1/Foundation-1.1,OSGi/Minimum-1.1'
+    osgiExecutionEnvironment = product.osgiExecutionEnvironment ?: 'JavaSE-1.6,J2SE-1.6,J2SE-1.5,J2SE-1.4,J2SE-1.3,J2SE-1.2,JRE-1.1,CDC-1.1/Foundation-1.1,CDC-1.0/Foundation-1.0,OSGi/Minimum-1.2,OSGi/Minimum-1.1,OSGi/Minimum-1.0'
   }
 
   void configure() {
