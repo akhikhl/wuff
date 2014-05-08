@@ -122,6 +122,8 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
             configWriter.println "osgi.splashLocation=${splashFile.absolutePath}"
           File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
           configWriter.println "osgi.framework=file\\:${osgiFrameworkFile.absolutePath}"
+          if(project.ext.has('osgiExecutionEnvironment'))
+            configWriter.println "org.osgi.framework.executionenvironment=${project.ext.osgiExecutionEnvironment}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
           configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
         }
