@@ -162,10 +162,12 @@ class OsgiBundleConfigurer extends JavaConfigurer {
             } else
               mergeValue = details.mergeValue
             String newValue
-            if(details.key == 'Require-Bundle')
+            if(details.key.equalsIgnoreCase('Require-Bundle'))
               newValue = ManifestUtils.mergeRequireBundle(details.baseValue, mergeValue)
-            else if(details.key == 'Import-Package' || details.key == 'Export-Package')
+            else if(details.key.equalsIgnoreCase('Import-Package') || details.key.equalsIgnoreCase('Export-Package'))
               newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
+            else if(details.key.equalsIgnoreCase('Bundle-ClassPath'))
+              newValue = ManifestUtils.mergeClassPath(details.baseValue, mergeValue)
             else
               newValue = mergeValue ?: details.baseValue
             if(newValue)

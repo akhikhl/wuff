@@ -76,6 +76,12 @@ class ManifestUtils {
     return manifest
   }
 
+  static String mergeClassPath(String baseValue, String mergeValue) {
+    if(baseValue && mergeValue)
+      return ((baseValue.split(',') as Set) + (mergeValue.split(',') as Set)).join(',')
+    return mergeValue ?: baseValue
+  }
+
   static String mergePackageList(String baseValue, String mergeValue) {
     Map packages
     if(baseValue) {
