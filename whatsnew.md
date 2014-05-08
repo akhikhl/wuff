@@ -1,5 +1,13 @@
 # What's new in Wuff
 
+### Version 0.0.5
+
+Bug fixes:
+- task "cleanEclipse" was renamed to "purgeEclipse" to avoid conflict with other similarly named task from another gradle plugin.
+
+Other improvements:
+- new task "uninstallAllEclipseVersions" was implemented.
+
 ### Version 0.0.4
 
 Bug fixes:
