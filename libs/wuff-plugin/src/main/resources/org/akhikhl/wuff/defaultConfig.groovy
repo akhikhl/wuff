@@ -95,6 +95,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
         provided "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}.${current_arch_suffix}:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
         runtime "${eclipseMavenGroup}:com.ibm.icu:+"
         runtime "${eclipseMavenGroup}:javax.xml:+"
       }
