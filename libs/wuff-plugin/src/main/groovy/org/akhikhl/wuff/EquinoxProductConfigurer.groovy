@@ -30,6 +30,7 @@ class EquinoxProductConfigurer {
   private final List launchers
   private final File jreFolder
   private final File productOutputDir
+  private final String osgiExecutionEnvironment
 
   EquinoxProductConfigurer(Project project, String productConfigPrefix, Map product) {
 
@@ -104,6 +105,8 @@ class EquinoxProductConfigurer {
     if(productFileSuffix)
       productOutputDirName += '-' + productFileSuffix
     productOutputDir = new File(PluginUtils.getProductOutputBaseDir(project), productOutputDirName)
+
+    osgiExecutionEnvironment = product.osgiExecutionEnvironment ?: 'J2SE-1.4,J2SE-1.5,J2SE-1.6,CDC-1.1/Foundation-1.1,OSGi/Minimum-1.1'
   }
 
   void configure() {
@@ -284,6 +287,7 @@ class EquinoxProductConfigurer {
         configWriter.println "eclipse.product=$eclipseProductId"
       File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
       configWriter.println "osgi.framework=file\\:plugins/${osgiFrameworkFile.name}"
+      configWriter.println "org.osgi.framework.executionenvironment=$osgiExecutionEnvironment"
       configWriter.println 'osgi.bundles.defaultStartLevel=4'
       configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
       if(PluginUtils.findPluginSplashFile(project))
