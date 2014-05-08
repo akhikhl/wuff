@@ -45,8 +45,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   @Override
   protected void configureDependencies() {
-    userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
-      def bundleName = bundle.contains(';') ? bundle.split(';')[0] : bundle
+    def addBundle = { bundleName ->
       if(!project.configurations.compile.dependencies.find { it.name == bundleName }) {
         def proj = project.rootProject.subprojects.find {
           it.ext.has('bundleSymbolicName') && it.ext.bundleSymbolicName == bundleName
@@ -56,6 +55,17 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         else
           project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
       }
+    }
+    userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
+      def bundleName = bundle.contains(';') ? bundle.split(';')[0] : bundle
+      addBundle bundleName
+    }
+    def pluginXml = project.pluginXml
+    if(pluginXml) {
+      if(pluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' })
+        addBundle 'org.eclipse.ui.views'
+      if(pluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' })
+        addBundle 'org.eclipse.core.expressions'
     }
   }
 
@@ -324,6 +334,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     def requiredBundles = new LinkedHashSet()
     if(pluginXml && pluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' })
       requiredBundles.add 'org.eclipse.core.expressions'
+    if(pluginXml && pluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' })
+      requiredBundles.add 'org.eclipse.ui.views'
     project.configurations.compile.allDependencies.each {
       if(it.name.startsWith('org.eclipse.') && !PlatformConfig.isPlatformFragment(it) && !PlatformConfig.isLanguageFragment(it))
         requiredBundles.add it.name
