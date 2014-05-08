@@ -2,9 +2,14 @@
 
 ### Version 0.0.4
 
-Fixed bugs:
+Bug fixes:
 - added missing dependency of equinox apps on org.eclipse.osgi.services.
 - now writing property org.osgi.framework.executionenvironment to config.ini in order to fix loading of groovy-all 2.3.0.
+- fixed incompatibility between eclipse 3.7.x and eclipse 4.x: rcp/ide application would not start because of the missing bundle org.eclipse.ui.views, 
+  if some bundle implements org.eclipse.ui.views extension point. Fix: org.eclipse.ui.views bundle is now automatically added to Required-Bundle and dependencies as needed.
+
+Other Improvements:
+- org.osgi.framework.executionenvironment could be set in wuff config via project.ext.osgiExecutionEnvironment in concrete module (equinoxApp, for example).
 
 ### Version 0.0.3
 
