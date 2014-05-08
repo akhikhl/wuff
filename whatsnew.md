@@ -1,5 +1,11 @@
 # What's new in Wuff
 
+### Version 0.0.4
+
+Fixed bugs:
+- added missing dependency of equinox apps on org.eclipse.osgi.services.
+- now writing property org.osgi.framework.executionenvironment to config.ini in order to fix loading of groovy-all 2.3.0.
+
 ### Version 0.0.3
 
 - Fixed bug: generated OSGi-manifests of wrapper libraries did not contain proper Export-Package instruction.
