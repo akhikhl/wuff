@@ -28,7 +28,7 @@ jar {
     instruction 'Bnd-LastModified', '9999999999999'                                    
     instruction 'Created-By', 'Dr. Who'
     instruction 'Tool', 'kekek'
-    instruction 'Bundle-Classpath', 'somefolder', 'anotherfolder'
+    instruction 'Bundle-ClassPath', 'somefolder', 'anotherfolder'
     instruction 'Require-Bundle', 'ch.qos.logback.classic'
     instruction 'My-Attribute', 'test'
     instruction 'Project-Info', "${project.name} compiled on ${new Date()}"
