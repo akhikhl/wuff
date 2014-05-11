@@ -216,8 +216,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         if(!(relPath in virtualResources))
           effectiveResources.add(relPath)
       }
-    } else
-      effectiveResources.addAll(['splash.bmp', 'plugin*.properties', 'OSGI-INF/', 'intro/', 'nl/'])
+    } else {
+      effectiveResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/'])
+      effectiveResources.addAll(project.projectDir.listFiles({ (it.name =~ /plugin.*\.properties/) as boolean } as FileFilter).collect { it.name })
+    }
     log.debug 'configureTask_processResources, effectiveResources: {}', effectiveResources
 
     project.tasks.processResources {
