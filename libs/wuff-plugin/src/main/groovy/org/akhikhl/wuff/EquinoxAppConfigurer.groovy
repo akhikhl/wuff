@@ -80,7 +80,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
           else if(pluginName == 'org.eclipse.core.runtime' || pluginName == 'jersey-core')
             launchOption = '@start'
           if(pluginName != PluginUtils.osgiFrameworkPluginName && !pluginName.startsWith(PluginUtils.equinoxLauncherPluginName))
-            bundleLaunchList[pluginName] = "reference\\:file\\:${file.absolutePath}${launchOption}"
+            bundleLaunchList[pluginName] = "reference\\:file\\:${file.toURI().path}${launchOption}"
         }
 
         addBundle project.tasks.jar.archivePath
@@ -121,7 +121,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
           if(splashFile)
             configWriter.println "osgi.splashLocation=${splashFile.absolutePath}"
           File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
-          configWriter.println "osgi.framework=file\\:${osgiFrameworkFile.absolutePath}"
+          configWriter.println "osgi.framework=file\\:${osgiFrameworkFile.toURI().path}"
           if(project.ext.has('osgiExecutionEnvironment'))
             configWriter.println "org.osgi.framework.executionenvironment=${project.ext.osgiExecutionEnvironment}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
