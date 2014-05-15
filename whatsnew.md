@@ -1,5 +1,10 @@
 # What's new in Wuff
 
+### Version 0.0.6
+
+Bug fixes:
+- fixed Windows-specific bug ""Could not normalize path" in OsgiBundleConfigurer.
+
 ### Version 0.0.5
 
 Bug fixes:

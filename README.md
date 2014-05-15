@@ -1,6 +1,6 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
-[![Latest Version](http://img.shields.io/badge/latest_version-0.0.5-blue.svg)](https://github.com/akhikhl/gretty/tree/v0.0.5) [![License](http://img.shields.io/badge/license-MIT-ff69b4.svg)](#copyright-and-license)
+[![Latest Version](http://img.shields.io/badge/latest_version-0.0.6-blue.svg)](https://github.com/akhikhl/gretty/tree/v0.0.6) [![License](http://img.shields.io/badge/license-MIT-ff69b4.svg)](#copyright-and-license)
 
 ### Introduction
 
