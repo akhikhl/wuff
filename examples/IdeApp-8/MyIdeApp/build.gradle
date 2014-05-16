@@ -20,3 +20,10 @@ products {
   product platform: 'windows', arch: 'x86_64', language: 'de'
   archiveProducts = true
 }
+
+// uncomment this to set language for "run" and "debug" tasks
+/* 
+run {
+  language = 'de'
+}
+*/
