@@ -119,7 +119,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
             configWriter.println "eclipse.product=$eclipseProductId"
           File splashFile = PluginUtils.findPluginSplashFile(project)
           if(splashFile)
-            configWriter.println "osgi.splashLocation=${splashFile.absolutePath}"
+            configWriter.println "osgi.splashLocation=${splashFile.absolutePath.replace('\\', '\\\\')}"
           File osgiFrameworkFile = PluginUtils.getOsgiFrameworkFile(project)
           configWriter.println "osgi.framework=file\\:${osgiFrameworkFile.toURI().path}"
           if(project.ext.has('osgiExecutionEnvironment'))
