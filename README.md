@@ -31,3 +31,5 @@ See more information on [prerequisites and usage](../../wiki/Prerequisites-and-u
 Copyright 2014 (c) Andrey Hihlovskiy
 
 All versions, present and past, of Wuff are licensed under [MIT license](LICENSE).
+
+[![Support via Gittip](https://rawgithub.com/twolfson/gittip-badge/0.2.0/dist/gittip.png)](https://www.gittip.com/akhikhl/)
