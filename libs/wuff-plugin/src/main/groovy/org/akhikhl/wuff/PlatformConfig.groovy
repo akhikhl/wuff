@@ -13,7 +13,7 @@ package org.akhikhl.wuff
  */
 class PlatformConfig {
 
-  public static final supported_oses = ['windows', 'linux']
+  public static final supported_oses = ['windows', 'linux', 'macosx']
   public static final supported_archs = ['x86_32', 'x86_64']
   public static final supported_languages = ['de', 'fr', 'es']
 
@@ -23,11 +23,18 @@ class PlatformConfig {
 
   public static final String current_language
 
-  public static final Map map_os_to_suffix = [ 'windows' : 'win32.win32', 'linux' : 'gtk.linux' ]
+  public static final Map map_os_to_suffix = [ 'windows' : 'win32.win32', 'linux' : 'gtk.linux', 'macosx' : 'cocoa.macosx' ]
 
-  public static final Map map_os_to_filesystem_suffix = [ 'windows' : 'win32', 'linux' : 'linux' ]
+  public static final Map map_os_to_filesystem_suffix = [ 'windows' : 'win32', 'linux' : 'linux', 'macosx' : 'macosx' ]
 
-  public static final Map map_arch_to_suffix = [ 'x86_32' : 'x86', 'x86_64' : 'x86_64' ]
+  public static final Map map_arch_to_suffix = [
+    'windows-x86_32' : '.x86',
+    'windows-x86_64' : '.x86_64',
+    'linux-x86_32' : '.x86',
+    'linux-x86_64' : '.x86_64',
+    'macosx-x86_32' : '',
+    'macosx-x86_64' : '.x86_64'
+  ]
 
   public static final String current_os_suffix
 
@@ -54,7 +61,7 @@ class PlatformConfig {
 
     current_os_filesystem_suffix = map_os_to_filesystem_suffix[current_os]
 
-    current_arch_suffix = map_arch_to_suffix[current_arch]
+    current_arch_suffix = map_arch_to_suffix[current_os + '-' + current_arch]
   }
 
   static boolean isLanguageFragment(artifact) {
@@ -64,7 +71,7 @@ class PlatformConfig {
   static boolean isPlatformFragment(artifact) {
     supported_oses.find { os ->
       supported_archs.find { arch ->
-        artifact.name.endsWith map_os_to_suffix[os] + '.' + map_arch_to_suffix[arch]
+        artifact.name.endsWith map_os_to_suffix[os] + map_arch_to_suffix[os + '-' + arch]
       }
     }
   }

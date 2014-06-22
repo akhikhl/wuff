@@ -54,6 +54,15 @@ class Configurer {
 
   protected void configureDependencies() {
   }
+  
+  protected void configureRepositories() {
+    project.repositories {
+      mavenLocal()
+      maven { url effectiveConfig.localMavenRepositoryDir.toURI().toURL().toString() }
+      jcenter()
+      mavenCentral()
+    }
+  }
 
   protected void configureTasks() {
     configureTask_createExtraFiles()
@@ -205,6 +214,7 @@ class Configurer {
     createVirtualConfigurations()
 
     new ModuleConfigurer(project).configureModules(getModules())
+    configureRepositories()
     configureDependencies()
     configureTasks()
   }

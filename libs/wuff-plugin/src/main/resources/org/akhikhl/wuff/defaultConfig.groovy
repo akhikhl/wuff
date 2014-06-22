@@ -1,14 +1,14 @@
 wuff {
 
-  localMavenRepositoryDir = new File(System.getProperty('user.home'), '.m2/repository')
-
   wuffDir = new File(System.getProperty('user.home'), '.wuff')
+
+  localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
 
   selectedEclipseVersion = '4.3.2'
 
-  def suffix_os = [ 'linux': 'linux-gtk', 'windows': 'win32' ]
+  def suffix_os = [ 'linux': 'linux-gtk', 'macosx': 'macosx-cocoa', 'windows': 'win32' ]
   def suffix_arch = [ 'x86_32': '', 'x86_64': '-x86_64' ]
-  def fileExt_os = [ 'linux': 'tar.gz', 'windows': 'zip' ]
+  def fileExt_os = [ 'linux': 'tar.gz', 'macosx': 'tar.gz', 'windows': 'zip' ]
 
   eclipseVersion('3.7.1') {
 
@@ -32,7 +32,7 @@ wuff {
       project.dependencies {
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
+        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
       }
     }
 
@@ -42,14 +42,14 @@ wuff {
         supported_archs.each { arch ->
 
           String productConfigName = "product_swtapp_${platform}_${arch}"
-          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
+          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
 
           supported_languages.each { language ->
 
             String localizedProductConfigName = "product_swtapp_${platform}_${arch}_${language}"
             project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
             project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.swt.nl_${language}:+"
-            project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
+            project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
           }
         }
       }
@@ -71,7 +71,7 @@ wuff {
       project.dependencies {
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
+        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
       }
 
@@ -95,7 +95,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.ds:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.event:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
-        provided "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}.${current_arch_suffix}:+"
+        provided "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}${current_arch_suffix}:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
         runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
         runtime "${eclipseMavenGroup}:com.ibm.icu:+"
@@ -106,11 +106,11 @@ wuff {
         supported_archs.each { arch ->
 
           String productConfigName = "product_equinox_${platform}_${arch}"
-          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
+          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
 
           supported_languages.each { language ->
             String localizedProductConfigName = "product_equinox_${platform}_${arch}_${language}"
-            project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
+            project.dependencies.add localizedProductConfigName, "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
           }
         }
       }
@@ -129,7 +129,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.core.net:+"
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}.${current_arch_suffix}:+"
+        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
         if(hasIntro)
           runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
@@ -150,17 +150,20 @@ wuff {
         supported_archs.each { arch ->
 
           String productConfigName = "product_rcp_${platform}_${arch}"
-          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.filesystem.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
-          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
-          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}:+"
+          if(platform != 'macosx' || arch != 'x86_64')
+            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.filesystem.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
+          if(platform != 'macosx')
+            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
+          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
 
           supported_languages.each { language ->
 
             String localizedConfigName = "product_rcp_${platform}_${arch}_${language}"
-            project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
+            if(platform != 'macosx')
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.nl_${language}:+"
-            project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}.${map_arch_to_suffix[arch]}.nl_${language}:+"
+            project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.nl_${language}:+"
             if(hasIntro)
               project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"

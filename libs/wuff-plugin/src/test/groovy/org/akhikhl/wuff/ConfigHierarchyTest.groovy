@@ -28,7 +28,7 @@ class ConfigHierarchyTest extends Specification {
     Project p = ProjectBuilder.builder().withName('p').build()
     plugin.apply(p)
   then:
-    p.effectiveWuff.localMavenRepositoryDir == new File(System.getProperty('user.home'), '.m2/repository')
+    p.effectiveWuff.localMavenRepositoryDir == new File(System.getProperty('user.home'), '.wuff/m2_repository')
   }
 
   def 'should support localMavenRepositoryDir inheritance'() {

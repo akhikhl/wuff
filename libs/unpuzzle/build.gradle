@@ -2,6 +2,8 @@ apply from: 'unpuzzle.plugin'
 
 unpuzzle {
   unpuzzleDir = new File(System.getProperty('user.home'), '.wuff')
+
+  localMavenRepositoryDir = new File(unpuzzleDir, 'm2_repository')
 }
 
 if(!tasks.findByName('build'))
