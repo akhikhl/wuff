@@ -73,9 +73,11 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     }
     else {
       if(applicationIds.isEmpty()) {
-        log.error 'Error in rcp application configuration for project {}:', project.name
-        log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
-        log.error 'Reason: extension-point "org.eclipse.core.runtime.applications" is undefined.'
+        if(project.sourceSets.main.allSource.srcDirs.findAll { it.exists() }.size()) {
+          log.error 'Error in rcp application configuration for project {}:', project.name
+          log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
+          log.error 'Reason: extension-point "org.eclipse.core.runtime.applications" is undefined.'
+        }
       } else if (applicationIds.size() > 1) {
         log.error 'Error in rcp application configuration for project {}:', project.name
         log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
