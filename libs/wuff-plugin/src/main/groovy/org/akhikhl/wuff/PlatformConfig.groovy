@@ -48,6 +48,8 @@ class PlatformConfig {
       current_os = 'linux'
     else if(current_os.substring(0, 7).equalsIgnoreCase('windows'))
       current_os = 'windows'
+    else if(current_os.equalsIgnoreCase('Mac OS X'))
+      current_os = 'macosx'
 
     current_arch = System.getProperty('os.arch')
     if(current_arch == 'x86' || current_arch == 'i386')
