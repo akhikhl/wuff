@@ -5,7 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.6'
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.7'
   }
 }
 

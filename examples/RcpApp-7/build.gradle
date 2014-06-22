@@ -5,13 +5,14 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.6'
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.7'
   }
 }
 
 apply plugin: 'eclipse-config'
 
 wuff {
+  selectedEclipseVersion = '3.7.2'
   languagePack 'de'
 }
 

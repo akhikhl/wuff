@@ -1,10 +1,17 @@
-/* Script for configuring a groovy library.
- * Child groovy projects should include it like this:
- *   apply from: rootProject.file('commonGroovy.gradle')
- */
+// include this file in subprojects:
+// apply from: rootProject.file('libs/common.gradle')
+
+repositories {
+  mavenLocal()
+  jcenter()
+  mavenCentral()
+}
 
 apply plugin: 'maven' // add "install" task
 apply plugin: 'groovy'
+
+group = rootProject.ext.group
+version = rootProject.ext.version
 
 dependencies {
   compile "org.codehaus.groovy:groovy-all:${groovy_version}"
@@ -26,6 +33,13 @@ task javadocJar(type: Jar, description: 'Creates javadoc jar') {
   }
 }
 
+afterEvaluate {
+  // lib projects should be always installed into "$HOME/.m2"
+  project.tasks.build.finalizedBy project.tasks.install
+  rootProject.tasks.buildExamples.dependsOn project.tasks.install
+}
+
 artifacts {
   archives sourcesJar, javadocJar
 }
+

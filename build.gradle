@@ -11,20 +11,32 @@ buildscript {
 
 ext {
   group = 'org.akhikhl.wuff'
-  version = '0.0.6'
+  version = '0.0.7'
   description = 'Set of gradle plugins for developing and assembling Eclipse applications and plugins'
   groovy_version = '1.8.6'
   spock_version = '0.7-groovy-1.8'
   logback_version = '1.1.1'
   slf4j_version = '1.7.6'
+  
+  project_id = 'wuff'
+  project_description = 'Tool for assembling Eclipse applications and plugins'
+  developer_id = 'akhikhl'
+  developer_name = 'Andrey Hihlovskiy'
+  project_website = "https://github.com/${developer_id}/${project_id}"
+  project_scm = "scm:git@github.com:${developer_id}/${project_id}.git"
+  license = 'The MIT License'
+  license_url = "https://raw.github.com/${developer_id}/${project_id}/master/LICENSE"
+  labels = ['wuff', 'gradle', 'plugin', 'eclipse', 'osgi', 'maven']  
 }
+
+description = ext.project_description
 
 apply plugin: 'base' // add "clean" task to the root project.
 
 task('build')
 
 task('wrapper', type: Wrapper) {
-  gradleVersion = '1.11'
+  gradleVersion = '1.12'
 }
 
 // we exclude buildExamples from main build,
@@ -41,22 +53,3 @@ task('cleanExamples', type: GradleBuild) {
   tasks = [ 'clean' ]
 }
 
-subprojects {
-  if(project.parent.name != 'libs')
-    return
-
-  repositories {
-    mavenLocal()
-    jcenter()
-    mavenCentral()
-  }
-
-  group = rootProject.ext.group
-  version = rootProject.ext.version
-
-  afterEvaluate {
-    // lib projects should be always installed into "$HOME/.m2"
-    project.tasks.build.finalizedBy project.tasks.install
-    rootProject.tasks.buildExamples.dependsOn project.tasks.install
-  }
-}
