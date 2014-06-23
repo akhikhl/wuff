@@ -9,6 +9,7 @@ package org.akhikhl.wuff
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
+import org.akhikhl.unpuzzle.PlatformConfig
 
 /**
  *

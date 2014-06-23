@@ -10,6 +10,7 @@ package org.akhikhl.wuff
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
+import org.akhikhl.unpuzzle.PlatformConfig
 
 /**
  *

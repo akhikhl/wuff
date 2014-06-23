@@ -10,6 +10,7 @@ package org.akhikhl.wuff
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
+import org.akhikhl.unpuzzle.PlatformConfig
 
 /**
  *

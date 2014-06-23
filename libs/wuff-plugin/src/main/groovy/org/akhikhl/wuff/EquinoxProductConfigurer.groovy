@@ -12,6 +12,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.Compression
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
+import org.akhikhl.unpuzzle.PlatformConfig
 
 /**
  *

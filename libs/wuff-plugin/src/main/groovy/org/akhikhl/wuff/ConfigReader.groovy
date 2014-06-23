@@ -7,7 +7,7 @@
  */
 package org.akhikhl.wuff
 
-import org.codehaus.groovy.control.CompilerConfiguration
+import org.akhikhl.unpuzzle.PlatformConfig
 
 /**
  * Reads plugin configuration from the specified groovy script.

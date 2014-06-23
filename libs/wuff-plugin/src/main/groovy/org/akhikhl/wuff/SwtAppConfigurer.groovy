@@ -8,6 +8,7 @@
 package org.akhikhl.wuff
 
 import org.gradle.api.Project
+import org.akhikhl.unpuzzle.PlatformConfig
 
 /**
  *
