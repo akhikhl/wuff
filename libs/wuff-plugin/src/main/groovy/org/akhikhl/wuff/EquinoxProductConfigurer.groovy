@@ -311,7 +311,11 @@ class EquinoxProductConfigurer {
         'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
         '${DIR}/jre/bin/'
     File launchScriptFile = new File(productOutputDir, "${project.name}.sh")
-    launchScriptFile.text = "#!/bin/bash\n${javaLocation}java -jar $equinoxLauncherName$launchParametersStr \"\$@\""
+    def jvmArgs = []
+    if(platform == 'macosx')
+      jvmArgs += '-XstartOnFirstThread'
+    jvmArgs = jvmArgs.join(' ')
+    launchScriptFile.text = "#!/bin/bash\n${javaLocation}java ${jvmArgs} -jar $equinoxLauncherName$launchParametersStr \"\$@\""
     launchScriptFile.setExecutable(true)
   }
 
