@@ -294,7 +294,7 @@ class EquinoxProductConfigurer {
     }
   }
 
-  void writeShellLaunchFile(List<String> launchParameters) {
+  void writeShellLaunchFile(List<String> jvmArgs, List<String> launchParameters) {
     String launchParametersStr = launchParameters.join(' ')
     if(launchParametersStr)
       launchParametersStr = ' ' + launchParametersStr

@@ -1,0 +1,32 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+    maven { url 'http://dl.bintray.com/content/noamt/gradle-plugins' }
+  }
+
+  dependencies {
+    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.4'
+    classpath 'org._10ne.gradle:rest-gradle-plugin:0.1.1'
+  }
+}
+
+apply plugin: 'rest'
+
+if( !hasProperty( 'bintrayUser' ) )
+  ext.bintrayUser = ''
+
+if( !hasProperty( 'bintrayKey' ) )
+  ext.bintrayKey = ''
+
+if( !hasProperty( 'keyPhrase' ) )
+  ext.keyPhrase = ''
+
+task push(type: org._10ne.gradle.rest.RestTask) {
+  description 'Push to bintray and sign it.'
+  httpMethod = 'post'
+  uri = "https://api.bintray.com/gpg/${rootProject.ext.developer_id}/maven/${rootProject.ext.project_id}/versions/${rootProject.ext.version}?passphrase=${project.keyPhrase}"
+  username = project.bintrayUser
+  password = project.bintrayKey
+}
+
