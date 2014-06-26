@@ -10,9 +10,6 @@ if( !hasProperty( 'bintrayUser' ) )
 if( !hasProperty( 'bintrayKey' ) )
   ext.bintrayKey = ''
 
-if( !hasProperty( 'keyPhrase' ) )
-  ext.keyPhrase = ''
-
 def thisProject = project
 
 install.repositories.mavenInstaller.pom*.whenConfigured { pom ->
@@ -60,6 +57,4 @@ bintray {
 }
 
 bintrayUpload.dependsOn assemble
-
-parent.tasks.push.dependsOn bintrayUpload
-bintrayUpload.finalizedBy parent.tasks.push
+bintrayUpload.finalizedBy parent.tasks.bintraySign
