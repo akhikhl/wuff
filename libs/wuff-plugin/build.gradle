@@ -4,7 +4,7 @@ apply from: rootProject.file('libs/publish.gradle')
 dependencies {
   compile gradleApi()
   compile 'org.akhikhl.gradle-onejar:gradle-onejar:0.0.11'
-  compile 'org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.15'
+  compile 'org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.16'
   compile 'commons-io:commons-io:2.4'
   compile 'commons-codec:commons-codec:1.9'
   compile 'commons-configuration:commons-configuration:1.10'
