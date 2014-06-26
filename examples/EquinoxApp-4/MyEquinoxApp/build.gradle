@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'eclipse-equinox-app'
+apply plugin: 'org.akhikhl.wuff.eclipse-equinox-app'
 
 products {
   product platform: 'linux', arch: 'x86_32'

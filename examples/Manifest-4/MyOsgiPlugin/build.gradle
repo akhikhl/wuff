@@ -10,7 +10,7 @@ buildscript {
 }
 
 apply plugin: 'java'
-apply plugin: 'osgi-bundle'
+apply plugin: 'org.akhikhl.wuff.osgi-bundle'
 
 description = 'this is example project'
 

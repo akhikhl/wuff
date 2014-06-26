@@ -1,2 +1,2 @@
 apply plugin: 'java'
-apply plugin: 'swt-lib'
+apply plugin: 'org.akhikhl.wuff.swt-lib'

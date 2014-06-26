@@ -9,7 +9,7 @@ buildscript {
   }
 }
 
-apply plugin: 'eclipse-config'
+apply plugin: 'org.akhikhl.wuff.eclipse-config'
 
 wuff {
   languagePack 'de'
