@@ -356,6 +356,20 @@ wuff {
 
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.0/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20140623020002.zip'
     }
+
+    rcpApp {
+
+      project.dependencies {
+        runtime "${eclipseMavenGroup}:javax.servlet:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.ant.core:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.core.variables:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.equinox.bidi:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.osgi.compatibility.state:+"
+        runtime "${eclipseMavenGroup}:org.w3c.dom.events:+"
+        runtime "${eclipseMavenGroup}:org.w3c.dom.smil:+"
+        runtime "${eclipseMavenGroup}:org.w3c.dom.svg:+"
+      }
+    }    
   }
 
   wrappedLibs {
