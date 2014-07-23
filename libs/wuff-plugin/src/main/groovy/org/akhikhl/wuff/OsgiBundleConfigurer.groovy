@@ -7,16 +7,13 @@
  */
 package org.akhikhl.wuff
 
-import org.apache.commons.configuration.AbstractFileConfiguration
+import groovy.text.SimpleTemplateEngine
+import org.akhikhl.unpuzzle.PlatformConfig
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang3.StringEscapeUtils
-import groovy.text.SimpleTemplateEngine
-import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 import org.gradle.api.java.archives.Manifest
-import org.gradle.api.plugins.osgi.OsgiManifest
 import org.gradle.api.tasks.bundling.Jar
-import org.akhikhl.unpuzzle.PlatformConfig
 
 /**
  *
@@ -53,7 +50,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         }
         if(proj)
           project.dependencies.add 'compile', proj
-        else
+        else if(bundleName.toString().startsWith("org.osgi") || bundleName.toString().startsWith("org.eclipse"))
           project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
       }
     }
