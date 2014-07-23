@@ -52,6 +52,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
           project.dependencies.add 'compile', proj
         else if(bundleName.toString().startsWith("org.osgi") || bundleName.toString().startsWith("org.eclipse"))
           project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
+        else
+          printf("Warning: Bundle name %s could not be found\n", bundleName)
       }
     }
     userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
