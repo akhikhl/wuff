@@ -10,9 +10,17 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 ### :bell: Attention
 
 Since version 0.0.10 Wuff adopted new plugin identification scheme suggested at the portal [http://plugins.gradle.org](http://plugins.gradle.org).
-Now all plugin names start with prefix: 'org.akhikhl.wuff.osgi-bundle', 'org.akhikhl.wuff.eclipse-equinox-app', 'org.akhikhl.wuff.eclipse-rcp-app', 
-'org.akhikhl.wuff.eclipse-ide-bundle', 'org.akhikhl.wuff.eclipse-ide-app', 'org.akhikhl.wuff.eclipse-bundle', 'org.akhikhl.wuff.eclipse-config', 
-'org.akhikhl.wuff.swt-lib', 'org.akhikhl.wuff.eclipse-swt-app'.
+Now all plugin names start with prefix: 
+
+- org.akhikhl.wuff.osgi-bundle
+- org.akhikhl.wuff.eclipse-equinox-app
+- org.akhikhl.wuff.eclipse-rcp-app
+- org.akhikhl.wuff.eclipse-ide-bundle
+- org.akhikhl.wuff.eclipse-ide-app
+- org.akhikhl.wuff.eclipse-bundle
+- org.akhikhl.wuff.eclipse-config
+- org.akhikhl.wuff.swt-lib
+- org.akhikhl.wuff.eclipse-swt-app
 
 #### :star: What's new
 
