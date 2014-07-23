@@ -4,3 +4,5 @@ build
 .settings
 .directory
 .nb-gradle*
+*.iml
+.idea
