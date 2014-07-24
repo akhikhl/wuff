@@ -1,31 +1,20 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
-[![Latest Version](http://img.shields.io/badge/latest_version-0.0.10-blue.svg)](https://github.com/akhikhl/gretty/tree/v0.0.10) 
+[![Latest Version](http://img.shields.io/badge/latest_version-0.0.11-blue.svg)](https://github.com/akhikhl/gretty/tree/v0.0.11) 
 [![License](http://img.shields.io/badge/license-MIT-ff69b4.svg)](#copyright-and-license)
 
 ### Introduction
 
 Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications and plugins *independently* of Eclipse-IDE. If you are familiar with [Eclipse Tycho](https://www.eclipse.org/tycho/), then think of Wuff as a gradle-based alternative.
 
-### :bell: Attention
-
-Since version 0.0.10 Wuff adopted new plugin identification scheme suggested at the portal [http://plugins.gradle.org](http://plugins.gradle.org).
-Now all plugin names start with prefix: 
-
-- org.akhikhl.wuff.osgi-bundle
-- org.akhikhl.wuff.eclipse-equinox-app
-- org.akhikhl.wuff.eclipse-rcp-app
-- org.akhikhl.wuff.eclipse-ide-bundle
-- org.akhikhl.wuff.eclipse-ide-app
-- org.akhikhl.wuff.eclipse-bundle
-- org.akhikhl.wuff.eclipse-config
-- org.akhikhl.wuff.swt-lib
-- org.akhikhl.wuff.eclipse-swt-app
-
 #### :star: What's new
 
-- Starting with version 0.0.10 Wuff supports Eclipse 4.4 Luna (it is even the default platform).
-- Starting with version 0.0.10 Wuff supports generating products for Mac OS X.
+- Version 0.0.11: introduced "white-listed" eclipse bundles when translating MANIFEST.MF bundles to gradle dependencies (contribution by @jstarry).
+
+- Version 0.0.10: Wuff supports Eclipse 4.4 Luna (it is even the default platform).
+- Version 0.0.10: Wuff supports generating products for Mac OS X.
+
+See complete list of changes in [what's new list](whatsnew.md),
 
 ### Where to start?
 

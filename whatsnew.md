@@ -1,5 +1,14 @@
 # What's new in Wuff
 
+### Version 0.0.11
+
+- Introduced "white-listed" eclipse bundles when translating MANIFEST.MF bundles to gradle dependencies (contribution by @jstarry).
+
+### Version 0.0.10
+
+- Wuff supports Eclipse 4.4 Luna (it is even the default platform).
+- Wuff supports generating products for Mac OS X.
+
 ### Version 0.0.7
 
 Improvements:
