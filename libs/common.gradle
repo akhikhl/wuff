@@ -13,6 +13,8 @@ apply plugin: 'groovy'
 group = rootProject.ext.group
 version = rootProject.ext.version
 
+targetCompatibility = 1.6
+
 dependencies {
   compile "org.codehaus.groovy:groovy-all:${groovy_version}"
   testCompile "org.spockframework:spock-core:${spock_version}"
