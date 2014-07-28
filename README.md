@@ -1,6 +1,6 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
-[![Latest Version](http://img.shields.io/badge/latest_version-0.0.11-blue.svg)](https://github.com/akhikhl/gretty/tree/v0.0.11) 
+[![Latest Version](http://img.shields.io/badge/latest_version-0.0.12-blue.svg)](https://github.com/akhikhl/gretty/tree/v0.0.12) 
 [![License](http://img.shields.io/badge/license-MIT-ff69b4.svg)](#copyright-and-license)
 
 ### Introduction
@@ -9,10 +9,9 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 #### :star: What's new
 
-- Version 0.0.11: introduced "white-listed" eclipse bundles when translating MANIFEST.MF bundles to gradle dependencies (contribution by @jstarry).
+- Version 0.0.12: fixed compatibility with JDK6 (thanks to @jstarry for contribution). 
 
-- Version 0.0.10: Wuff supports Eclipse 4.4 Luna (it is even the default platform).
-- Version 0.0.10: Wuff supports generating products for Mac OS X.
+- Version 0.0.11: introduced "white-listed" eclipse bundles when translating MANIFEST.MF bundles to gradle dependencies (contribution by @jstarry).
 
 See complete list of changes in [what's new list](whatsnew.md),
 
@@ -38,7 +37,7 @@ See more information on [prerequisites and usage](../../wiki/Prerequisites-and-u
 
 ### Copyright and License
 
-Copyright 2014 (c) Andrey Hihlovskiy
+Copyright 2014 (c) Andrey Hihlovskiy and contributors
 
 All versions, present and past, of Wuff are licensed under [MIT license](LICENSE).
 

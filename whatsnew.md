@@ -1,5 +1,9 @@
 # What's new in Wuff
 
+### Version 0.0.12
+
+- Fixed compatibility with JDK6 (thanks to @jstarry for contribution).
+
 ### Version 0.0.11
 
 - Introduced "white-listed" eclipse bundles when translating MANIFEST.MF bundles to gradle dependencies (contribution by @jstarry).
