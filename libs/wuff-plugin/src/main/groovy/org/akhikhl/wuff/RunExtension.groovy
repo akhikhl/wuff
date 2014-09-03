@@ -14,10 +14,19 @@ package org.akhikhl.wuff
 class RunExtension {
 
   def args = []
+  def jvmArgs = []
   String language
 
   def arg(String newValue) {
     args.add newValue
+  }
+
+  def jvmArg(String newValue) {
+    jvmArgs.add newValue
+  }
+
+  def jvmArg(Object[] newValue) {
+      jvmArgs.addAll newValue
   }
 
   def args(Object[] newValue) {

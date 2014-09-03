@@ -153,7 +153,7 @@ class EquinoxProductConfigurer {
           writeShellLaunchFile(launchParameters)
 
         if(launchers.contains('windows'))
-          writeWindowsLaunchFile(launchParameters)
+          writeWindowsLaunchFile(launchParameters, project.products.jvmParameters.clone())
 
         writeVersionFile()
 
@@ -330,17 +330,22 @@ class EquinoxProductConfigurer {
       "language: ${language ?: 'en'}" + lineSep
   }
 
-  void writeWindowsLaunchFile(List<String> launchParameters) {
+  void writeWindowsLaunchFile(List<String> launchParameters, List<String> jvmParameters) {
     String launchParametersStr = launchParameters.join(' ')
     if(launchParametersStr)
       launchParametersStr = ' ' + launchParametersStr
+
+    String jvmParametersStr = jvmParameters.join(' ')
+    if(jvmParametersStr)
+        jvmParametersStr = ' ' + jvmParametersStr
+
     File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
     String equinoxLauncherName = 'plugins/' + equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')
     String javaLocation = ''
     if(jreFolder)
       javaLocation = '%~dp0\\jre\\bin\\'
     File launchScriptFile = new File(productOutputDir, "${project.name}.bat")
-    String scriptText = "${javaLocation}java.exe -jar $equinoxLauncherName$launchParametersStr %*"
+    String scriptText = "${javaLocation}java.exe $jvmParametersStr -jar $equinoxLauncherName$launchParametersStr %*"
     if(PluginUtils.findPluginSplashFile(project))
       scriptText = '@start /min cmd /c ' + scriptText
     launchScriptFile.text = scriptText

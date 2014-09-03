@@ -24,6 +24,8 @@ class EquinoxAppProductsExtension {
 
   List<String> launchParameters = []
 
+  List<String> jvmParameters = []
+
   def archiveFile(file) {
     additionalFilesToArchive.add file
   }
@@ -34,6 +36,10 @@ class EquinoxAppProductsExtension {
 
   void launchParameter(String newValue) {
     launchParameters.add newValue
+  }
+
+  void jvmParameter(String newValue) {
+      jvmParameters.add newValue
   }
 
   void product(String productName) {

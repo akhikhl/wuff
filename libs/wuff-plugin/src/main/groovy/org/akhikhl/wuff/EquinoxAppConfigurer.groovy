@@ -161,7 +161,8 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
       classpath = project.files(new File(runPluginsDir, equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')))
       main = 'org.eclipse.equinox.launcher.Main'
-      args = programArgs      
+      args = programArgs
+      jvmArgs project.run.jvmArgs
       if(PlatformConfig.current_os == 'macosx')
         jvmArgs '-XstartOnFirstThread'
     }
@@ -173,6 +174,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       main = 'org.eclipse.equinox.launcher.Main'
       args = programArgs
       debug = true
+      jvmArgs project.run.jvmArgs
       if(PlatformConfig.current_os == 'macosx')
         jvmArgs '-XstartOnFirstThread'
     }
