@@ -3,8 +3,10 @@ apply from: rootProject.file('libs/publish.gradle')
 
 dependencies {
   compile gradleApi()
-  compile 'org.akhikhl.gradle-onejar:gradle-onejar:0.0.11'
-  compile 'org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.16'
+  compile "org.akhikhl.gradle-onejar:gradle-onejar:$gradle_onejar_version", {
+    exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+  }
+  compile "org.akhikhl.unpuzzle:unpuzzle-plugin:$unpuzzle_version"
   compile 'commons-io:commons-io:2.4'
   compile 'commons-codec:commons-codec:1.9'
   compile 'commons-configuration:commons-configuration:1.10'

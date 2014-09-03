@@ -2,13 +2,8 @@
 // apply from: rootProject.file('libs/publish.gradle')
 
 apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
-
-if( !hasProperty( 'bintrayUser' ) )
-  ext.bintrayUser = ''
-
-if( !hasProperty( 'bintrayKey' ) )
-  ext.bintrayKey = ''
 
 def thisProject = project
 
@@ -16,7 +11,7 @@ install.repositories.mavenInstaller.pom*.whenConfigured { pom ->
   pom.project {
     name thisProject.name
     packaging 'jar'
-    description thisProject.project_description
+    description thisProject.description
     url thisProject.project_website
 
     scm {
@@ -35,8 +30,8 @@ install.repositories.mavenInstaller.pom*.whenConfigured { pom ->
 
     developers {
       developer {
-        id thisProject.developer_id
-        name thisProject.developer_name
+        id thisProject.developerId
+        name thisProject.developerName
       }
     }
   }
@@ -48,13 +43,22 @@ bintray {
   configurations = ['archives']
   pkg {
     repo = 'maven'
-    name = thisProject.rootProject.project_id
-    desc = thisProject.rootProject.description
-    licenses = ['MIT']
-    labels = thisProject.rootProject.labels
+    name = thisProject.projectId
+    desc = thisProject.description
+    licenses = [ thisProject.license ]
+    labels = thisProject.projectLabels.split(',')
   }
   dryRun = false
 }
 
 bintrayUpload.dependsOn assemble
 bintrayUpload.finalizedBy parent.tasks.bintraySign
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
+}
+

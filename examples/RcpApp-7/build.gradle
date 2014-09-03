@@ -2,10 +2,19 @@ buildscript {
   repositories {
     mavenLocal()
     jcenter()
+    maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
   }
 
   dependencies {
-    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.12'
+    classpath "org.akhikhl.wuff:wuff-plugin:$wuff_version"
+  }
+}
+
+subprojects {
+  repositories {
+    mavenLocal()
+    jcenter()
+    maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
   }
 }
 
@@ -13,12 +22,5 @@ apply plugin: 'org.akhikhl.wuff.eclipse-config'
 
 wuff {
   languagePack 'de'
-}
-
-subprojects {
-  repositories {
-    mavenLocal()
-    jcenter()
-  }
 }
 
