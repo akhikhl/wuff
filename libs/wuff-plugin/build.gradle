@@ -6,7 +6,9 @@ dependencies {
   compile "org.akhikhl.gradle-onejar:gradle-onejar:$gradle_onejar_version", {
     exclude group: 'org.codehaus.groovy', module: 'groovy-all'
   }
-  compile "org.akhikhl.unpuzzle:unpuzzle-plugin:$unpuzzle_version"
+  compile "org.akhikhl.unpuzzle:unpuzzle-plugin:$unpuzzle_version", {
+    exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+  }
   compile 'commons-io:commons-io:2.4'
   compile 'commons-codec:commons-codec:1.9'
   compile 'commons-configuration:commons-configuration:1.10'
