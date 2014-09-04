@@ -150,10 +150,10 @@ class EquinoxProductConfigurer {
         }
 
         if(launchers.contains('shell'))
-          writeShellLaunchFile(launchParameters)
+          writeShellLaunchFile(launchParameters,  project.products.jvmArgs.clone())
 
         if(launchers.contains('windows'))
-          writeWindowsLaunchFile(launchParameters, project.products.jvmParameters.clone())
+          writeWindowsLaunchFile(launchParameters, project.products.jvmArgs.clone())
 
         writeVersionFile()
 
@@ -294,7 +294,7 @@ class EquinoxProductConfigurer {
     }
   }
 
-  void writeShellLaunchFile(List<String> launchParameters) {
+  void writeShellLaunchFile(List<String> launchParameters, List<String> jvmArgs) {
     String launchParametersStr = launchParameters.join(' ')
     if(launchParametersStr)
       launchParametersStr = ' ' + launchParametersStr
@@ -311,11 +311,11 @@ class EquinoxProductConfigurer {
         'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
         '${DIR}/jre/bin/'
     File launchScriptFile = new File(productOutputDir, "${project.name}.sh")
-    def jvmArgs = []
+
     if(platform == 'macosx')
       jvmArgs += '-XstartOnFirstThread'
-    jvmArgs = jvmArgs.join(' ')
-    launchScriptFile.text = "#!/bin/bash\n${javaLocation}java ${jvmArgs} -jar $equinoxLauncherName$launchParametersStr \"\$@\""
+    String jvmArgsStr = jvmArgs.join(' ')
+    launchScriptFile.text = "#!/bin/bash\n${javaLocation}java ${jvmArgsStr} -jar $equinoxLauncherName$launchParametersStr \"\$@\""
     launchScriptFile.setExecutable(true)
   }
 
@@ -330,14 +330,14 @@ class EquinoxProductConfigurer {
       "language: ${language ?: 'en'}" + lineSep
   }
 
-  void writeWindowsLaunchFile(List<String> launchParameters, List<String> jvmParameters) {
+  void writeWindowsLaunchFile(List<String> launchParameters, List<String> jvmArgs) {
     String launchParametersStr = launchParameters.join(' ')
     if(launchParametersStr)
       launchParametersStr = ' ' + launchParametersStr
 
-    String jvmParametersStr = jvmParameters.join(' ')
-    if(jvmParametersStr)
-        jvmParametersStr = ' ' + jvmParametersStr
+    String jvmArgsStr = jvmArgs.join(' ')
+    if(jvmArgsStr)
+        jvmArgsStr = ' ' + jvmArgsStr
 
     File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
     String equinoxLauncherName = 'plugins/' + equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')
@@ -345,7 +345,7 @@ class EquinoxProductConfigurer {
     if(jreFolder)
       javaLocation = '%~dp0\\jre\\bin\\'
     File launchScriptFile = new File(productOutputDir, "${project.name}.bat")
-    String scriptText = "${javaLocation}java.exe $jvmParametersStr -jar $equinoxLauncherName$launchParametersStr %*"
+    String scriptText = "${javaLocation}java.exe $jvmArgsStr -jar $equinoxLauncherName$launchParametersStr %*"
     if(PluginUtils.findPluginSplashFile(project))
       scriptText = '@start /min cmd /c ' + scriptText
     launchScriptFile.text = scriptText
