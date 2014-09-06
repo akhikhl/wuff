@@ -57,10 +57,7 @@ class Configurer {
   
   protected void configureRepositories() {
     project.repositories {
-      mavenLocal()
       maven { url effectiveConfig.localMavenRepositoryDir.toURI().toURL().toString() }
-      jcenter()
-      mavenCentral()
     }
   }
 
