@@ -76,7 +76,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       def sourceSetName = sourceName == '.' ? 'main' : sourceName
       def sourceSet = project.sourceSets.findByName(sourceSetName) ?: project.sourceSets.create(sourceSetName)
       sourceSet.java {
-        srcDirs = [ sourceDir ]
+        srcDirs = (sourceDir instanceof Collection ? sourceDir.toList() : [ sourceDir ])
       }
       if(sourceSet.compileConfigurationName != 'compile')
         project.configurations[sourceSet.compileConfigurationName].extendsFrom project.configurations.compile
