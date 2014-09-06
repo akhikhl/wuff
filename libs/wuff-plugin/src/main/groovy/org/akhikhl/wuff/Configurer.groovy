@@ -155,6 +155,7 @@ class Configurer {
   }
 
   String getSelectedEclipseMavenGroup() {
+
     if(!project.ext.has('eclipseMavenGroup')) {
       project.ext.eclipseMavenGroup = effectiveConfig.selectedVersionConfig?.eclipseMavenGroup
       populateUnpuzzleConfig(project.unpuzzle, project.wuff)
@@ -189,7 +190,8 @@ class Configurer {
       }
       wuff.versionConfigs.each { String versionString, EclipseVersionConfig versionConfig ->
         unpuzzle.eclipseVersion(versionString) {
-          eclipseMavenGroup = versionConfig.eclipseMavenGroup
+          if(versionConfig.eclipseMavenGroup)
+            eclipseMavenGroup = versionConfig.eclipseMavenGroup
           if(versionConfig.eclipseMirror)
             eclipseMirror = versionConfig.eclipseMirror
           if(versionConfig.eclipseArchiveMirror)
