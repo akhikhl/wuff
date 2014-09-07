@@ -82,29 +82,34 @@ class Configurer {
 
   protected void configureTask_scaffold() {
     String resourceDir = getScaffoldResourceDir()
-    if(resourceDir != null)
-      project.task('scaffold', type: Copy) {
+    if(resourceDir != null) {
+      if(!resourceDir.endsWith('/'))
+        resourceDir += '/'
+      project.task('scaffold') {
         group = 'wuff'
         description = 'creates default source code files and configuration files'
-        if(!resourceDir.endsWith('/'))
-          resourceDir += '/'
-        String path = URLDecoder.decode(Configurer.class.getProtectionDomain().getCodeSource().getLocation().getPath(), 'UTF-8')
-        String packageName = project.name.toLowerCase().replace('-', '.')
-        String packagePath = packageName.replace('.', '/')
         outputs.upToDateWhen { false }
-        from project.zipTree(path)
-        into project.projectDir
-        include "${resourceDir}**"
-        rename ~/(.+)\.(.+)_$/, '$1.$2'
-        expand project: project, packageName: packageName
-        eachFile { details ->
-          String rpath = details.relativePath.toString()
-          rpath = rpath.substring(resourceDir.length())
-          rpath = rpath.replaceAll($/(.*)/_package_/(.*)/$, '$1/' + packagePath + '/$2')
-          details.relativePath = new RelativePath(!details.directory, rpath)
+        doLast {
+          String path = URLDecoder.decode(Configurer.class.getProtectionDomain().getCodeSource().getLocation().getPath(), 'UTF-8')
+          String packageName = project.name.toLowerCase().replace('-', '.')
+          String packagePath = packageName.replace('.', '/')
+          project.copy {
+            from project.zipTree(path)
+            into project.projectDir
+            include "${resourceDir}**"
+            rename ~/(.+)\.(.+)_$/, '$1.$2'
+            expand project: project, packageName: packageName
+            eachFile { details ->
+              String rpath = details.relativePath.toString()
+              rpath = rpath.substring(resourceDir.length())
+              rpath = rpath.replaceAll($/(.*)/_package_/(.*)/$, '$1/' + packagePath + '/$2')
+              details.relativePath = new RelativePath(!details.directory, rpath)
+            }
+            includeEmptyDirs = false
+          }
         }
-        includeEmptyDirs = false
       }
+    }
   }
 
   protected void createConfigurations() {
