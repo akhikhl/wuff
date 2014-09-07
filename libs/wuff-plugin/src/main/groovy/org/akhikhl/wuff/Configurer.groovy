@@ -91,10 +91,11 @@ class Configurer {
         String path = URLDecoder.decode(Configurer.class.getProtectionDomain().getCodeSource().getLocation().getPath(), 'UTF-8')
         String packageName = project.name.toLowerCase().replace('-', '.')
         String packagePath = packageName.replace('.', '/')
+        outputs.upToDateWhen { false }
         from project.zipTree(path)
         into project.projectDir
         include "${resourceDir}**"
-        rename ~/(.+)\.java_$/, '$1.java'
+        rename ~/(.+)\.(.+)_$/, '$1.$2'
         expand project: project, packageName: packageName
         eachFile { details ->
           String rpath = details.relativePath.toString()

@@ -98,6 +98,11 @@ class Config {
     if(source.filterHtml)
       target.filterHtml = true
   }
+  
+  boolean supportsE4() {
+    assert selectedEclipseVersion != null
+    (selectedEclipseVersion.split('\\.')[0] as int) >= 4
+  }
 
   void wrappedLibs(Closure closure) {
     wrappedLibs = null

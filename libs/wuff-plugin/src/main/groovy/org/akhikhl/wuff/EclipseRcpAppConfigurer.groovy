@@ -129,7 +129,10 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
   @Override
   protected String getScaffoldResourceDir() {
-    'scaffold/eclipse-rcp-app/'
+    if(project.effectiveWuff.supportsE4())
+      'scaffold/eclipse-rcp-app-e4/'
+    else
+      'scaffold/eclipse-rcp-app/'
   }
 
   protected void populatePluginIntroXml(MarkupBuilder pluginIntroXml, Node existingPluginIntroXml, String language) {

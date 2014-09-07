@@ -25,6 +25,11 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
   }
 
   @Override
+  protected boolean mustDefineApplicationExtensionPoint() {
+    !project.effectiveWuff.supportsE4()
+  }
+
+  @Override
   protected void populate(MarkupBuilder pluginXml) {
     populateApplications(pluginXml)
     populateProduct(pluginXml)
@@ -32,7 +37,14 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     populateViews(pluginXml)
     populateIntro(pluginXml)
   }
-
+  
+  @Override
+  protected void populateApplications(MarkupBuilder pluginXml) {
+    super.populateApplications(pluginXml)
+    if(project.effectiveWuff.supportsE4() && applicationIds.isEmpty())
+      applicationIds.add('org.eclipse.e4.ui.workbench.swt.E4Application')
+  }
+  
   protected void populateIntro(MarkupBuilder pluginXml) {
     File introFile = PluginUtils.findPluginIntroHtmlFile(project)
     if(introFile) {
@@ -73,11 +85,9 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     }
     else {
       if(applicationIds.isEmpty()) {
-        if(project.sourceSets.main.allSource.srcDirs.findAll { it.exists() }.size()) {
-          log.error 'Error in rcp application configuration for project {}:', project.name
-          log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
-          log.error 'Reason: extension-point "org.eclipse.core.runtime.applications" is undefined.'
-        }
+        log.error 'Error in rcp application configuration for project {}:', project.name
+        log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
+        log.error 'Reason: extension-point "org.eclipse.core.runtime.applications" is undefined.'
       } else if (applicationIds.size() > 1) {
         log.error 'Error in rcp application configuration for project {}:', project.name
         log.error 'Could not generate extension-point "org.eclipse.core.runtime.products".'
@@ -89,7 +99,10 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
         productId = 'product'
         log.info 'generating extension-point "org.eclipse.core.runtime.products", id={}, application={}', productId, appId
         pluginXml.extension(id: productId, point: 'org.eclipse.core.runtime.products') {
-          product application: appId, name: project.name
+          product application: appId, name: project.name, {
+            if(project.effectiveWuff.supportsE4())
+              property name: 'appName', value: project.name
+          }
         }
         productId = "${project.name}.${productId}"
       }
@@ -100,4 +113,3 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     eclipseBundlePluginXmlBuilder.populateViews(pluginXml)
   }
 }
-

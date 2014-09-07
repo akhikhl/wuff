@@ -273,6 +273,21 @@ wuff {
       project.dependencies {
         compile "${eclipseMavenGroup}:javax.annotation:+"
         compile "${eclipseMavenGroup}:javax.inject:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.model.workbench:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.services:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.workbench:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.contexts:+"
+      }
+
+      project.tasks.jar.manifest {
+        instruction 'Require-Bundle', 'org.eclipse.e4.ui.model.workbench'
+        instruction 'Require-Bundle', 'org.eclipse.e4.ui.services'
+        instruction 'Require-Bundle', 'org.eclipse.e4.ui.workbench'
+        instruction 'Require-Bundle', 'org.eclipse.e4.core.di'
+        instruction 'Require-Bundle', 'org.eclipse.e4.ui.di'
+        instruction 'Require-Bundle', 'org.eclipse.e4.core.contexts'
       }
     }
   }

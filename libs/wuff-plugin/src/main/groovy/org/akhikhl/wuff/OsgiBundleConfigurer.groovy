@@ -207,7 +207,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       StringEscapeUtils.escapeJava(w.toString())
     }
 
-    def effectiveResources = [] as Set
+    Set effectiveResources = new LinkedHashSet()
     if(buildProperties) {
       // "plugin.xml" and "plugin_customization.ini" are not included,
       // because they are generated as extra-files in createExtraFiles.
@@ -217,12 +217,19 @@ class OsgiBundleConfigurer extends JavaConfigurer {
           effectiveResources.add(relPath)
       }
     } else {
-      effectiveResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/'])
+      effectiveResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/', 'Application.e4xmi'])
       effectiveResources.addAll(project.projectDir.listFiles({ (it.name =~ /plugin.*\.properties/) as boolean } as FileFilter).collect { it.name })
     }
     log.debug 'configureTask_processResources, effectiveResources: {}', effectiveResources
 
     project.tasks.processResources {
+      
+      for(File f in effectiveResources.collect { new File(project.projectDir, it).canonicalFile }.findAll { it.isDirectory() })
+        inputs.dir f
+        
+      inputs.files {
+        effectiveResources.collect { new File(project.projectDir, it).canonicalFile }.findAll { it.isFile() }
+      }
 
       from project.sourceSets.main.resources.srcDirs, {
         if(effectiveConfig.filterProperties)
@@ -311,14 +318,19 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     def pluginXml = project.pluginXml
     if(pluginXml) {
-      m.attributes['Bundle-SymbolicName'] = "${project.bundleSymbolicName}; singleton:=true" as String
+      m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName + '; singleton:=true'
       Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, pluginXml).collectEntries { [ it, '' ] }
       importPackages << ManifestUtils.parsePackages(m.attributes['Import-Package'])
       m.attributes['Import-Package'] = ManifestUtils.packagesToString(importPackages)
     }
-    else
-      m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName
-
+    else {
+      if(project.extensions.findByName('run'))
+        // eclipse 4 requires runnable application to be a singleton
+        m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName + '; singleton:=true'
+      else
+        m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName
+    }
+    
     def localizationFiles = PluginUtils.collectPluginLocalizationFiles(project)
     if(localizationFiles)
       m.attributes['Bundle-Localization'] = 'plugin'

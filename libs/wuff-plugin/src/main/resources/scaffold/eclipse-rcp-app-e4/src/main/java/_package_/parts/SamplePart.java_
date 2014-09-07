@@ -1,0 +1,30 @@
+package ${packageName}.parts;
+
+import javax.annotation.PostConstruct;
+
+import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
+
+public class SamplePart {
+
+	private Text txtInput;
+
+	@PostConstruct
+	public void createComposite(Composite parent) {
+		parent.setLayout(new GridLayout(1, false));
+
+		txtInput = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+		txtInput.setText("Hello, world!");
+		txtInput.setLayoutData(new GridData(GridData.FILL_BOTH));
+	}
+
+	@Focus
+	public void setFocus() {
+		txtInput.setFocus();
+	}
+}
+

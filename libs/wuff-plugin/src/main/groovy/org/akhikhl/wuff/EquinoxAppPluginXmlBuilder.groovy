@@ -22,6 +22,10 @@ class EquinoxAppPluginXmlBuilder extends PluginXmlBuilder {
     super(project)
   }
 
+  protected boolean mustDefineApplicationExtensionPoint() {
+    true
+  }
+
   @Override
   protected void populate(MarkupBuilder pluginXml) {
     populateApplications(pluginXml)
@@ -54,12 +58,12 @@ class EquinoxAppPluginXmlBuilder extends PluginXmlBuilder {
           }
           simpleAppIds.add(appId)
         }
-      applicationIds = simpleAppIds.collect { "${project.name}.${it}" }
-      if(applicationIds.isEmpty()) {
-        log.error 'Error in equinox application configuration for project {}:', project.name
-        log.error 'Could not generate extension-point "org.eclipse.core.runtime.applications" and there are no user-provided extension-points of this type.'
-        log.error 'Reason: project sources do not contain Application.java or Application.groovy.'
-      }
+    }
+    applicationIds = simpleAppIds.collect { "${project.name}.${it}" }
+    if(applicationIds.isEmpty() && mustDefineApplicationExtensionPoint()) {
+      log.error 'Error in equinox application configuration for project {}:', project.name
+      log.error 'Could not generate extension-point "org.eclipse.core.runtime.applications" and there are no user-provided extension-points of this type.'
+      log.error 'Reason: project sources do not contain Application.java or Application.groovy.'
     }
   }
 }
