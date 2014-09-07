@@ -12,7 +12,32 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 #### :star: What's new
 
+- Version 0.0.13-SNAPSHOT: Wuff now supports scaffolding and starting e4 model-driven applications.
+
 - Version 0.0.13-SNAPSHOT: fixed groovy-all version compatibility, upgraded to unpuzzle 0.0.17-SNAPSHOT.
+
+- From now on I'll push snapshot versions of Wuff to jfrog snapshot repository. If you want to use snapshot versions, please add the following to your build script:
+
+```groovy
+buildscript {
+  repositories {
+    jcenter()
+    maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
+  }
+
+  dependencies {
+    classpath 'org.akhikhl.wuff:wuff-plugin:0.0.13-SNAPSHOT'
+  }
+}
+
+repositories {
+  jcenter()
+  maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.akhikhl.wuff.eclipse-rcp-app'
+```
 
 - Version 0.0.12: fixed compatibility with JDK6 (thanks to @jstarry for contribution). 
 
