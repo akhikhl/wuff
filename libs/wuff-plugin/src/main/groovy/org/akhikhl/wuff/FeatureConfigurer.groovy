@@ -10,6 +10,7 @@ package org.akhikhl.wuff
 import groovy.xml.MarkupBuilder
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.Copy
 import org.gradle.process.ExecResult
 import org.slf4j.Logger
@@ -43,7 +44,9 @@ class FeatureConfigurer {
     configurer.apply()
 
     project.configurations {
-      feature
+      feature {
+        transitive = false        
+      }
     }
 
     project.afterEvaluate {
@@ -62,8 +65,10 @@ class FeatureConfigurer {
         description = 'removes stale plugins'
         dependsOn {
           project.configurations.feature.dependencies.findResults {
-            def proj = it.dependencyProject
-            proj.tasks.findByName('build')
+            if(it instanceof ProjectDependency) {
+              def proj = it.dependencyProject
+              proj.tasks.findByName('build')
+            }
           }
         }
         inputs.files { project.configurations.feature }
@@ -85,12 +90,7 @@ class FeatureConfigurer {
         dependsOn project.tasks.featureRemoveStalePlugins
         inputs.files { project.configurations.feature }
         outputs.dir pluginsDir
-        from {
-          project.configurations.feature.dependencies.collect {
-            def proj = it.dependencyProject
-            proj.jar.archivePath
-          }
-        }
+        from { project.configurations.feature.files }
         into pluginsDir
       }
 
@@ -98,12 +98,7 @@ class FeatureConfigurer {
         group = 'wuff'
         description = 'prepares eclipse-specific feature files'
         inputs.properties featureId: getFeatureId(), featureLabel: getFeatureLabel(), featureVersion: getFeatureVersion()
-        inputs.property 'plugins', {
-          project.configurations.feature.dependencies.collect {
-            def proj = it.dependencyProject
-            [ id: proj.name ]
-          }
-        }
+        inputs.files { project.configurations.feature }
         outputs.file featureXmlFile
         outputs.file buildPropertiesFile
         doLast {
@@ -187,9 +182,15 @@ class FeatureConfigurer {
       xml.doubleQuotes = true
       xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
       xml.feature id: getFeatureId(), label: getFeatureLabel(), version: getFeatureVersion(), {
-        project.configurations.feature.dependencies.each {
-          def proj = it.dependencyProject
-          plugin id: proj.name, 'download-size': '0', 'install-size': '0', version: '0.0.0', unpack: false
+        project.configurations.feature.files.each { f ->
+          def manifest = ManifestUtils.getManifest(project, f)
+          if(ManifestUtils.isBundle(manifest)) {
+            String bundleSymbolicName = manifest.mainAttributes?.getValue('Bundle-SymbolicName')
+            bundleSymbolicName = bundleSymbolicName.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
+            plugin id: bundleSymbolicName, 'download-size': '0', 'install-size': '0', version: '0.0.0', unpack: false
+          }
+          else
+            log.error 'Could not add {} to feature {}, because it is not a bundle', f.name, getFeatureId()
         }
       }
     }
