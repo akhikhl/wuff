@@ -14,11 +14,11 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class OsgiBundlePlugin implements Plugin<Project> {
+class FeaturePlugin implements Plugin<Project> {
 
   @Override
   void apply(Project project) {
-    def configurer = new OsgiBundleConfigurer(project)
+    def configurer = new FeatureConfigurer(project)
     configurer.apply()
   }
 }
