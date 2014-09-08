@@ -42,6 +42,8 @@ class FeatureConfigurer {
 
     def configurer = new Configurer(project)
     configurer.apply()
+    
+    project.extensions.create('feature', FeatureExtension)
 
     project.configurations {
       feature {
@@ -54,8 +56,8 @@ class FeatureConfigurer {
       File featureTempBuildDir = new File(project.buildDir, 'feature-temp')
       File pluginsDir = new File(featureTempBuildDir, 'plugins')
       File featuresDir = new File(featureTempBuildDir, 'features')
-      File featureXmlFile = new File(featuresDir, "${project.name}/feature.xml")
-      File buildPropertiesFile = new File(featuresDir, "${project.name}/build.properties")
+      File featureXmlFile = new File(featuresDir, "${getFeatureId()}/feature.xml")
+      File buildPropertiesFile = new File(featuresDir, "${getFeatureId()}/build.properties")
       String featureOutputFileName = getFeatureId() + '-' + getFeatureVersion() + '.zip'
       File featureAssembleOutputFile = new File(featureTempBuildDir, 'build.' + getFeatureVersion() + '/' + featureOutputFileName)
       File featureBuildOutputFile = new File(project.buildDir, featureOutputFileName)
@@ -97,7 +99,14 @@ class FeatureConfigurer {
       project.task('featurePrepareConfigFiles') {
         group = 'wuff'
         description = 'prepares eclipse-specific feature files'
-        inputs.properties featureId: getFeatureId(), featureLabel: getFeatureLabel(), featureVersion: getFeatureVersion()
+        inputs.properties featureId: getFeatureId(), 
+          featureLabel: getFeatureLabel(), 
+          featureVersion: getFeatureVersion(),
+          featureProviderName: project.extensions.feature.providerName,
+          featureCopyright: project.extensions.feature.copyright,
+          featureLicenseUrl: project.extensions.feature.licenseUrl,
+          featureLicenseText: project.extensions.feature.licenseText
+          
         inputs.files { project.configurations.feature }
         outputs.file featureXmlFile
         outputs.file buildPropertiesFile
@@ -164,11 +173,11 @@ class FeatureConfigurer {
   }
 
   protected String getFeatureId() {
-    project.name.replace('-', '.')
+    project.extensions.feature.id ?: project.name.replace('-', '.')
   }
 
   protected String getFeatureLabel() {
-    project.name
+    project.extensions.feature.label ?: project.name
   }
 
   protected String getFeatureVersion() {
@@ -181,7 +190,26 @@ class FeatureConfigurer {
       def xml = new MarkupBuilder(it)
       xml.doubleQuotes = true
       xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
-      xml.feature id: getFeatureId(), label: getFeatureLabel(), version: getFeatureVersion(), {
+      Map featureAttrs = [ id: getFeatureId(), version: getFeatureVersion() ]
+      String featureLabel = getFeatureLabel()
+      if(featureLabel)
+        featureAttrs.label = featureLabel
+      xml.feature featureAttrs, {
+
+        if(featureLabel)
+          description featureLabel
+
+        if(project.extensions.feature.copyright)
+          copyright project.extensions.feature.copyright
+
+        if(project.extensions.feature.licenseUrl) {
+          if(project.extensions.feature.licenseText)
+            license url: project.extensions.feature.licenseUrl, project.extensions.feature.licenseText
+          else
+            license url: project.extensions.feature.licenseUrl
+        } else if(project.extensions.feature.licenseText)
+          license project.extensions.feature.licenseText
+
         project.configurations.feature.files.each { f ->
           def manifest = ManifestUtils.getManifest(project, f)
           if(ManifestUtils.isBundle(manifest)) {
