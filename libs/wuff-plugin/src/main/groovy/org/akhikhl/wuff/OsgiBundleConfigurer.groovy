@@ -97,6 +97,9 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       File generatedManifestFile = getGeneratedManifestFile()
       dependsOn project.tasks.classes
+      inputs.property 'projectVersion', { project.version }
+      inputs.property 'localizationFiles', { PluginUtils.collectPluginLocalizationFiles(project) }
+      inputs.properties getExtraFilesProperties()
       inputs.files { project.configurations.runtime }
       outputs.files generatedManifestFile
       doLast {
@@ -135,6 +138,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.files { getGeneratedManifestFile() }
 
       from { project.configurations.privateLib }
+
+      def namePart1 = [baseName, appendix].findResults { it ?: null }.join('-')
+      def namePart2 = [version, classifier].findResults { it ?: null }.join('-')
+      def namePart3 = [namePart1, namePart2].findResults { it ?: null }.join('_')
+      archiveName = [namePart3, extension].findResults { it ?: null }.join('.')
 
       buildProperties?.source?.each { sourceName, sourceDir ->
         def sourceSetName = sourceName == '.' ? 'main' : sourceName
@@ -223,10 +231,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     log.debug 'configureTask_processResources, effectiveResources: {}', effectiveResources
 
     project.tasks.processResources {
-      
+
       for(File f in effectiveResources.collect { new File(project.projectDir, it).canonicalFile }.findAll { it.isDirectory() })
         inputs.dir f
-        
+
       inputs.files {
         effectiveResources.collect { new File(project.projectDir, it).canonicalFile }.findAll { it.isFile() }
       }
@@ -330,7 +338,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       else
         m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName
     }
-    
+
     def localizationFiles = PluginUtils.collectPluginLocalizationFiles(project)
     if(localizationFiles)
       m.attributes['Bundle-Localization'] = 'plugin'
