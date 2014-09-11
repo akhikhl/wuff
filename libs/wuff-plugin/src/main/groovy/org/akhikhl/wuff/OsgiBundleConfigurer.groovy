@@ -48,12 +48,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         def proj = project.rootProject.subprojects.find {
           it.ext.has('bundleSymbolicName') && it.ext.bundleSymbolicName == bundleName
         }
-        if(proj)
+        if(proj) {
           project.dependencies.add 'compile', proj
-        else if(bundleName.toString().startsWith("org.osgi") || bundleName.toString().startsWith("org.eclipse"))
+        } else {
           project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
-        else
-          project.logger.warn 'Bundle name {} could not be found', bundleName
+        }
       }
     }
     userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
