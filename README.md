@@ -12,6 +12,8 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 #### :star: What's new
 
+- Version 0.0.13-SNAPSHOT: Wuff configuration now supports "file:///..." URLs as sources of mavenized bundles.
+
 - Version 0.0.13-SNAPSHOT: Wuff now supports scaffolding and starting e4 model-driven applications.
 
 - Version 0.0.13-SNAPSHOT: fixed groovy-all version compatibility, upgraded to unpuzzle 0.0.17-SNAPSHOT.
