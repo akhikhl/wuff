@@ -243,7 +243,7 @@ class EquinoxProductConfigurer {
       String launchOption = ''
       if(pluginName == 'org.eclipse.equinox.ds' || pluginName == 'org.eclipse.equinox.common')
         launchOption = '@2:start'
-      else if(pluginName == 'org.eclipse.core.runtime' || pluginName == 'jersey-core')
+      else if(pluginName == 'org.eclipse.core.runtime' || pluginName == 'jersey-core' || project.products.autostartedBundles.contains(pluginName))
         launchOption = '@start'
       if(pluginName != PluginUtils.osgiFrameworkPluginName && !pluginName.startsWith(PluginUtils.equinoxLauncherPluginName))
         bundleLaunchList[pluginName] = "reference\\:file\\:${file.name}${launchOption}"

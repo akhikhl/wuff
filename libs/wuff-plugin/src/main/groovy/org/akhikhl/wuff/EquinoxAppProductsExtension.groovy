@@ -26,6 +26,8 @@ class EquinoxAppProductsExtension {
 
   List<String> jvmArgs = []
 
+  List<String> autostartedBundles = []
+
   def archiveFile(file) {
     additionalFilesToArchive.add file
   }
@@ -36,6 +38,10 @@ class EquinoxAppProductsExtension {
 
   void launchParameter(String newValue) {
     launchParameters.add newValue
+  }
+
+  void autostartedBundle(String newBundle) {
+      autostartedBundles.add newBundle
   }
 
   void jvmArg(String newValue) {
