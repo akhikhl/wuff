@@ -16,6 +16,7 @@ class RunExtension {
   def args = []
   def jvmArgs = []
   String language
+  def autostartedBundles = []
 
   def arg(String newValue) {
     args.add newValue
@@ -35,5 +36,9 @@ class RunExtension {
 
   def language(String newValue) {
     language = newValue
+  }
+
+  void autostartedBundle(String newBundle) {
+    autostartedBundles.add newBundle
   }
 }
