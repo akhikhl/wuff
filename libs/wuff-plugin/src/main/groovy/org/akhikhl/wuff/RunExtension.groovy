@@ -41,4 +41,8 @@ class RunExtension {
   void autostartedBundle(String newBundle) {
     autostartedBundles.add newBundle
   }
+
+  void autostartedBundle(String[] newBundles) {
+    autostartedBundles.addAll newBundles
+  }
 }
