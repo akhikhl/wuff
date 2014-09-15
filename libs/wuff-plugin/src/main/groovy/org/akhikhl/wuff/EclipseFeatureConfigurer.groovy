@@ -44,23 +44,23 @@ class EclipseFeatureConfigurer {
     def configurer = new Configurer(project)
     configurer.apply()
 
-    project.extensions.create('feature', EclipseFeatureExtension)
+    project.extensions.create('eclipseFeature', EclipseFeatureExtension)
 
     project.configurations {
-      plugin {
+      featurePlugin {
         transitive = false
       }
     }
 
     project.afterEvaluate {
 
-      File featureTempBuildDir = new File(project.buildDir, 'feature-temp')
-      File pluginsDir = new File(featureTempBuildDir, 'plugins')
-      File featuresDir = new File(featureTempBuildDir, 'features')
+      File featureOutputDir = new File(project.buildDir, 'output')
+      File pluginsDir = new File(featureOutputDir, 'plugins')
+      File featuresDir = new File(featureOutputDir, 'features')
       File featureXmlFile = new File(featuresDir, "${getFeatureId()}/feature.xml")
       File buildPropertiesFile = new File(featuresDir, "${getFeatureId()}/build.properties")
       String featureOutputFileName = getFeatureId() + '-' + getFeatureVersion() + '.zip'
-      File featureAssembleOutputFile = new File(featureTempBuildDir, 'build.' + getFeatureVersion() + '/' + featureOutputFileName)
+      File featureAssembleOutputFile = new File(featureOutputDir, 'build.' + getFeatureVersion() + '/' + featureOutputFileName)
       File featureBuildOutputFile = new File(project.buildDir, featureOutputFileName)
 
       if(!project.tasks.findByName('clean'))
@@ -72,7 +72,7 @@ class EclipseFeatureConfigurer {
 
       project.task('featureRemoveStalePlugins') {
         group = 'wuff'
-        description = 'removes stale plugins'
+        description = 'removes stale plugins from feature source'
         dependsOn {
           featureConfiguration.dependencies.findResults {
             if(it instanceof ProjectDependency) {
@@ -96,7 +96,7 @@ class EclipseFeatureConfigurer {
 
       project.task('featureCopyPlugins', type: Copy) {
         group = 'wuff'
-        description = 'copies dependency plugins'
+        description = 'copies dependency plugins to feature source'
         dependsOn project.tasks.featureRemoveStalePlugins
         inputs.files { featureConfiguration }
         outputs.dir pluginsDir
@@ -110,10 +110,10 @@ class EclipseFeatureConfigurer {
         inputs.properties featureId: getFeatureId(),
           featureLabel: getFeatureLabel(),
           featureVersion: getFeatureVersion(),
-          featureProviderName: project.extensions.feature.providerName,
-          featureCopyright: project.extensions.feature.copyright,
-          featureLicenseUrl: project.extensions.feature.licenseUrl,
-          featureLicenseText: project.extensions.feature.licenseText
+          featureProviderName: project.extensions.eclipseFeature.providerName,
+          featureCopyright: project.extensions.eclipseFeature.copyright,
+          featureLicenseUrl: project.extensions.eclipseFeature.licenseUrl,
+          featureLicenseText: project.extensions.eclipseFeature.licenseText
 
         inputs.files { featureConfiguration }
         outputs.file featureXmlFile
@@ -125,6 +125,8 @@ class EclipseFeatureConfigurer {
       }
 
       project.task('featureAssemble') {
+        group = 'wuff'
+        description = 'assembles eclipse feature'
         dependsOn project.tasks.featureCopyPlugins
         dependsOn project.tasks.featurePrepareConfigFiles
         inputs.dir pluginsDir
@@ -132,8 +134,7 @@ class EclipseFeatureConfigurer {
         inputs.file buildPropertiesFile
         outputs.file featureAssembleOutputFile
         doLast {
-          def unpuzzle = project.effectiveUnpuzzle
-          File baseLocation = unpuzzle.eclipseUnpackDir
+          File baseLocation = project.effectiveUnpuzzle.eclipseUnpackDir
           def equinoxLauncherPlugin = new File(baseLocation, 'plugins').listFiles({ it.name.matches ~/^org\.eclipse\.equinox\.launcher_(.+)\.jar$/ } as FileFilter)
           if(!equinoxLauncherPlugin)
             throw new GradleException("Could not build feature: equinox launcher not found in ${new File(baseLocation, 'plugins')}")
@@ -160,7 +161,7 @@ class EclipseFeatureConfigurer {
             jvmArgs '-application', 'org.eclipse.ant.core.antRunner'
             jvmArgs '-buildfile', buildXml.absolutePath
             jvmArgs '-Dbuilder=' + buildConfigDir.absolutePath
-            jvmArgs '-DbuildDirectory=' + featureTempBuildDir.absolutePath
+            jvmArgs '-DbuildDirectory=' + featureOutputDir.absolutePath
             jvmArgs '-DbaseLocation=' + baseLocation.absolutePath
             jvmArgs '-DtopLevelElementId=' + getFeatureId()
             jvmArgs '-DbuildType=build'
@@ -171,6 +172,8 @@ class EclipseFeatureConfigurer {
       }
 
       project.task('build', type: Copy) {
+        group = 'wuff'
+        description = 'builds eclipse feature'
         dependsOn project.tasks.featureAssemble
         inputs.file featureAssembleOutputFile
         outputs.file featureBuildOutputFile
@@ -185,15 +188,15 @@ class EclipseFeatureConfigurer {
   }
 
   protected String getFeatureConfigurationName() {
-    project.extensions.feature.configuration ?: 'plugin'
+    project.extensions.eclipseFeature.configuration ?: 'featurePlugin'
   }
 
   protected String getFeatureId() {
-    project.extensions.feature.id ?: project.name.replace('-', '.')
+    project.extensions.eclipseFeature.id ?: project.name.replace('-', '.')
   }
 
   protected String getFeatureLabel() {
-    project.extensions.feature.label ?: project.name
+    project.extensions.eclipseFeature.label ?: project.name
   }
 
   protected String getFeatureVersion() {
@@ -215,16 +218,16 @@ class EclipseFeatureConfigurer {
         if(featureLabel)
           description featureLabel
 
-        if(project.extensions.feature.copyright)
-          copyright project.extensions.feature.copyright
+        if(project.extensions.eclipseFeature.copyright)
+          copyright project.extensions.eclipseFeature.copyright
 
-        if(project.extensions.feature.licenseUrl) {
-          if(project.extensions.feature.licenseText)
-            license url: project.extensions.feature.licenseUrl, project.extensions.feature.licenseText
+        if(project.extensions.eclipseFeature.licenseUrl) {
+          if(project.extensions.eclipseFeature.licenseText)
+            license url: project.extensions.eclipseFeature.licenseUrl, project.extensions.eclipseFeature.licenseText
           else
-            license url: project.extensions.feature.licenseUrl
-        } else if(project.extensions.feature.licenseText)
-          license project.extensions.feature.licenseText
+            license url: project.extensions.eclipseFeature.licenseUrl
+        } else if(project.extensions.eclipseFeature.licenseText)
+          license project.extensions.eclipseFeature.licenseText
 
         featureConfiguration.files.each { f ->
           def manifest = ManifestUtils.getManifest(project, f)
