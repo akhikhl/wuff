@@ -21,9 +21,9 @@ import org.slf4j.LoggerFactory
  *
  * @author akhikhl
  */
-class FeatureConfigurer {
+class EclipseFeatureConfigurer {
 
-  protected static final Logger log = LoggerFactory.getLogger(FeatureConfigurer)
+  protected static final Logger log = LoggerFactory.getLogger(EclipseFeatureConfigurer)
 
   protected static mavenVersionToEclipseVersion(String version) {
     def eclipseVersion = version ?: '1.0.0'
@@ -35,7 +35,7 @@ class FeatureConfigurer {
 
   protected final Project project
 
-  FeatureConfigurer(Project project) {
+  EclipseFeatureConfigurer(Project project) {
     this.project = project
   }
 
@@ -44,7 +44,7 @@ class FeatureConfigurer {
     def configurer = new Configurer(project)
     configurer.apply()
 
-    project.extensions.create('feature', FeatureExtension)
+    project.extensions.create('feature', EclipseFeatureExtension)
 
     project.configurations {
       plugin {

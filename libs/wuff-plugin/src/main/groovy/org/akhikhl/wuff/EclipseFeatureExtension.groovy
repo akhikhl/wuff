@@ -11,7 +11,7 @@ package org.akhikhl.wuff
  *
  * @author akhikhl
  */
-class FeatureExtension {
+class EclipseFeatureExtension {
 	String id
   String label
   String providerName

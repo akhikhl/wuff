@@ -14,11 +14,11 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class FeaturePlugin implements Plugin<Project> {
+class EclipseFeaturePlugin implements Plugin<Project> {
 
   @Override
   void apply(Project project) {
-    def configurer = new FeatureConfigurer(project)
+    def configurer = new EclipseFeatureConfigurer(project)
     configurer.apply()
   }
 }
