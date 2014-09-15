@@ -10,6 +10,7 @@ package org.akhikhl.wuff
 import groovy.xml.MarkupBuilder
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.Copy
 import org.gradle.process.ExecResult
@@ -42,12 +43,12 @@ class FeatureConfigurer {
 
     def configurer = new Configurer(project)
     configurer.apply()
-    
+
     project.extensions.create('feature', FeatureExtension)
 
     project.configurations {
-      feature {
-        transitive = false        
+      plugin {
+        transitive = false
       }
     }
 
@@ -62,24 +63,31 @@ class FeatureConfigurer {
       File featureAssembleOutputFile = new File(featureTempBuildDir, 'build.' + getFeatureVersion() + '/' + featureOutputFileName)
       File featureBuildOutputFile = new File(project.buildDir, featureOutputFileName)
 
+      if(!project.tasks.findByName('clean'))
+        project.task('clean') {
+          doLast {
+            project.buildDir.deleteDir()
+          }
+        }
+
       project.task('featureRemoveStalePlugins') {
         group = 'wuff'
         description = 'removes stale plugins'
         dependsOn {
-          project.configurations.feature.dependencies.findResults {
+          featureConfiguration.dependencies.findResults {
             if(it instanceof ProjectDependency) {
               def proj = it.dependencyProject
               proj.tasks.findByName('build')
             }
           }
         }
-        inputs.files { project.configurations.feature }
+        inputs.files { featureConfiguration }
         outputs.upToDateWhen {
-          Set fileNames = project.configurations.feature.files.collect { it.name } as Set
+          Set fileNames = featureConfiguration.files.collect { it.name } as Set
           !pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).find { !fileNames.contains(it.name) }
         }
         doLast {
-          Set fileNames = project.configurations.feature.files.collect { it.name } as Set
+          Set fileNames = featureConfiguration.files.collect { it.name } as Set
           pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).findAll { !fileNames.contains(it.name) }.each {
             it.delete()
           }
@@ -90,24 +98,24 @@ class FeatureConfigurer {
         group = 'wuff'
         description = 'copies dependency plugins'
         dependsOn project.tasks.featureRemoveStalePlugins
-        inputs.files { project.configurations.feature }
+        inputs.files { featureConfiguration }
         outputs.dir pluginsDir
-        from { project.configurations.feature.files }
+        from { featureConfiguration.files }
         into pluginsDir
       }
 
       project.task('featurePrepareConfigFiles') {
         group = 'wuff'
         description = 'prepares eclipse-specific feature files'
-        inputs.properties featureId: getFeatureId(), 
-          featureLabel: getFeatureLabel(), 
+        inputs.properties featureId: getFeatureId(),
+          featureLabel: getFeatureLabel(),
           featureVersion: getFeatureVersion(),
           featureProviderName: project.extensions.feature.providerName,
           featureCopyright: project.extensions.feature.copyright,
           featureLicenseUrl: project.extensions.feature.licenseUrl,
           featureLicenseText: project.extensions.feature.licenseText
-          
-        inputs.files { project.configurations.feature }
+
+        inputs.files { featureConfiguration }
         outputs.file featureXmlFile
         outputs.file buildPropertiesFile
         doLast {
@@ -172,6 +180,14 @@ class FeatureConfigurer {
     } // afterEvaluate
   }
 
+  protected Configuration getFeatureConfiguration() {
+    project.configurations[getFeatureConfigurationName()]
+  }
+
+  protected String getFeatureConfigurationName() {
+    project.extensions.feature.configuration ?: 'plugin'
+  }
+
   protected String getFeatureId() {
     project.extensions.feature.id ?: project.name.replace('-', '.')
   }
@@ -210,7 +226,7 @@ class FeatureConfigurer {
         } else if(project.extensions.feature.licenseText)
           license project.extensions.feature.licenseText
 
-        project.configurations.feature.files.each { f ->
+        featureConfiguration.files.each { f ->
           def manifest = ManifestUtils.getManifest(project, f)
           if(ManifestUtils.isBundle(manifest)) {
             String bundleSymbolicName = manifest.mainAttributes?.getValue('Bundle-SymbolicName')
@@ -218,7 +234,7 @@ class FeatureConfigurer {
             plugin id: bundleSymbolicName, 'download-size': '0', 'install-size': '0', version: '0.0.0', unpack: false
           }
           else
-            log.error 'Could not add {} to feature {}, because it is not a bundle', f.name, getFeatureId()
+            log.error 'Could not add {} to feature {}, because it is not an OSGi bundle', f.name, getFeatureId()
         }
       }
     }

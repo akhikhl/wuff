@@ -17,6 +17,7 @@ class FeatureExtension {
   String providerName
   String copyright
   String licenseUrl
-  String licenseText  
+  String licenseText
+  String configuration
 }
 
