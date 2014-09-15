@@ -22,6 +22,10 @@ import org.slf4j.LoggerFactory
  * @author akhikhl
  */
 class EclipseFeatureConfigurer {
+  
+  static String getFeatureId(Project project) {
+    project.wuff.feature.id ?: project.name.replace('-', '.')
+  }
 
   protected static final Logger log = LoggerFactory.getLogger(EclipseFeatureConfigurer)
 
@@ -44,10 +48,10 @@ class EclipseFeatureConfigurer {
     def configurer = new Configurer(project)
     configurer.apply()
 
-    project.extensions.create('eclipseFeature', EclipseFeatureExtension)
+    project.wuff.extensions.create('feature', EclipseFeatureExtension)
 
     project.configurations {
-      featurePlugin {
+      feature {
         transitive = false
       }
     }
@@ -106,14 +110,14 @@ class EclipseFeatureConfigurer {
 
       project.task('featurePrepareConfigFiles') {
         group = 'wuff'
-        description = 'prepares eclipse-specific feature files'
+        description = 'prepares feature configuration files'
         inputs.properties featureId: getFeatureId(),
           featureLabel: getFeatureLabel(),
           featureVersion: getFeatureVersion(),
-          featureProviderName: project.extensions.eclipseFeature.providerName,
-          featureCopyright: project.extensions.eclipseFeature.copyright,
-          featureLicenseUrl: project.extensions.eclipseFeature.licenseUrl,
-          featureLicenseText: project.extensions.eclipseFeature.licenseText
+          featureProviderName: project.wuff.feature.providerName,
+          featureCopyright: project.wuff.feature.copyright,
+          featureLicenseUrl: project.wuff.feature.licenseUrl,
+          featureLicenseText: project.wuff.feature.licenseText
 
         inputs.files { featureConfiguration }
         outputs.file featureXmlFile
@@ -188,15 +192,15 @@ class EclipseFeatureConfigurer {
   }
 
   protected String getFeatureConfigurationName() {
-    project.extensions.eclipseFeature.configuration ?: 'featurePlugin'
+    project.wuff.feature.configuration ?: 'feature'
   }
 
   protected String getFeatureId() {
-    project.extensions.eclipseFeature.id ?: project.name.replace('-', '.')
+    getFeatureId(project)
   }
 
   protected String getFeatureLabel() {
-    project.extensions.eclipseFeature.label ?: project.name
+    project.wuff.feature.label ?: project.name
   }
 
   protected String getFeatureVersion() {
@@ -218,16 +222,16 @@ class EclipseFeatureConfigurer {
         if(featureLabel)
           description featureLabel
 
-        if(project.extensions.eclipseFeature.copyright)
-          copyright project.extensions.eclipseFeature.copyright
+        if(project.wuff.feature.copyright)
+          copyright project.wuff.feature.copyright
 
-        if(project.extensions.eclipseFeature.licenseUrl) {
-          if(project.extensions.eclipseFeature.licenseText)
-            license url: project.extensions.eclipseFeature.licenseUrl, project.extensions.eclipseFeature.licenseText
+        if(project.wuff.feature.licenseUrl) {
+          if(project.wuff.feature.licenseText)
+            license url: project.wuff.feature.licenseUrl, project.wuff.feature.licenseText
           else
-            license url: project.extensions.eclipseFeature.licenseUrl
-        } else if(project.extensions.eclipseFeature.licenseText)
-          license project.extensions.eclipseFeature.licenseText
+            license url: project.wuff.feature.licenseUrl
+        } else if(project.wuff.feature.licenseText)
+          license project.wuff.feature.licenseText
 
         featureConfiguration.files.each { f ->
           def manifest = ManifestUtils.getManifest(project, f)
@@ -243,4 +247,3 @@ class EclipseFeatureConfigurer {
     }
   }
 }
-

@@ -11,16 +11,15 @@ package org.akhikhl.wuff
  *
  * @author akhikhl
  */
-class EclipseRepositoryExtension {
-  String id
-  String url
-  String description
-  protected List categories = []
-  String configuration
-  boolean archive = true
-  String archiveName
+class EclipseCategory {
   
-  void category(String name) {
-    categories.add(new EclipseCategory(name))
+	String name
+  String label
+  String description
+  String configuration
+  
+  EclipseCategory(String name) {
+    this.name = name
   }
 }
+

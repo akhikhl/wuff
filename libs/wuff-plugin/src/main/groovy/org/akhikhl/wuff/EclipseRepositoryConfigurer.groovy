@@ -7,6 +7,7 @@
  */
 package org.akhikhl.wuff
 
+import groovy.xml.MarkupBuilder
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -37,10 +38,10 @@ class EclipseRepositoryConfigurer {
     def configurer = new Configurer(project)
     configurer.apply()
 
-    project.extensions.create('eclipseRepository', EclipseRepositoryExtension)
+    project.wuff.extensions.create('repository', EclipseRepositoryExtension)
 
     project.configurations {
-      repositoryFeature {
+      repository {
         transitive = false
       }
     }
@@ -51,6 +52,13 @@ class EclipseRepositoryConfigurer {
       File sourceDir = new File(project.buildDir, 'repository-source')
       File pluginsDir = new File(sourceDir, 'plugins')
       File featuresDir = new File(sourceDir, 'features')
+      File categoryXmlFile = new File(sourceDir, 'category.xml')
+      
+      File baseLocation = project.effectiveUnpuzzle.eclipseUnpackDir
+      def equinoxLauncherPlugin = new File(baseLocation, 'plugins').listFiles({ it.name.matches ~/^org\.eclipse\.equinox\.launcher_(.+)\.jar$/ } as FileFilter)
+      if(!equinoxLauncherPlugin)
+        throw new GradleException("Could not build feature: equinox launcher not found in ${new File(baseLocation, 'plugins')}")
+      equinoxLauncherPlugin = equinoxLauncherPlugin[0]
 
       if(!project.tasks.findByName('clean'))
         project.task('clean') {
@@ -95,17 +103,26 @@ class EclipseRepositoryConfigurer {
         }
       }
 
-      project.task('repositoryCopyFeatures', type: Copy) {
+      project.task('repositoryCopyFeatures') {
         group = 'wuff'
         description = 'copies features to repository source'
         dependsOn project.tasks.repositoryRemoveStaleFeatures
         dependsOn {
           getDependencyFeatureProjects().collect { it.tasks.featureAssemble }
         }
-        inputs.files { getDependencyFeatureDirs().collect { new File(it, 'feature.xml') } }
+        inputs.files { getDependencyFeatureFiles() }
         outputs.dir featuresDir
-        from { getDependencyFeatureDirs() }
-        into featuresDir
+        doLast {
+          featuresDir.mkdirs()
+          for(File sourceFeatureFile in getDependencyFeatureFiles()) {
+            File destFeatureDir = new File(featuresDir, sourceFeatureFile.parentFile.name)
+            destFeatureDir.mkdirs()
+            project.copy {
+              from sourceFeatureFile
+              into destFeatureDir
+            }
+          }
+        }
       }
 
       project.task('repositoryCopyPlugins', type: Copy) {
@@ -123,39 +140,58 @@ class EclipseRepositoryConfigurer {
         into pluginsDir
       }
 
+      project.task('repositoryPrepareConfigFiles') {
+        group = 'wuff'
+        description = 'prepares repository configuration files'
+        inputs.property 'repositoryId', getRepositoryId()
+        inputs.property 'categoryXml', { writeCategoryXmlToString() }
+        outputs.file categoryXmlFile
+        mustRunAfter project.tasks.repositoryCopyFeatures
+        mustRunAfter project.tasks.repositoryCopyPlugins
+        doLast {
+          writeCategoryXml(categoryXmlFile)
+        }
+      }
+
       project.task('repositoryAssemble') {
         group = 'wuff'
         description = 'assembles eclipse repository'
         dependsOn project.tasks.repositoryCopyFeatures
         dependsOn project.tasks.repositoryCopyPlugins
+        dependsOn project.tasks.repositoryPrepareConfigFiles
         inputs.dir sourceDir
         outputs.dir repositoryDir
         doLast {
-          File baseLocation = project.effectiveUnpuzzle.eclipseUnpackDir
-          def equinoxLauncherPlugin = new File(baseLocation, 'plugins').listFiles({ it.name.matches ~/^org\.eclipse\.equinox\.launcher_(.+)\.jar$/ } as FileFilter)
-          if(!equinoxLauncherPlugin)
-            throw new GradleException("Could not build feature: equinox launcher not found in ${new File(baseLocation, 'plugins')}")
-          equinoxLauncherPlugin = equinoxLauncherPlugin[0]
           ExecResult result = project.javaexec {
-            main = 'main' // org.eclipse.equinox.launcher.Main
+            main = 'main'
             jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
             jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher'
             jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
             jvmArgs '-artifactRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
             jvmArgs '-source', sourceDir.absolutePath
-            jvmArgs '-compress'
             jvmArgs '-publishArtifacts'
+            jvmArgs '-compress'
+          }
+          result.assertNormalExitValue()
+          result = project.javaexec {
+            main = 'main'
+            jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
+            jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher'
+            jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
+            jvmArgs '-categoryDefinition', categoryXmlFile.canonicalFile.toURI().toURL().toString()
+            jvmArgs '-categoryQualifier'
+            jvmArgs '-compress'
           }
           result.assertNormalExitValue()
         }
       }
 
-      if(project.eclipseRepository.archive)
+      if(project.wuff.repository.archive)
         project.task('repositoryArchive', type: Zip) {
           dependsOn project.tasks.repositoryAssemble
           destinationDir = project.buildDir
-          if(project.eclipseRepository.archiveName) {
-            String aname = project.eclipseRepository.archiveName
+          if(project.wuff.repository.archiveName) {
+            String aname = project.wuff.repository.archiveName
             if(!aname.endsWith('.zip'))
               aname += '.zip'
             archiveName = aname
@@ -170,12 +206,38 @@ class EclipseRepositoryConfigurer {
 
       project.task('build') {
         dependsOn {
-          project.eclipseRepository.archive ? project.tasks.repositoryArchive : project.tasks.repositoryAssemble
+          project.wuff.repository.archive ? project.tasks.repositoryArchive : project.tasks.repositoryAssemble
         }
       }
     }
   }
-
+  
+  protected static Iterable<EclipseFeature> collectFeatures(Iterable<File> filesAndDirectories) {
+    List features = []
+    for(File f in filesAndDirectories)
+      collectFeatures(features, f)
+    features
+  }
+  
+  protected static void collectFeatures(Collection<EclipseFeature> features, File f) {
+    if(f.isFile() && f.name == 'feature.xml') {
+      def featureXml = new XmlSlurper().parse(f)
+      features.add(new EclipseFeature(featureXml.id, f))        
+    } else if(f.isDirectory()) {
+      def featureXmlFile = new File(f, 'feature.xml')
+      if(featureXmlFile.exists()) {
+        def featureXml = new XmlSlurper().parse(featureXmlFile)
+        features.add(new EclipseFeature(featureXml.id, featureXmlFile))
+      } else {
+        def featuresDir = new File(f, 'features')
+        if(!featuresDir.exists())
+          featuresDir = f
+        for(File subdir in featuresDir.listFiles { it.isDirectory() })
+          collectFeatures(features, subdir)
+      }
+    }
+  }
+  
   protected Iterable<Project> getDependencyFeatureProjects() {
     repositoryConfiguration.dependencies.findResults {
       if(!(it instanceof ProjectDependency))
@@ -183,6 +245,10 @@ class EclipseRepositoryConfigurer {
       def proj = it.dependencyProject
       proj.tasks.findByName('featureAssemble') ? proj : null
     }
+  }
+  
+  protected Set<File> getDependencyFeatureFiles() {
+    getDependencyFeatureDirs().collect { new File(it, 'feature.xml') }
   }
 
   protected Set<File> getDependencyFeatureDirs() {
@@ -206,6 +272,17 @@ class EclipseRepositoryConfigurer {
     })
     result
   }
+  
+  protected Iterable<EclipseFeature> getFeatures(EclipseCategory category) {
+    String configurationName = category.configuration ?: 'repository'
+    project.configurations[configurationName].dependencies.collectMany { dep ->
+      if(dep instanceof ProjectDependency)
+        return [ new EclipseFeature(EclipseFeatureConfigurer.getFeatureId(dep.dependencyProject)) ]
+      if(dep instanceof FileCollectionDependency)
+        return collectFeatures(dep.resolve())
+      []
+    }
+  }
 
   protected Set<File> getFileDependencies() {
     repositoryConfiguration.dependencies.collectMany {
@@ -220,10 +297,61 @@ class EclipseRepositoryConfigurer {
   }
 
   protected String getRepositoryConfigurationName() {
-    project.eclipseRepository.configuration ?: 'repositoryFeature'
+    project.wuff.repository.configuration ?: 'repository'
   }
 
   protected String getRepositoryId() {
-    project.extensions.eclipseRepository.id ?: project.name.replace('-', '.')
+    project.wuff.repository.id ?: project.name.replace('-', '.')
+  }
+
+  protected void writeCategoryXml(File file) {
+    file.parentFile.mkdirs()
+    file.withWriter {
+      writeCategoryXml(it)
+    }
+  }
+
+  protected void writeCategoryXml(Writer writer) {
+    def xml = new MarkupBuilder(writer)
+    xml.doubleQuotes = true
+    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
+    xml.site {
+
+      Map descriptionAttrs = [:]
+      if(project.wuff.repository.url)
+        descriptionAttrs.url = project.wuff.repository.url
+
+      if(descriptionAttrs || project.wuff.repository.description)
+        description descriptionAttrs, project.wuff.repository.description
+
+      Map featuresToCategories = [:]
+
+      for(def categoryDef in project.wuff.repository.categories) {
+        for(def featureDef in getFeatures(categoryDef)) {            
+          featuresToCategories[featureDef.id] = categoryDef.name
+        }
+      }
+
+      for(def e in featuresToCategories)
+        feature id: e.key, version: '0.0.0', {
+          category name: e.value
+        }
+
+      for(def categoryDef in project.wuff.repository.categories) {
+        Map categoryDefAttrs = [ name: categoryDef.name ]
+        if(categoryDef.label)
+          categoryDefAttrs.label = categoryDef.label
+        'category-def' categoryDefAttrs, {
+          if(categoryDef.description)
+            description categoryDef.description
+        }
+      }
+    }
+  }  
+
+  protected String writeCategoryXmlToString() {    
+    def writer = new StringWriter()
+    writeCategoryXml(writer)
+    writer.toString()
   }
 }
