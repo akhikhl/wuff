@@ -13,6 +13,7 @@ package org.akhikhl.wuff
  */
 class EclipseFeatureExtension {
 	String id
+  String version
   String label
   String providerName
   String copyright

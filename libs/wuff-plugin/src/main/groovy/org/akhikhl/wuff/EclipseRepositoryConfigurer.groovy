@@ -53,7 +53,7 @@ class EclipseRepositoryConfigurer {
       File pluginsDir = new File(sourceDir, 'plugins')
       File featuresDir = new File(sourceDir, 'features')
       File categoryXmlFile = new File(sourceDir, 'category.xml')
-      
+
       File baseLocation = project.effectiveUnpuzzle.eclipseUnpackDir
       def equinoxLauncherPlugin = new File(baseLocation, 'plugins').listFiles({ it.name.matches ~/^org\.eclipse\.equinox\.launcher_(.+)\.jar$/ } as FileFilter)
       if(!equinoxLauncherPlugin)
@@ -211,18 +211,18 @@ class EclipseRepositoryConfigurer {
       }
     }
   }
-  
+
   protected static Iterable<EclipseFeature> collectFeatures(Iterable<File> filesAndDirectories) {
     List features = []
     for(File f in filesAndDirectories)
       collectFeatures(features, f)
     features
   }
-  
+
   protected static void collectFeatures(Collection<EclipseFeature> features, File f) {
     if(f.isFile() && f.name == 'feature.xml') {
       def featureXml = new XmlSlurper().parse(f)
-      features.add(new EclipseFeature(featureXml.id, f))        
+      features.add(new EclipseFeature(featureXml.id, f))
     } else if(f.isDirectory()) {
       def featureXmlFile = new File(f, 'feature.xml')
       if(featureXmlFile.exists()) {
@@ -237,7 +237,7 @@ class EclipseRepositoryConfigurer {
       }
     }
   }
-  
+
   protected Iterable<Project> getDependencyFeatureProjects() {
     repositoryConfiguration.dependencies.findResults {
       if(!(it instanceof ProjectDependency))
@@ -246,7 +246,7 @@ class EclipseRepositoryConfigurer {
       proj.tasks.findByName('featureAssemble') ? proj : null
     }
   }
-  
+
   protected Set<File> getDependencyFeatureFiles() {
     getDependencyFeatureDirs().collect { new File(it, 'feature.xml') }
   }
@@ -272,7 +272,7 @@ class EclipseRepositoryConfigurer {
     })
     result
   }
-  
+
   protected Iterable<EclipseFeature> getFeatures(EclipseCategory category) {
     String configurationName = category.configuration ?: 'repository'
     project.configurations[configurationName].dependencies.collectMany { dep ->
@@ -286,9 +286,7 @@ class EclipseRepositoryConfigurer {
 
   protected Set<File> getFileDependencies() {
     repositoryConfiguration.dependencies.collectMany {
-      if(!(it instanceof FileCollectionDependency))
-        return []
-      it.resolve()
+      it instanceof FileCollectionDependency ? it.resolve() : []
     }
   }
 
@@ -327,7 +325,7 @@ class EclipseRepositoryConfigurer {
       Map featuresToCategories = [:]
 
       for(def categoryDef in project.wuff.repository.categories) {
-        for(def featureDef in getFeatures(categoryDef)) {            
+        for(def featureDef in getFeatures(categoryDef)) {
           featuresToCategories[featureDef.id] = categoryDef.name
         }
       }
@@ -347,9 +345,9 @@ class EclipseRepositoryConfigurer {
         }
       }
     }
-  }  
+  }
 
-  protected String writeCategoryXmlToString() {    
+  protected String writeCategoryXmlToString() {
     def writer = new StringWriter()
     writeCategoryXml(writer)
     writer.toString()
