@@ -87,17 +87,17 @@ class EclipseFeatureConfigurer {
           }
         }
         outputs.upToDateWhen {
-          project.wuff.features.featuresMap.every { id, featureExt ->
-            Set fileNames = getFeatureConfiguration(featureExt).files.collect { it.name } as Set
-            !pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).find { !fileNames.contains(it.name) }
-          }
+          Set fileNames = project.wuff.features.featuresMap.collectMany({ id, featureExt ->
+            getFeatureConfiguration(featureExt).files.collect { it.name }
+          }) as Set
+          !pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).find { !fileNames.contains(it.name) }
         }
         doLast {
-          project.wuff.features.featuresMap.each { id, featureExt ->
-            Set fileNames = getFeatureConfiguration(featureExt).files.collect { it.name } as Set
-            pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).findAll { !fileNames.contains(it.name) }.each {
-              it.delete()
-            }
+          Set fileNames = project.wuff.features.featuresMap.collectMany({ id, featureExt ->
+            getFeatureConfiguration(featureExt).files.collect { it.name }
+          }) as Set
+          pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).findAll { !fileNames.contains(it.name) }.each {
+            it.delete()
           }
         }
       }
