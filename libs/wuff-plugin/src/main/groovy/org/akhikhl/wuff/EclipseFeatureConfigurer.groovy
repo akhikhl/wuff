@@ -143,13 +143,15 @@ class EclipseFeatureConfigurer {
         }
         outputs.files {
           project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            [ getFeatureXmlFile(featureExt), getFeatureBuildPropertiesFile(featureExt) ]
+            getFeatureConfiguration(featureExt).files ? [ getFeatureXmlFile(featureExt), getFeatureBuildPropertiesFile(featureExt) ] : []
           }
         }
         doLast {
           project.wuff.features.featuresMap.each { id, featureExt ->
-            writeFeatureXml(featureExt)
-            writeFeatureBuildPropertiesFile(featureExt)
+            if(getFeatureConfiguration(featureExt).files) {
+              writeFeatureXml(featureExt)
+              writeFeatureBuildPropertiesFile(featureExt)
+            }
           }
         }
       }
@@ -162,12 +164,13 @@ class EclipseFeatureConfigurer {
         inputs.dir { getPluginsDir() }
         inputs.files {
           project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            [ getFeatureXmlFile(featureExt), getFeatureBuildPropertiesFile(featureExt) ]
+            getFeatureConfiguration(featureExt).files ? [ getFeatureXmlFile(featureExt), getFeatureBuildPropertiesFile(featureExt) ] : []
           }
         }
         outputs.files {
-          project.wuff.features.featuresMap.collect { id, featureExt ->
-            getFeatureAssembleOutputFile(featureExt)
+          project.wuff.features.featuresMap.findResults { id, featureExt ->
+            if(getFeatureConfiguration(featureExt).files)
+              getFeatureAssembleOutputFile(featureExt)
           }
         }
         doLast {
@@ -198,19 +201,21 @@ class EclipseFeatureConfigurer {
             if(outFile.exists())
               outFile.delete()
 
-            ExecResult result = project.javaexec {
-              main = 'main'
-              jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
-              jvmArgs '-application', 'org.eclipse.ant.core.antRunner'
-              jvmArgs '-buildfile', buildXml.absolutePath
-              jvmArgs '-Dbuilder=' + buildConfigDir.absolutePath
-              jvmArgs '-DbuildDirectory=' + getFeatureOutputDir().absolutePath
-              jvmArgs '-DbaseLocation=' + baseLocation.absolutePath
-              jvmArgs '-DtopLevelElementId=' + getFeatureId(featureExt)
-              jvmArgs '-DbuildType=build'
-              jvmArgs '-DbuildId=' + getFeatureId(featureExt) + '-' + getFeatureVersion(featureExt)
+            if(getFeatureConfiguration(featureExt).files) {
+              ExecResult result = project.javaexec {
+                main = 'main'
+                jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
+                jvmArgs '-application', 'org.eclipse.ant.core.antRunner'
+                jvmArgs '-buildfile', buildXml.absolutePath
+                jvmArgs '-Dbuilder=' + buildConfigDir.absolutePath
+                jvmArgs '-DbuildDirectory=' + getFeatureOutputDir().absolutePath
+                jvmArgs '-DbaseLocation=' + baseLocation.absolutePath
+                jvmArgs '-DtopLevelElementId=' + getFeatureId(featureExt)
+                jvmArgs '-DbuildType=build'
+                jvmArgs '-DbuildId=' + getFeatureId(featureExt) + '-' + getFeatureVersion(featureExt)
+              }
+              result.assertNormalExitValue()
             }
-            result.assertNormalExitValue()
           }
         }
       }
