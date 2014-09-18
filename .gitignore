@@ -6,3 +6,5 @@ build
 .nb-gradle*
 *.iml
 .idea
+*.class
+libs/wuff-plugin/bin/

@@ -1,6 +1,8 @@
 # This is the official list of people who contributed code to the Wuff repository.
-# Each line should represent an existing github user or pair username <email>
+# Each line represents an existing github user and/or pair username <email>
 
-@akhikhl
-@jstarry
-@mcmil
+@akhikhl -- Andrey Hihlovskiy <akhikhl@gmail.com>
+@jstarry -- Justin Starry <jstarry@twitter.com>
+@mcmil -- Michał Ćmil <mcmil@psi.pl>
+@nedtwigg -- Ned Twigg <ned.twigg@diffplug.com>
+
