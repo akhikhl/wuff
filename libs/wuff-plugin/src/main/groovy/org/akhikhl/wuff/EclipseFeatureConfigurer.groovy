@@ -58,67 +58,12 @@ class EclipseFeatureConfigurer {
 
     project.afterEvaluate {
 
-      // File featureXmlFile = new File(featuresDir, "${getFeatureId()}/feature.xml")
-      // File buildPropertiesFile = new File(featuresDir, "${getFeatureId()}/build.properties")
-      // String featureOutputFileName = getFeatureId() + '-' + getFeatureVersion() + '.zip'
-      // File featureAssembleOutputFile = new File(featureOutputDir, 'build.' + getFeatureVersion() + '/' + featureOutputFileName)
-      // File featureBuildOutputFile = new File(project.buildDir, featureOutputFileName)
-
       if(!project.tasks.findByName('clean'))
         project.task('clean') {
           doLast {
             project.buildDir.deleteDir()
           }
         }
-
-      project.task('featureRemoveStalePlugins') {
-        group = 'wuff'
-        description = 'removes stale plugins from feature source'
-        dependsOn {
-          project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            getFeatureConfiguration(featureExt).dependencies.findResults { dep ->
-              dep instanceof ProjectDependency ? dep.dependencyProject.tasks.findByName('build') : null
-            }
-          }
-        }
-        inputs.files {
-          project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            getFeatureConfiguration(featureExt).files
-          }
-        }
-        outputs.upToDateWhen {
-          Set fileNames = project.wuff.features.featuresMap.collectMany({ id, featureExt ->
-            getFeatureConfiguration(featureExt).files.collect { it.name }
-          }) as Set
-          !pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).find { !fileNames.contains(it.name) }
-        }
-        doLast {
-          Set fileNames = project.wuff.features.featuresMap.collectMany({ id, featureExt ->
-            getFeatureConfiguration(featureExt).files.collect { it.name }
-          }) as Set
-          pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).findAll { !fileNames.contains(it.name) }.each {
-            it.delete()
-          }
-        }
-      }
-
-      project.task('featureCopyPlugins', type: Copy) {
-        group = 'wuff'
-        description = 'copies dependency plugins to feature source'
-        dependsOn project.tasks.featureRemoveStalePlugins
-        inputs.files {
-          project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            getFeatureConfiguration(featureExt).files
-          }
-        }
-        outputs.dir pluginsDir
-        from {
-          project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            getFeatureConfiguration(featureExt).files
-          }
-        }
-        into pluginsDir
-      }
 
       project.task('featurePrepareConfigFiles') {
         group = 'wuff'
@@ -156,10 +101,9 @@ class EclipseFeatureConfigurer {
         }
       }
 
-      project.task('featureAssemble') {
+      project.task('featureArchive') {
         group = 'wuff'
-        description = 'assembles eclipse feature(s)'
-        dependsOn project.tasks.featureCopyPlugins
+        description = 'archives eclipse feature(s)'
         dependsOn project.tasks.featurePrepareConfigFiles
         inputs.dir { getPluginsDir() }
         inputs.files {
@@ -170,7 +114,7 @@ class EclipseFeatureConfigurer {
         outputs.files {
           project.wuff.features.featuresMap.findResults { id, featureExt ->
             if(getFeatureConfiguration(featureExt).files)
-              getFeatureAssembleOutputFile(featureExt)
+              getFeatureArchiveOutputFile(featureExt)
           }
         }
         doLast {
@@ -197,7 +141,7 @@ class EclipseFeatureConfigurer {
 
           project.wuff.features.featuresMap.each { id, featureExt ->
 
-            def outFile = getFeatureAssembleOutputFile(featureExt)
+            def outFile = getFeatureArchiveOutputFile(featureExt)
             if(outFile.exists())
               outFile.delete()
 
@@ -220,52 +164,23 @@ class EclipseFeatureConfigurer {
         }
       }
 
-      project.task('featureCopyOutput') {
-        group = 'wuff'
-        description = 'copies feature output to final location'
-        dependsOn project.tasks.featureAssemble
-        inputs.files {
-          project.wuff.features.featuresMap.collect { id, featureExt ->
-            getFeatureAssembleOutputFile(featureExt)
-          }
-        }
-        outputs.file {
-          project.wuff.features.featuresMap.collect { id, featureExt ->
-            getFeatureBuildOutputFile(featureExt)
-          }
-        }
-        doLast {
-          project.wuff.features.featuresMap.each { id, featureExt ->
-            FileUtils.copyFile getFeatureAssembleOutputFile(featureExt), getFeatureBuildOutputFile(featureExt)
-          }
-        }
-      }
-
       if(!project.tasks.findByName('build'))
         project.task('build', type: Copy) {
           group = 'wuff'
           description = 'builds current project'
         }
 
-      project.tasks.build.dependsOn project.tasks.featureCopyOutput
+      project.tasks.build.dependsOn project.tasks.featureArchive
 
     } // afterEvaluate
   }
 
-  protected File getFeatureAssembleOutputFile(EclipseFeatureExtension featureExt) {
-    new File(getFeatureOutputDir(), 'build.' + getFeatureId(featureExt) + '-' + getFeatureVersion(featureExt) + '/' + getFeatureId(featureExt) + '-' + getFeatureId(featureExt) + '-' + getFeatureVersion(featureExt) + '.zip')
+  protected File getFeatureArchiveOutputFile(EclipseFeatureExtension featureExt) {
+    new File(project.buildDir, 'output/' + getFeatureId(featureExt) + '_' + getFeatureVersion(featureExt) + '.jar')
   }
 
   protected File getFeatureBuildPropertiesFile(EclipseFeatureExtension featureExt) {
-    new File(getFeaturesDir(), "${getFeatureId(featureExt)}/build.properties")
-  }
-
-  protected File getFeatureBuildOutputFile(EclipseFeatureExtension featureExt) {
-    new File(project.buildDir, getFeatureBuildOutputFileName(featureExt))
-  }
-
-  protected String getFeatureBuildOutputFileName(EclipseFeatureExtension featureExt) {
-    getFeatureId(featureExt) + '-' + getFeatureVersion(featureExt) + '.zip'
+    new File(getFeatureTempDir(featureExt), 'build.properties')
   }
 
   protected Configuration getFeatureConfiguration(EclipseFeatureExtension featureExt) {
@@ -280,12 +195,8 @@ class EclipseFeatureConfigurer {
     featureExt.label ?: project.name
   }
 
-  protected File getFeatureOutputDir() {
-    new File(project.buildDir, 'featureOutput')
-  }
-
-  protected File getFeaturesDir() {
-    new File(getFeatureOutputDir(), 'features')
+  protected File getFeatureTempDir(EclipseFeatureExtension featureExt) {
+    new File(project.buildDir, 'feature-temp/' + getFeatureId() + '_' + getFeatureVersion())
   }
 
   protected String getFeatureVersion(EclipseFeatureExtension featureExt) {
@@ -293,11 +204,7 @@ class EclipseFeatureConfigurer {
   }
 
   protected File getFeatureXmlFile(EclipseFeatureExtension featureExt) {
-    new File(getFeaturesDir(), "${getFeatureId(featureExt)}/feature.xml")
-  }
-
-  protected File getPluginsDir() {
-    new File(getFeatureOutputDir(), 'plugins')
+    new File(getFeatureTempDir(featureExt), 'feature.xml')
   }
 
   protected void writeFeatureBuildPropertiesFile(EclipseFeatureExtension featureExt) {
