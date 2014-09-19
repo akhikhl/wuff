@@ -48,10 +48,19 @@ class EclipseFeatureConfigurer {
       return
     }
 
+    def defaultFeatureConfig = new EclipseFeatureExtension(
+      id: project.name.replace('-', '.'),
+      version: (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version,
+      label: project.name,
+      configuration: 'feature'
+    )
+
     project.wuff.extensions.create('feature', EclipseFeatureExtension)
+    project.wuff.feature.defaultConfig = defaultFeatureConfig
 
     project.wuff.extensions.create('features', EclipseFeaturesExtension)
-    project.wuff.features.featuresMap[''] = project.wuff.feature
+    project.wuff.features.defaultConfig = defaultFeatureConfig
+    project.wuff.features.featuresMap[project.wuff.feature.id] = project.wuff.feature
 
     project.configurations {
       feature {
@@ -76,9 +85,9 @@ class EclipseFeatureConfigurer {
         dependsOn { getPluginJarTasks() }
         inputs.property 'featuresProperties', {
           getNonEmptyFeatures().collect { featureExt ->
-            [ featureId: getFeatureId(featureExt),
-              featureLabel: getFeatureLabel(featureExt),
-              featureVersion: getFeatureVersion(featureExt),
+            [ featureId: featureExt.id,
+              featureLabel: featureExt.label,
+              featureVersion: featureExt.version,
               featureProviderName: featureExt.providerName,
               featureCopyright: featureExt.copyright,
               featureLicenseUrl: featureExt.licenseUrl,
@@ -127,7 +136,7 @@ class EclipseFeatureConfigurer {
   }
 
   File getFeatureArchiveFile(EclipseFeatureExtension featureExt) {
-    new File(getFeatureOutputDir(), getFeatureId(featureExt) + '_' + getFeatureVersion(featureExt) + '.jar')
+    new File(getFeatureOutputDir(), featureExt.id + '_' + featureExt.version + '.jar')
   }
 
   Collection<File> getFeatureArchiveFiles() {
@@ -135,15 +144,7 @@ class EclipseFeatureConfigurer {
   }
 
   Configuration getFeatureConfiguration(EclipseFeatureExtension featureExt) {
-    project.configurations[featureExt.configuration ?: 'feature']
-  }
-
-  String getFeatureId(EclipseFeatureExtension featureExt) {
-    featureExt.id ?: project.name.replace('-', '.')
-  }
-
-  String getFeatureLabel(EclipseFeatureExtension featureExt) {
-    featureExt.label ?: project.name
+    project.configurations[featureExt.configuration]
   }
 
   File getFeatureOutputDir() {
@@ -155,11 +156,7 @@ class EclipseFeatureConfigurer {
   }
 
   File getFeatureTempDir(EclipseFeatureExtension featureExt) {
-    new File(project.buildDir, 'feature-temp/' + getFeatureId(featureExt) + '_' + getFeatureVersion(featureExt))
-  }
-
-  String getFeatureVersion(EclipseFeatureExtension featureExt) {
-    mavenVersionToEclipseVersion(featureExt.version ?: project.version)
+    new File(project.buildDir, 'feature-temp/' + featureExt.id + '_' + featureExt.version)
   }
 
   File getFeatureXmlFile(EclipseFeatureExtension featureExt) {
@@ -197,15 +194,12 @@ class EclipseFeatureConfigurer {
   }
 
   String mavenVersionToEclipseVersion(String version) {
-    String eclipseVersion = version ?: '1.0.0'
-    if(eclipseVersion == 'unspecified')
-      eclipseVersion = '1.0.0'
-    if(eclipseVersion.endsWith('-SNAPSHOT')) {
+    if(version.endsWith('-SNAPSHOT')) {
       if(timeStamp == null)
         timeStamp = new Date().format('yyyyMMddHHmmss')
-      eclipseVersion = eclipseVersion.replace('-SNAPSHOT', '.' + timeStamp)
+      version = version.replace('-SNAPSHOT', '.' + timeStamp)
     }
-    eclipseVersion
+    version
   }
 
   void writeFeatureXml(EclipseFeatureExtension featureExt) {
@@ -215,12 +209,11 @@ class EclipseFeatureConfigurer {
       def xml = new MarkupBuilder(writer)
       xml.doubleQuotes = true
       xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
-      String featureLabel = getFeatureLabel(featureExt)
-      Map featureAttrs = [ id: getFeatureId(featureExt), version: getFeatureVersion(featureExt), label: featureLabel ].findAll { it.value }
+      Map featureAttrs = [ id: featureExt.id, version: mavenVersionToEclipseVersion(featureExt.version), label: featureExt.label ].findAll { it.value }
       xml.feature featureAttrs, {
 
-        if(featureLabel)
-          description featureLabel
+        if(featureExt.label)
+          description featureExt.label
 
         if(featureExt.copyright)
           copyright featureExt.copyright
@@ -236,7 +229,7 @@ class EclipseFeatureConfigurer {
             plugin id: bundleSymbolicName, 'download-size': '0', 'install-size': '0', version: manifest.mainAttributes?.getValue('Bundle-Version'), unpack: false
           }
           else
-            log.error 'Could not add {} to feature {}, because it is not an OSGi bundle', f.name, getFeatureId(featureExt)
+            log.error 'Could not add {} to feature {}, because it is not an OSGi bundle', f.name, featureExt.id
         }
       }
     }

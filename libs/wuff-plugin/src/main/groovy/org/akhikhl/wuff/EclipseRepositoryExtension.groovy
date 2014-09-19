@@ -30,16 +30,30 @@ class EclipseRepositoryExtension {
 
   // you can reassign archive name to a string or to another closure
   def archiveFileName = defaultArchiveFileName
+  
+	EclipseRepositoryExtension defaultConfig
 
   void category(String name) {
     categories.add(new EclipseCategory(name))
   }
 
-  Collection<EclipseCategory> getCategories(Project proj) {
-    if(categories.isEmpty()) {
-      String name = description ?: id ?: proj.name.replace('-', '.')
-      category(name)
-    }
-    categories
+  String getId() {
+    id ?: defaultConfig?.id
+  }
+
+  Collection<EclipseCategory> getCategories() {
+    categories ?: defaultConfig?.categories
+  }
+  
+  String getVersion() {
+    version ?: defaultConfig?.version
+  }
+  
+  void setId(String newValue) {
+    id = newValue
+  }
+  
+  void setVersion(String newValue) {
+    version = newValue
   }
 }

@@ -30,7 +30,6 @@ class EclipseRepositoryConfigurer {
   protected static final Logger log = LoggerFactory.getLogger(EclipseRepositoryConfigurer)
 
   protected final Project project
-  protected timeStamp
 
   EclipseRepositoryConfigurer(Project project) {
     this.project = project
@@ -48,10 +47,18 @@ class EclipseRepositoryConfigurer {
       return
     }
 
+    def defaultRepositoryConfig = new EclipseRepositoryExtension(
+      id: project.name.replace('-', '.'),
+      version: (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version
+    )
+    defaultRepositoryConfig.category project.name.replace('-', '.')
+
     project.wuff.extensions.create('repository', EclipseRepositoryExtension)
+    project.wuff.repository.defaultConfig = defaultRepositoryConfig
 
     project.wuff.extensions.create('repositories', EclipseRepositoriesExtension)
-    project.wuff.repositories.repositoriesMap[''] = project.wuff.repository
+    project.wuff.repositories.defaultConfig = defaultRepositoryConfig
+    project.wuff.repositories.repositoriesMap[project.wuff.repository.id] = project.wuff.repository
 
     project.configurations {
       repository {
@@ -60,12 +67,6 @@ class EclipseRepositoryConfigurer {
     }
 
     project.afterEvaluate {
-
-      //File repositoryDir = new File(project.buildDir, getRepositoryId())
-      //File sourceDir = new File(project.buildDir, 'repository-source')
-      //File pluginsDir = new File(sourceDir, 'plugins')
-      //File featuresDir = new File(sourceDir, 'features')
-      //File categoryXmlFile = new File(sourceDir, 'category.xml')
 
       File baseLocation = project.effectiveUnpuzzle.eclipseUnpackDir
       def equinoxLauncherPlugin = new File(baseLocation, 'plugins').listFiles({ it.name.matches ~/^org\.eclipse\.equinox\.launcher_(.+)\.jar$/ } as FileFilter)
@@ -165,8 +166,8 @@ class EclipseRepositoryConfigurer {
         mustRunAfter project.tasks.repositoryCopyPlugins
         inputs.property 'repositoriesProperties', {
           getNonEmptyRepositories().collect { repositoryExt ->
-            [ repositoryId: getRepositoryId(repositoryExt),
-              repositoryVersion: getRepositoryVersion(repositoryExt),
+            [ repositoryId: repositoryExt.id,
+              repositoryVersion: repositoryExt.version,
               categoryXml: writeCategoryXmlString(repositoryExt) ]
           }
         }
@@ -186,8 +187,8 @@ class EclipseRepositoryConfigurer {
         dependsOn project.tasks.repositoryPrepareConfigFiles
         inputs.property 'repositoriesProperties', {
           getNonEmptyRepositories().collect { repositoryExt ->
-            [ repositoryId: getRepositoryId(repositoryExt),
-              repositoryVersion: getRepositoryVersion(repositoryExt) ]
+            [ repositoryId: repositoryExt.id,
+              repositoryVersion: repositoryExt.version ]
           }
         }
         inputs.dir getRepositoryTempBaseDir()
@@ -258,7 +259,7 @@ class EclipseRepositoryConfigurer {
   }
 
   Collection<Configuration> getConfigurations(EclipseRepositoryExtension repositoryExt) {
-    repositoryExt.getCategories(project).collect { getConfiguration(it) }
+    repositoryExt.categories.collect { getConfiguration(it) }
   }
 
   Collection<File> getFeatureArchiveFiles() {
@@ -331,14 +332,10 @@ class EclipseRepositoryConfigurer {
     project.wuff.repositories.repositoriesMap.values()
   }
 
-  String getRepositoryId(EclipseRepositoryExtension repositoryExt) {
-    repositoryExt.id ?: project.name.replace('-', '.')
-  }
-
   File getRepositoryOutputArchiveFile(EclipseRepositoryExtension repositoryExt) {
     def archiveFileName = repositoryExt.archiveFileName ?: EclipseRepositoryExtension.defaultArchiveFileName
     if(archiveFileName instanceof Closure)
-      archiveFileName = archiveFileName(getRepositoryId(repositoryExt), getRepositoryVersion(repositoryExt))
+      archiveFileName = archiveFileName(repositoryExt.id, repositoryExt.version)
     new File(getRepositoryOutputBaseDir(), archiveFileName.toString())
   }
 
@@ -351,7 +348,7 @@ class EclipseRepositoryConfigurer {
   }
 
   File getRepositoryOutputUnpackedDir(EclipseRepositoryExtension repositoryExt) {
-    new File(getRepositoryOutputUnpackedBaseDir(), getRepositoryId(repositoryExt) + '_' + getRepositoryVersion(repositoryExt))
+    new File(getRepositoryOutputUnpackedBaseDir(), repositoryExt.id + '_' + repositoryExt.version)
   }
 
   File getRepositoryTempBaseDir() {
@@ -367,7 +364,7 @@ class EclipseRepositoryConfigurer {
   }
 
   File getRepositoryTempDir(EclipseRepositoryExtension repositoryExt) {
-    new File(getRepositoryTempBaseDir(), getRepositoryId(repositoryExt) + '_' + getRepositoryVersion(repositoryExt))
+    new File(getRepositoryTempBaseDir(), repositoryExt.id + '_' + repositoryExt.version)
   }
 
   Collection<File> getRepositoryTempFeatureArchiveFiles() {
@@ -394,10 +391,6 @@ class EclipseRepositoryConfigurer {
     new File(getRepositoryTempDir(repositoryExt), 'plugins')
   }
 
-  String getRepositoryVersion(EclipseRepositoryExtension repositoryExt) {
-    mavenVersionToEclipseVersion(repositoryExt.version ?: project.version)
-  }
-
   boolean hasFeaturesAndPluginFiles() {
     getRepositories().any { hasFeaturesAndPluginFiles(it) }
   }
@@ -406,18 +399,6 @@ class EclipseRepositoryConfigurer {
     getFeatureProjects(repositoryExt).any {
       new EclipseFeatureConfigurer(it).hasPluginFiles()
     }
-  }
-
-  String mavenVersionToEclipseVersion(String version) {
-    String eclipseVersion = version ?: '1.0.0'
-    if(eclipseVersion == 'unspecified')
-      eclipseVersion = '1.0.0'
-    if(eclipseVersion.endsWith('-SNAPSHOT')) {
-      if(timeStamp == null)
-        timeStamp = new Date().format('yyyyMMddHHmmss')
-      eclipseVersion = eclipseVersion.replace('-SNAPSHOT', '.' + timeStamp)
-    }
-    eclipseVersion
   }
 
   void writeCategoryXml(EclipseRepositoryExtension repositoryExt, Writer writer) {
@@ -435,7 +416,7 @@ class EclipseRepositoryConfigurer {
 
       Map featureMap = [:]
 
-      for(EclipseCategory categoryDef in repositoryExt.getCategories(project)) {
+      for(EclipseCategory categoryDef in repositoryExt.categories) {
         for(EclipseFeatureExtension featureExt in getFeaturesForCategory(categoryDef)) {
           featureMap[featureExt.id] = [ version: '0.0.0', category: categoryDef.name ]
         }
@@ -446,7 +427,7 @@ class EclipseRepositoryConfigurer {
           category name: e.value.category
         }
 
-      for(EclipseCategory categoryDef in repositoryExt.getCategories(project)) {
+      for(EclipseCategory categoryDef in repositoryExt.categories) {
         Map categoryDefAttrs = [ name: categoryDef.name ]
         if(categoryDef.label)
           categoryDefAttrs.label = categoryDef.label
