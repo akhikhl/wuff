@@ -60,7 +60,7 @@ class EclipseFeatureConfigurer {
 
     project.wuff.extensions.create('features', EclipseFeaturesExtension)
     project.wuff.features.defaultConfig = defaultFeatureConfig
-    project.wuff.features.featuresMap[project.wuff.feature.id] = project.wuff.feature
+    project.wuff.features.featureList.add(project.wuff.feature)
 
     project.configurations {
       feature {
@@ -152,7 +152,7 @@ class EclipseFeatureConfigurer {
   }
 
   Collection<EclipseFeatureExtension> getFeatures() {
-    project.wuff.features.featuresMap.values()
+    project.wuff.features.featureList
   }
 
   File getFeatureTempDir(EclipseFeatureExtension featureExt) {

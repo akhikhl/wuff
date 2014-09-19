@@ -52,13 +52,16 @@ class EclipseRepositoryConfigurer {
       version: (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version
     )
     defaultRepositoryConfig.category project.name.replace('-', '.')
+    defaultRepositoryConfig.archiveFileName = { EclipseRepositoryExtension repositoryExt ->
+      "${repositoryExt.id}_${repositoryExt.version}.zip"
+    }
 
     project.wuff.extensions.create('repository', EclipseRepositoryExtension)
     project.wuff.repository.defaultConfig = defaultRepositoryConfig
 
     project.wuff.extensions.create('repositories', EclipseRepositoriesExtension)
     project.wuff.repositories.defaultConfig = defaultRepositoryConfig
-    project.wuff.repositories.repositoriesMap[project.wuff.repository.id] = project.wuff.repository
+    project.wuff.repositories.repositoryList.add(project.wuff.repository)
 
     project.configurations {
       repository {
@@ -305,7 +308,7 @@ class EclipseRepositoryConfigurer {
   }
 
   Collection<EclipseRepositoryExtension> getNonEmptyRepositories() {
-    project.wuff.repositories.repositoriesMap.values().findAll { hasFeaturesAndPluginFiles(it) }
+    getRepositories().findAll { hasFeaturesAndPluginFiles(it) }
   }
 
   Collection<File> getPluginFiles() {
@@ -329,13 +332,13 @@ class EclipseRepositoryConfigurer {
   }
 
   Collection<EclipseRepositoryExtension> getRepositories() {
-    project.wuff.repositories.repositoriesMap.values()
+    project.wuff.repositories.repositoryList
   }
 
   File getRepositoryOutputArchiveFile(EclipseRepositoryExtension repositoryExt) {
-    def archiveFileName = repositoryExt.archiveFileName ?: EclipseRepositoryExtension.defaultArchiveFileName
+    def archiveFileName = repositoryExt.archiveFileName
     if(archiveFileName instanceof Closure)
-      archiveFileName = archiveFileName(repositoryExt.id, repositoryExt.version)
+      archiveFileName = archiveFileName(repositoryExt)
     new File(getRepositoryOutputBaseDir(), archiveFileName.toString())
   }
 

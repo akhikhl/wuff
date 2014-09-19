@@ -15,10 +15,6 @@ import org.gradle.api.Project
  */
 class EclipseRepositoryExtension {
 
-  static final Closure defaultArchiveFileName = { String repositoryId, String repositoryVersion ->
-    "${repositoryId}_${repositoryVersion}.zip"
-  }
-
   String id
   String version
   String url
@@ -28,13 +24,29 @@ class EclipseRepositoryExtension {
   // when enableArchive is false, repository is created, but not archived
   boolean enableArchive = true
 
-  // you can reassign archive name to a string or to another closure
-  def archiveFileName = defaultArchiveFileName
+  // you can reassign archive name to a string or to closure
+  def archiveFileName
   
+  String defaultCategoryName
 	EclipseRepositoryExtension defaultConfig
 
-  void category(String name) {
-    categories.add(new EclipseCategory(name))
+  void category(String name, Closure closure = null) {
+    if(name == null)
+      name = defaultCategoryName ?: ''
+    def f = categories.find { it.name == name }
+    if(f == null) {
+      f = new EclipseCategory(name)
+      categories.add(f)
+    }
+    if(closure != null) {
+      closure.delegate = f
+      closure.resolveStrategy = Closure.DELEGATE_FIRST
+      closure()
+    }
+  }
+  
+  def getArchiveFileName() {
+    archiveFileName ?: defaultConfig?.archiveFileName
   }
 
   String getId() {
@@ -47,6 +59,10 @@ class EclipseRepositoryExtension {
   
   String getVersion() {
     version ?: defaultConfig?.version
+  }
+  
+  void setArchiveFileName(newValue) {
+    archiveFileName = newValue
   }
   
   void setId(String newValue) {

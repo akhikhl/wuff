@@ -13,19 +13,21 @@ package org.akhikhl.wuff
  */
 class EclipseRepositoriesExtension {
 
-  protected Map repositoriesMap = [:]
+  protected final List repositoryList = []
   
+  String defaultCategoryName
 	EclipseRepositoryExtension defaultConfig
 
   void repository(String id = null, Closure closure) {
     if(id == null)
       id = defaultConfig?.id ?: ''
-    def f = repositoriesMap[id]
-    if(f == null)
-      f = repositoriesMap[id] = new EclipseRepositoryExtension(id: id, defaultConfig: defaultConfig)
+    def f = repositoryList.find { it.id == id }
+    if(f == null) {
+      f = new EclipseRepositoryExtension(id: id, defaultCategoryName: defaultCategoryName, defaultConfig: defaultConfig)
+      repositoryList.add(f)
+    }
     closure.delegate = f
     closure.resolveStrategy = Closure.DELEGATE_FIRST
     closure()
   }
 }
-

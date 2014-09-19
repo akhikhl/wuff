@@ -13,19 +13,23 @@ package org.akhikhl.wuff
  */
 class EclipseFeaturesExtension {
 
-  protected Map featuresMap = [:]
+  protected final List featureList = []
   
 	EclipseFeatureExtension defaultConfig
 
-  void feature(String id = null, Closure closure) {
+  void feature(String id = null, Closure closure = null) {
     if(id == null)
       id = defaultConfig?.id ?: ''
-    def f = featuresMap[id]
-    if(f == null)
-      f = featuresMap[id] = new EclipseFeatureExtension(id: id, defaultConfig: defaultConfig)
-    closure.delegate = f
-    closure.resolveStrategy = Closure.DELEGATE_FIRST
-    closure()
+    def f = featureList.find { it.id == id }
+    if(f == null) {
+      f = new EclipseFeatureExtension(id: id, defaultConfig: defaultConfig)
+      featureList.add(f)
+    }
+    if(closure != null) {
+      closure.delegate = f
+      closure.resolveStrategy = Closure.DELEGATE_FIRST
+      closure()
+    }
   }
 }
 
