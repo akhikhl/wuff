@@ -8,8 +8,10 @@
 package org.akhikhl.wuff
 
 import groovy.xml.MarkupBuilder
+import org.apache.commons.io.FileUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -28,6 +30,7 @@ class EclipseRepositoryConfigurer {
   protected static final Logger log = LoggerFactory.getLogger(EclipseRepositoryConfigurer)
 
   protected final Project project
+  protected timeStamp
 
   EclipseRepositoryConfigurer(Project project) {
     this.project = project
@@ -35,10 +38,20 @@ class EclipseRepositoryConfigurer {
 
   void apply() {
 
-    def configurer = new Configurer(project)
-    configurer.apply()
+    if(!project.extensions.findByName('wuff')) {
+      def configurer = new Configurer(project)
+      configurer.apply()
+    }
+
+    if(project.wuff.extensions.findByName('repository')) {
+      log.warn 'Attempt to apply {} more than once on project {}', this.getClass().getName(), project
+      return
+    }
 
     project.wuff.extensions.create('repository', EclipseRepositoryExtension)
+
+    project.wuff.extensions.create('repositories', EclipseRepositoriesExtension)
+    project.wuff.repositories.repositoriesMap[''] = project.wuff.repository
 
     project.configurations {
       repository {
@@ -48,11 +61,11 @@ class EclipseRepositoryConfigurer {
 
     project.afterEvaluate {
 
-      File repositoryDir = new File(project.buildDir, getRepositoryId())
-      File sourceDir = new File(project.buildDir, 'repository-source')
-      File pluginsDir = new File(sourceDir, 'plugins')
-      File featuresDir = new File(sourceDir, 'features')
-      File categoryXmlFile = new File(sourceDir, 'category.xml')
+      //File repositoryDir = new File(project.buildDir, getRepositoryId())
+      //File sourceDir = new File(project.buildDir, 'repository-source')
+      //File pluginsDir = new File(sourceDir, 'plugins')
+      //File featuresDir = new File(sourceDir, 'features')
+      //File categoryXmlFile = new File(sourceDir, 'category.xml')
 
       File baseLocation = project.effectiveUnpuzzle.eclipseUnpackDir
       def equinoxLauncherPlugin = new File(baseLocation, 'plugins').listFiles({ it.name.matches ~/^org\.eclipse\.equinox\.launcher_(.+)\.jar$/ } as FileFilter)
@@ -62,6 +75,8 @@ class EclipseRepositoryConfigurer {
 
       if(!project.tasks.findByName('clean'))
         project.task('clean') {
+          group = 'wuff'
+          description = "deletes directory ${project.buildDir}"
           doLast {
             project.buildDir.deleteDir()
           }
@@ -69,87 +84,97 @@ class EclipseRepositoryConfigurer {
 
       project.task('repositoryRemoveStaleFeatures') {
         group = 'wuff'
-        description = 'removes stale features from repository source'
-        dependsOn {
-          getDependencyFeatureProjects().collect { it.tasks.featureAssemble }
-        }
+        description = 'removes stale features from repository'
+        dependsOn { getFeatureArchiveTasks() }
+        input.files { getFeatureArchiveFiles() }
         outputs.upToDateWhen {
-          Set featureDirNames = (getDependencyFeatureDirs().collect { it.name }) as Set
-          !featuresDir.listFiles({ it.isDirectory() } as FileFilter).find({ !featureDirNames.contains(it.name) })
+          getRepositories().every { repositoryExt ->
+            Set fileNames = getFeatureArchiveFiles(repositoryExt).collect { it.name }
+            getRepositoryTempFeatureArchiveFiles(repositoryExt).every { fileNames.contains(it.name) }
+          }
         }
         doLast {
-          Set featureDirNames = (getDependencyFeatureDirs().collect { it.name }) as Set
-          featuresDir.listFiles({ it.isDirectory() } as FileFilter).find({ !featureDirNames.contains(it.name) }).each {
-            it.deleteDir()
+          getRepositories().each { repositoryExt ->
+            Set fileNames = getFeatureArchiveFiles(repositoryExt).collect { it.name }
+            getRepositoryTempFeatureArchiveFiles(repositoryExt).findAll { !fileNames.contains(it.name) }.each {
+              it.delete()
+            }
           }
         }
       }
 
       project.task('repositoryRemoveStalePlugins') {
         group = 'wuff'
-        description = 'removes stale plugins from repository source'
-        dependsOn {
-          getDependencyFeatureProjects().collect { it.tasks.featureAssemble }
-        }
+        description = 'removes stale plugins from repository'
+        dependsOn { getPluginJarTasks() }
+        inputs.files { getPluginFiles() }
         outputs.upToDateWhen {
-          Set pluginFileNames = (getDependencyPluginFiles().collect { it.name }) as Set
-          !pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).find({ !pluginFileNames.contains(it.name) })
+          getRepositories().every { repositoryExt ->
+            Set fileNames = getPluginFiles(repositoryExt).collect { it.name }
+            getRepositoryTempPluginFiles(repositoryExt).every { fileNames.contains(it.name) }
+          }
         }
         doLast {
-          Set pluginFileNames = (getDependencyPluginFiles().collect { it.name }) as Set
-          pluginsDir.listFiles({ it.name.endsWith('.jar') } as FileFilter).find({ !pluginFileNames.contains(it.name) }).each {
-            it.delete()
+          getRepositories().each { repositoryExt ->
+            Set fileNames = getPluginFiles(repositoryExt).collect { it.name }
+            getRepositoryTempPluginFiles(repositoryExt).findAll { !fileNames.contains(it.name) }.each {
+              it.delete()
+            }
           }
         }
       }
 
       project.task('repositoryCopyFeatures') {
         group = 'wuff'
-        description = 'copies features to repository source'
+        description = 'copies features to repository'
         dependsOn project.tasks.repositoryRemoveStaleFeatures
-        dependsOn {
-          getDependencyFeatureProjects().collect { it.tasks.featureAssemble }
-        }
-        inputs.files { getDependencyFeatureFiles() }
-        outputs.dir featuresDir
+        input.files { getFeatureArchiveFiles() }
+        outputs.files { getRepositoryTempFeatureArchiveFiles() }
         doLast {
-          featuresDir.mkdirs()
-          for(File sourceFeatureFile in getDependencyFeatureFiles()) {
-            File destFeatureDir = new File(featuresDir, sourceFeatureFile.parentFile.name)
-            destFeatureDir.mkdirs()
-            project.copy {
-              from sourceFeatureFile
-              into destFeatureDir
+          getRepositories().each { repositoryExt ->
+            File destDir = getRepositoryTempFeaturesDir(repositoryExt)
+            destDir.mkdirs()
+            getFeatureArchiveFiles(repositoryExt).each {
+              FileUtils.copyFileToDirectory(it, destDir)
             }
           }
         }
       }
 
-      project.task('repositoryCopyPlugins', type: Copy) {
+      project.task('repositoryCopyPlugins') {
         group = 'wuff'
-        description = 'copies plugins to repository source'
+        description = 'copies plugins to repository'
         dependsOn project.tasks.repositoryRemoveStalePlugins
-        dependsOn {
-          getDependencyFeatureProjects().collect { it.tasks.featureAssemble }
+        inputs.files { getPluginFiles() }
+        outputs.files { getRepositoryTempPluginFiles() }
+        doLast {
+          getRepositories().each { repositoryExt ->
+            File destDir = getRepositoryTempPluginsDir(repositoryExt)
+            destDir.mkdirs()
+            getPluginFiles(repositoryExt).each {
+              FileUtils.copyFileToDirectory(it, destDir)
+            }
+          }
         }
-        inputs.files {
-          getDependencyPluginFiles()
-        }
-        outputs.dir pluginsDir
-        from { getDependencyPluginFiles() }
-        into pluginsDir
       }
 
       project.task('repositoryPrepareConfigFiles') {
         group = 'wuff'
         description = 'prepares repository configuration files'
-        inputs.property 'repositoryId', getRepositoryId()
-        inputs.property 'categoryXml', { writeCategoryXmlToString() }
-        outputs.file categoryXmlFile
         mustRunAfter project.tasks.repositoryCopyFeatures
         mustRunAfter project.tasks.repositoryCopyPlugins
+        inputs.property 'repositoriesProperties', {
+          getNonEmptyRepositories().collect { repositoryExt ->
+            [ repositoryId: getRepositoryId(repositoryExt),
+              repositoryVersion: getRepositoryVersion(repositoryExt) ]
+          }
+        }
+        inputs.property 'categoryXml', { writeCategoryXmlToString() }
+        outputs.files { getRepositoryTempCategoryXmlFiles() }
         doLast {
-          writeCategoryXml(categoryXmlFile)
+          getNonEmptyRepositories().each { repositoryExt ->
+            writeCategoryXml(repositoryExt)
+          }
         }
       }
 
@@ -159,30 +184,35 @@ class EclipseRepositoryConfigurer {
         dependsOn project.tasks.repositoryCopyFeatures
         dependsOn project.tasks.repositoryCopyPlugins
         dependsOn project.tasks.repositoryPrepareConfigFiles
-        inputs.dir sourceDir
-        outputs.dir repositoryDir
+        inputs.dir getRepositoryTempBaseDir()
+        outputs.dir getRepositoryTemp2BaseDir()
         doLast {
-          ExecResult result = project.javaexec {
-            main = 'main'
-            jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
-            jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher'
-            jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
-            jvmArgs '-artifactRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
-            jvmArgs '-source', sourceDir.absolutePath
-            jvmArgs '-publishArtifacts'
-            jvmArgs '-compress'
+          getNonEmptyRepositories().each {
+            File sourceDir = getRepositoryTempDir(it)
+            File repositoryDir = getRepositoryTemp2Dir(it)
+            File categoryXmlFile = getRepositoryTempCategoryXmlFile(it)
+            ExecResult result = project.javaexec {
+              main = 'main'
+              jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
+              jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher'
+              jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
+              jvmArgs '-artifactRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
+              jvmArgs '-source', sourceDir.absolutePath
+              jvmArgs '-publishArtifacts'
+              jvmArgs '-compress'
+            }
+            result.assertNormalExitValue()
+            result = project.javaexec {
+              main = 'main'
+              jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
+              jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher'
+              jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
+              jvmArgs '-categoryDefinition', categoryXmlFile.canonicalFile.toURI().toURL().toString()
+              jvmArgs '-categoryQualifier'
+              jvmArgs '-compress'
+            }
+            result.assertNormalExitValue()
           }
-          result.assertNormalExitValue()
-          result = project.javaexec {
-            main = 'main'
-            jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
-            jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher'
-            jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
-            jvmArgs '-categoryDefinition', categoryXmlFile.canonicalFile.toURI().toURL().toString()
-            jvmArgs '-categoryQualifier'
-            jvmArgs '-compress'
-          }
-          result.assertNormalExitValue()
         }
       }
 
@@ -238,78 +268,153 @@ class EclipseRepositoryConfigurer {
     }
   }
 
-  protected Iterable<Project> getDependencyFeatureProjects() {
-    repositoryConfiguration.dependencies.findResults {
-      if(!(it instanceof ProjectDependency))
-        return null
-      def proj = it.dependencyProject
-      proj.tasks.findByName('featureAssemble') ? proj : null
+  List<File> getFeatureArchiveFiles() {
+    getRepositories().collectMany { getFeatureArchiveFiles(it) }
+  }
+
+  List<File> getFeatureArchiveFiles(EclipseRepositoryExtension repositoryExt) {
+    getFeatureProjects(repositoryExt).collectMany { new EclipseFeatureConfigurer(it).getFeatureArchiveFiles() }
+  }
+
+  List<Task> getFeatureArchiveTasks() {
+    getRepositories().collectMany { getFeatureArchiveTasks(it) }
+  }
+
+  List<Task> getFeatureArchiveTasks(EclipseRepositoryExtension repositoryExt) {
+    getFeatureProjects(repositoryExt).collect { it.tasks.featureArchive }
+  }
+
+  Iterable<Project> getFeatureProjects() {
+    getRepositories().collectMany { getFeatureProjects(it) }
+  }
+
+  Iterable<Project> getFeatureProjects(EclipseRepositoryExtension repositoryExt) {
+    getRepositoryConfiguration(repositoryExt).dependencies.findResults {
+      if(it instanceof ProjectDependency) {
+        def proj = it.dependencyProject
+        EclipseFeatureConfigurer.isFeatureProject(proj) ? proj : null
+      }
     }
   }
 
-  protected Set<File> getDependencyFeatureFiles() {
-    getDependencyFeatureDirs().collect { new File(it, 'feature.xml') }
+  List<EclipseRepositoryExtension> getNonEmptyRepositories() {
+    project.wuff.repositories.repositoriesMap.values().findAll { hasFeaturesAndPluginFiles(it) }
   }
 
-  protected Set<File> getDependencyFeatureDirs() {
-    Set<File> result = new LinkedHashSet()
-    result.addAll getDependencyFeatureProjects().collectMany({ proj ->
-      (new File(proj.buildDir, 'output/features').listFiles({ it.isDirectory() && new File(it, 'feature.xml').exists() } as FileFilter) ?: []) as List
-    })
-    result.addAll getFileDependencies().collectMany({ file ->
-      (new File(file, 'features').listFiles({ it.isDirectory() && new File(it, 'feature.xml').exists() } as FileFilter) ?: []) as List
-    })
-    result
+  List<File> getPluginFiles() {
+    getRepositories().collectMany { getPluginFiles(it) }
   }
 
-  protected Set<File> getDependencyPluginFiles() {
-    Set<File> result = new LinkedHashSet()
-    result.addAll getDependencyFeatureProjects().collectMany({ proj ->
-      (new File(proj.buildDir, 'output/plugins').listFiles({ it.name.endsWith('.jar') } as FileFilter) ?: []) as List
-    })
-    result.addAll getFileDependencies().collectMany({ file ->
-      (new File(file, 'plugins').listFiles({ it.name.endsWith('.jar') || (it.isDirectory() && new File(it, 'MANIFEST.MF').exists()) } as FileFilter) ?: []) as List
-    })
-    result
-  }
-
-  protected Iterable<EclipseFeature> getFeatures(EclipseCategory category) {
-    String configurationName = category.configuration ?: 'repository'
-    project.configurations[configurationName].dependencies.collectMany { dep ->
-      if(dep instanceof ProjectDependency)
-        return [ new EclipseFeature(EclipseFeatureConfigurer.getFeatureId(dep.dependencyProject)) ]
-      if(dep instanceof FileCollectionDependency)
-        return collectFeatures(dep.resolve())
-      []
+  List<File> getPluginFiles(EclipseRepositoryExtension repositoryExt) {
+    getFeatureProjects(repositoryExt).collectMany {
+      new EclipseFeatureConfigurer(it).getPluginFiles()
     }
   }
 
-  protected Set<File> getFileDependencies() {
-    repositoryConfiguration.dependencies.collectMany {
-      it instanceof FileCollectionDependency ? it.resolve() : []
+  List<Task> getPluginJarTasks() {
+    getRepositories().collectMany { getPluginJarTasks(it) }
+  }
+
+  List<Task> getPluginJarTasks(EclipseRepositoryExtension repositoryExt) {
+    getFeatureProjects(repositoryExt).collectMany {
+      new EclipseFeatureConfigurer(it).getPluginJarTasks()
     }
   }
 
-  protected Configuration getRepositoryConfiguration() {
-    project.configurations[getRepositoryConfigurationName()]
+  List<EclipseRepositoryExtension> getRepositories() {
+    project.wuff.repositories.repositoriesMap.values()
   }
 
-  protected String getRepositoryConfigurationName() {
-    project.wuff.repository.configuration ?: 'repository'
+  Configuration getRepositoryConfiguration(EclipseRepositoryExtension repositoryExt) {
+    project.configurations[repositoryExt.configuration ?: 'repository']
   }
 
-  protected String getRepositoryId() {
-    project.wuff.repository.id ?: project.name.replace('-', '.')
+  String getRepositoryId(EclipseRepositoryExtension repositoryExt) {
+    repositoryExt.id ?: project.name.replace('-', '.')
   }
 
-  protected void writeCategoryXml(File file) {
+  File getRepositoryOutputDir() {
+    new File(project.buildDir, 'repository-output')
+  }
+
+  File getRepositoryTempBaseDir() {
+    new File(project.buildDir, 'repository-temp')
+  }
+
+  File getRepositoryTempCategoryXmlFiles() {
+    getNonEmptyRepositories().collect { getRepositoryTempCategoryXmlFile(it) }
+  }
+
+  File getRepositoryTempCategoryXmlFile(EclipseRepositoryExtension repositoryExt) {
+    new File(getRepositoryTempDir(repositoryExt), 'category.xml')
+  }
+
+  File getRepositoryTempDir(EclipseRepositoryExtension repositoryExt) {
+    new File(getRepositoryTempBaseDir(), getRepositoryId(repositoryExt) + '_' + getRepositoryVersion(repositoryExt))
+  }
+
+  List<File> getRepositoryTempFeatureArchiveFiles() {
+    getRepositories().collectMany { getRepositoryTempFeatureArchiveFiles(it) }
+  }
+
+  List<File> getRepositoryTempFeatureArchiveFiles(EclipseRepositoryExtension repositoryExt) {
+    getRepositoryTempFeaturesDir(repositoryExt).listFiles({ it.name.endsWith('.jar') } as FileFilter)
+  }
+
+  File getRepositoryTempFeaturesDir(EclipseRepositoryExtension repositoryExt) {
+    new File(getRepositoryTempDir(repositoryExt), 'features')
+  }
+
+  List<File> getRepositoryTempPluginFiles(EclipseRepositoryExtension repositoryExt) {
+    getRepositoryTempPluginsDir(repositoryExt).listFiles({ it.name.endsWith('.jar') } as FileFilter)
+  }
+
+  File getRepositoryTempPluginsDir(EclipseRepositoryExtension repositoryExt) {
+    new File(getRepositoryTempDir(repositoryExt), 'plugins')
+  }
+
+  File getRepositoryTemp2BaseDir() {
+    new File(project.buildDir, 'repository-temp2')
+  }
+
+  File getRepositoryTemp2Dir(EclipseRepositoryExtension repositoryExt) {
+    new File(getRepositoryTemp2BaseDir(), getRepositoryId(repositoryExt) + '_' + getRepositoryVersion(repositoryExt))
+  }
+
+  String getRepositoryVersion(EclipseRepositoryExtension repositoryExt) {
+    mavenVersionToEclipseVersion(repositoryExt.version ?: project.version)
+  }
+
+  boolean hasFeaturesAndPluginFiles() {
+    getRepositories().any { hasFeaturesAndPluginFiles(it) }
+  }
+
+  boolean hasFeaturesAndPluginFiles(EclipseRepositoryExtension repositoryExt) {
+    getFeatureProjects(repositoryExt).any {
+      new EclipseFeatureConfigurer(it).hasPluginFiles()
+    }
+  }
+
+  String mavenVersionToEclipseVersion(String version) {
+    String eclipseVersion = version ?: '1.0.0'
+    if(eclipseVersion == 'unspecified')
+      eclipseVersion = '1.0.0'
+    if(eclipseVersion.endsWith('-SNAPSHOT')) {
+      if(timeStamp == null)
+        timeStamp = new Date().format('yyyyMMddHHmmss')
+      eclipseVersion = eclipseVersion.replace('-SNAPSHOT', '.' + timeStamp)
+    }
+    eclipseVersion
+  }
+
+  void writeCategoryXml(File file) {
     file.parentFile.mkdirs()
     file.withWriter {
       writeCategoryXml(it)
     }
   }
 
-  protected void writeCategoryXml(Writer writer) {
+  void writeCategoryXml(Writer writer) {
     def xml = new MarkupBuilder(writer)
     xml.doubleQuotes = true
     xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'

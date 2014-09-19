@@ -8,9 +8,9 @@
 package org.akhikhl.wuff
 
 import groovy.xml.MarkupBuilder
-import org.apache.commons.io.FileUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.bundling.Jar
@@ -23,10 +23,14 @@ import org.slf4j.LoggerFactory
  */
 class EclipseFeatureConfigurer {
 
+  static boolean isFeatureProject(Project proj) {
+    proj != null && proj.extensions.findByName('wuff') && proj.wuff.extensions.findByName('features')
+  }
+
   protected static final Logger log = LoggerFactory.getLogger(EclipseFeatureConfigurer)
 
   protected final Project project
-  protected final timeStamp = new Date().format('yyyyMMddHHmmss')
+  protected timeStamp
 
   EclipseFeatureConfigurer(Project project) {
     this.project = project
@@ -34,8 +38,15 @@ class EclipseFeatureConfigurer {
 
   void apply() {
 
-    def configurer = new Configurer(project)
-    configurer.apply()
+    if(!project.extensions.findByName('wuff')) {
+      def configurer = new Configurer(project)
+      configurer.apply()
+    }
+
+    if(project.wuff.extensions.findByName('feature')) {
+      log.warn 'Attempt to apply {} more than once on project {}', this.getClass().getName(), project
+      return
+    }
 
     project.wuff.extensions.create('feature', EclipseFeatureExtension)
 
@@ -52,6 +63,8 @@ class EclipseFeatureConfigurer {
 
       if(!project.tasks.findByName('clean'))
         project.task('clean') {
+          group = 'wuff'
+          description = "deletes directory ${project.buildDir}"
           doLast {
             project.buildDir.deleteDir()
           }
@@ -60,42 +73,24 @@ class EclipseFeatureConfigurer {
       project.task('featurePrepareConfigFiles') {
         group = 'wuff'
         description = 'prepares feature configuration files'
-        dependsOn {
-          project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            getFeatureConfiguration(featureExt).dependencies.findResults { dep ->
-              dep instanceof ProjectDependency ? dep.dependencyProject.tasks.findByName('build') : null
-            }
-          }
-        }
+        dependsOn { getPluginJarTasks() }
         inputs.property 'featuresProperties', {
-          project.wuff.features.featuresMap.collectEntries { id, featureExt ->
-            [id, [
-              featureId: getFeatureId(featureExt),
+          getNonEmptyFeatures().collect { featureExt ->
+            [ featureId: getFeatureId(featureExt),
               featureLabel: getFeatureLabel(featureExt),
               featureVersion: getFeatureVersion(featureExt),
               featureProviderName: featureExt.providerName,
               featureCopyright: featureExt.copyright,
               featureLicenseUrl: featureExt.licenseUrl,
-              featureLicenseText: featureExt.licenseText
-            ]]
+              featureLicenseText: featureExt.licenseText ]
           }
         }
-        inputs.files {
-          project.wuff.features.featuresMap.collectMany { id, featureExt ->
-            getFeatureConfiguration(featureExt).files
-          }
-        }
+        inputs.files { getPluginFiles() }
         outputs.files {
-          project.wuff.features.featuresMap.findResults { id, featureExt ->
-            if(getFeatureConfiguration(featureExt).files)
-              getFeatureXmlFile(featureExt)
-          }
+          getNonEmptyFeatures().collect { getFeatureXmlFile(it) }
         }
         doLast {
-          project.wuff.features.featuresMap.each { id, featureExt ->
-            if(getFeatureConfiguration(featureExt).files)
-              writeFeatureXml(featureExt)
-          }
+          getNonEmptyFeatures().each { writeFeatureXml(it) }
         }
       }
 
@@ -104,25 +99,18 @@ class EclipseFeatureConfigurer {
         description = 'archives eclipse feature(s)'
         dependsOn project.tasks.featurePrepareConfigFiles
         inputs.files {
-          project.wuff.features.featuresMap.findResults { id, featureExt ->
-            if(getFeatureConfiguration(featureExt).files)
-              getFeatureXmlFile(featureExt)
-          }
+          getNonEmptyFeatures().collect { getFeatureXmlFile(it) }
         }
         outputs.files {
-          project.wuff.features.featuresMap.findResults { id, featureExt ->
-            if(getFeatureConfiguration(featureExt).files)
-              getFeatureArchiveFile(featureExt)
-          }
+          getNonEmptyFeatures().collect { getFeatureArchiveFile(it) }
         }
         doLast {
-          project.wuff.features.featuresMap.findResults { id, featureExt ->
-            if(getFeatureConfiguration(featureExt).files)
-              ArchiveUtils.jar getFeatureArchiveFile(featureExt), {
-                from getFeatureTempDir(featureExt), {
-                  add getFeatureXmlFile(featureExt)
-                }
+          getNonEmptyFeatures().each { featureExt ->
+            ArchiveUtils.jar getFeatureArchiveFile(featureExt), {
+              from getFeatureTempDir(featureExt), {
+                add getFeatureXmlFile(featureExt)
               }
+            }
           }
         }
       }
@@ -138,51 +126,89 @@ class EclipseFeatureConfigurer {
     } // afterEvaluate
   }
 
-  protected File getFeatureArchiveFile(EclipseFeatureExtension featureExt) {
-    new File(getFeatureOutputDir(), getFeatureArchiveFileName(featureExt))
+  File getFeatureArchiveFile(EclipseFeatureExtension featureExt) {
+    new File(getFeatureOutputDir(), getFeatureId(featureExt) + '_' + getFeatureVersion(featureExt) + '.jar')
   }
 
-  protected String getFeatureArchiveFileName(EclipseFeatureExtension featureExt) {
-    getFeatureId(featureExt) + '_' + getFeatureVersion(featureExt) + '.jar'
+  List<File> getFeatureArchiveFiles() {
+    getNonEmptyFeatures().collect { getFeatureArchiveFile(it) }
   }
 
-  protected Configuration getFeatureConfiguration(EclipseFeatureExtension featureExt) {
+  Configuration getFeatureConfiguration(EclipseFeatureExtension featureExt) {
     project.configurations[featureExt.configuration ?: 'feature']
   }
 
-  protected String getFeatureId(EclipseFeatureExtension featureExt) {
+  String getFeatureId(EclipseFeatureExtension featureExt) {
     featureExt.id ?: project.name.replace('-', '.')
   }
 
-  protected String getFeatureLabel(EclipseFeatureExtension featureExt) {
+  String getFeatureLabel(EclipseFeatureExtension featureExt) {
     featureExt.label ?: project.name
   }
 
-  protected File getFeatureOutputDir() {
-    new File(project.buildDir, 'output')
+  File getFeatureOutputDir() {
+    new File(project.buildDir, 'feature-output')
   }
 
-  protected File getFeatureTempDir(EclipseFeatureExtension featureExt) {
+  Collection<EclipseFeatureExtension> getFeatures() {
+    project.wuff.features.featuresMap.values()
+  }
+
+  File getFeatureTempDir(EclipseFeatureExtension featureExt) {
     new File(project.buildDir, 'feature-temp/' + getFeatureId(featureExt) + '_' + getFeatureVersion(featureExt))
   }
 
-  protected String getFeatureVersion(EclipseFeatureExtension featureExt) {
+  String getFeatureVersion(EclipseFeatureExtension featureExt) {
     mavenVersionToEclipseVersion(featureExt.version ?: project.version)
   }
 
-  protected File getFeatureXmlFile(EclipseFeatureExtension featureExt) {
+  File getFeatureXmlFile(EclipseFeatureExtension featureExt) {
     new File(getFeatureTempDir(featureExt), 'feature.xml')
   }
 
-  protected String mavenVersionToEclipseVersion(String version) {
+  Collection<EclipseFeatureExtension> getNonEmptyFeatures() {
+    getFeatures().findAll { hasPluginFiles(it) }
+  }
+
+  List<File> getPluginFiles() {
+    getFeatures().collectMany { getPluginFiles(it) }
+  }
+
+  List<File> getPluginFiles(EclipseFeatureExtension featureExt) {
+    getFeatureConfiguration(featureExt).files
+  }
+
+  List<Task> getPluginJarTasks() {
+    getFeatures().collectMany { getPluginJarTasks(it) }
+  }
+
+  List<Task> getPluginJarTasks(EclipseFeatureExtension featureExt) {
+    getFeatureConfiguration(featureExt).dependencies.findResults { dep ->
+      dep instanceof ProjectDependency ? dep.dependencyProject.tasks.findByName('jar') : null
+    }
+  }
+
+  boolean hasPluginFiles() {
+    getFeatures().any { hasPluginFiles(it) }
+  }
+
+  boolean hasPluginFiles(EclipseFeatureExtension featureExt) {
+    !getFeatureConfiguration(featureExt).isEmpty()
+  }
+
+  String mavenVersionToEclipseVersion(String version) {
     String eclipseVersion = version ?: '1.0.0'
     if(eclipseVersion == 'unspecified')
       eclipseVersion = '1.0.0'
-    eclipseVersion = eclipseVersion.replace('-SNAPSHOT', '.' + timeStamp)
+    if(eclipseVersion.endsWith('-SNAPSHOT')) {
+      if(timeStamp == null)
+        timeStamp = new Date().format('yyyyMMddHHmmss')
+      eclipseVersion = eclipseVersion.replace('-SNAPSHOT', '.' + timeStamp)
+    }
     eclipseVersion
   }
 
-  protected void writeFeatureXml(EclipseFeatureExtension featureExt) {
+  void writeFeatureXml(EclipseFeatureExtension featureExt) {
     File file = getFeatureXmlFile(featureExt)
     file.parentFile.mkdirs()
     file.withWriter { writer ->
