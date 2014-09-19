@@ -10,6 +10,8 @@ import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 /**
  *
@@ -17,14 +19,14 @@ import java.util.jar.Manifest
  */
 class ArchiveUtils {
 
-  private static class PackToJarContext {
+  private static class ZipPacker {
 
-    protected final JarOutputStream jarStream
+    protected final ZipOutputStream targetStream
     protected final byte[] buffer = new byte[32 * 1024 * 1024]
     protected List fromStack = []
 
-    PackToJarContext(JarOutputStream jarStream) {
-      this.jarStream = jarStream
+    ZipPacker(ZipOutputStream targetStream) {
+      this.targetStream = targetStream
     }
 
     void add(String source) {
@@ -47,28 +49,32 @@ class ArchiveUtils {
         if (!name.isEmpty()) {
           if (!name.endsWith('/'))
             name += '/'
-          JarEntry entry = new JarEntry(name)
+          def entry = createEntry(name)
           entry.setTime(source.lastModified())
-          jarStream.putNextEntry(entry)
-          jarStream.closeEntry()
+          targetStream.putNextEntry(entry)
+          targetStream.closeEntry()
         }
         for (File nestedFile in source.listFiles())
           add(nestedFile)
         return
       }
 
-      JarEntry entry = new JarEntry(name)
+      def entry = createEntry(name)
       entry.setTime(source.lastModified())
-      jarStream.putNextEntry(entry)
+      targetStream.putNextEntry(entry)
       source.withInputStream { ins ->
         while (true) {
           int count = ins.read(buffer)
           if (count == -1)
             break;
-          jarStream.write(buffer, 0, count)
+          targetStream.write(buffer, 0, count)
         }
       }
-      jarStream.closeEntry()
+      targetStream.closeEntry()
+    }
+
+    protected ZipEntry createEntry(String name) {
+      new ZipEntry(name)
     }
 
     void from(dir, Closure closure) {
@@ -90,7 +96,19 @@ class ArchiveUtils {
       fromStack?.last()
     }
   }
-	
+
+  private static class JarPacker extends ZipPacker {
+
+    JarPacker(JarOutputStream targetStream) {
+      super(targetStream)
+    }
+
+    @Override
+    protected ZipEntry createEntry(String name) {
+      new JarEntry(name)
+    }
+  }
+
   static void jar(Map manifestAttributes = [:], File targetFile, Closure configClosure) {
     manifestAttributes = [:] + manifestAttributes
     manifestAttributes[Attributes.Name.MANIFEST_VERSION] = '1.0'
@@ -102,7 +120,18 @@ class ArchiveUtils {
       targetFile.delete()
     targetFile.parentFile.mkdirs()
     new JarOutputStream(new FileOutputStream(targetFile), manifest).withStream { targetStream ->
-      configClosure.delegate = new PackToJarContext(targetStream)
+      configClosure.delegate = new JarPacker(targetStream)
+      configClosure.resolveStrategy = Closure.DELEGATE_FIRST
+      configClosure()
+    }
+  }
+
+  static void zip(File targetFile, Closure configClosure) {
+    if(targetFile.exists())
+      targetFile.delete()
+    targetFile.parentFile.mkdirs()
+    new ZipOutputStream(new FileOutputStream(targetFile)).withStream { targetStream ->
+      configClosure.delegate = new ZipPacker(targetStream)
       configClosure.resolveStrategy = Closure.DELEGATE_FIRST
       configClosure()
     }

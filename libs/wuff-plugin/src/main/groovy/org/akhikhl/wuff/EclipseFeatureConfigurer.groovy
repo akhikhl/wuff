@@ -130,7 +130,7 @@ class EclipseFeatureConfigurer {
     new File(getFeatureOutputDir(), getFeatureId(featureExt) + '_' + getFeatureVersion(featureExt) + '.jar')
   }
 
-  List<File> getFeatureArchiveFiles() {
+  Collection<File> getFeatureArchiveFiles() {
     getNonEmptyFeatures().collect { getFeatureArchiveFile(it) }
   }
 
@@ -170,19 +170,19 @@ class EclipseFeatureConfigurer {
     getFeatures().findAll { hasPluginFiles(it) }
   }
 
-  List<File> getPluginFiles() {
+  Collection<File> getPluginFiles() {
     getFeatures().collectMany { getPluginFiles(it) }
   }
 
-  List<File> getPluginFiles(EclipseFeatureExtension featureExt) {
+  Collection<File> getPluginFiles(EclipseFeatureExtension featureExt) {
     getFeatureConfiguration(featureExt).files
   }
 
-  List<Task> getPluginJarTasks() {
+  Collection<Task> getPluginJarTasks() {
     getFeatures().collectMany { getPluginJarTasks(it) }
   }
 
-  List<Task> getPluginJarTasks(EclipseFeatureExtension featureExt) {
+  Collection<Task> getPluginJarTasks(EclipseFeatureExtension featureExt) {
     getFeatureConfiguration(featureExt).dependencies.findResults { dep ->
       dep instanceof ProjectDependency ? dep.dependencyProject.tasks.findByName('jar') : null
     }
