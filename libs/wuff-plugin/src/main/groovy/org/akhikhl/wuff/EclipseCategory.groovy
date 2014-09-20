@@ -13,7 +13,7 @@ package org.akhikhl.wuff
  */
 class EclipseCategory {
   
-	String name
+	final String name
   String label
   String description
   String configuration

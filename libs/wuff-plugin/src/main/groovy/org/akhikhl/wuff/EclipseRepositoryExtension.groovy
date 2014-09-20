@@ -15,7 +15,7 @@ import org.gradle.api.Project
  */
 class EclipseRepositoryExtension {
 
-  String id
+  private final String id
   String version
   String url
   String description
@@ -27,12 +27,16 @@ class EclipseRepositoryExtension {
   // you can reassign archive name to a string or to closure
   def archiveFileName
   
-  String defaultCategoryName
-	EclipseRepositoryExtension defaultConfig
+	final EclipseRepositoryExtension defaultConfig
+  
+  EclipseRepositoryExtension(String id, EclipseRepositoryExtension defaultConfig) {
+    this.id = id
+    this.defaultConfig = defaultConfig
+  }
 
   void category(String name, Closure closure = null) {
-    if(name == null)
-      name = defaultCategoryName ?: ''
+    assert name != null
+    assert !name.isEmpty()
     def f = categories.find { it.name == name }
     if(f == null) {
       f = new EclipseCategory(name)
@@ -63,10 +67,6 @@ class EclipseRepositoryExtension {
   
   void setArchiveFileName(newValue) {
     archiveFileName = newValue
-  }
-  
-  void setId(String newValue) {
-    id = newValue
   }
   
   void setVersion(String newValue) {

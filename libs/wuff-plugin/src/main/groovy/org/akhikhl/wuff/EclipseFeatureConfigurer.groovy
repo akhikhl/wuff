@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 class EclipseFeatureConfigurer {
 
   static boolean isFeatureProject(Project proj) {
-    proj != null && proj.extensions.findByName('wuff') && proj.wuff.extensions.findByName('features')
+    proj != null && proj.extensions.findByName('wuff') && proj.wuff.ext.has('featureList')
   }
 
   protected static final Logger log = LoggerFactory.getLogger(EclipseFeatureConfigurer)
@@ -43,24 +43,46 @@ class EclipseFeatureConfigurer {
       configurer.apply()
     }
 
-    if(project.wuff.extensions.findByName('feature')) {
+    if(project.wuff.ext.has('featureList')) {
       log.warn 'Attempt to apply {} more than once on project {}', this.getClass().getName(), project
       return
     }
 
-    def defaultFeatureConfig = new EclipseFeatureExtension(
-      id: project.name.replace('-', '.'),
-      version: (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version,
-      label: project.name,
-      configuration: 'feature'
-    )
+    def defaultFeatureConfig = project.wuff.ext.defaultFeatureConfig = new EclipseFeatureExtension(project.name.replace('-', '.'), null)
+    defaultFeatureConfig.label = project.name
+    defaultFeatureConfig.configuration = 'feature'
+    defaultFeatureConfig.metaClass {
+      getVersion = {
+        (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version
+      }
+    }
 
-    project.wuff.extensions.create('feature', EclipseFeatureExtension)
-    project.wuff.feature.defaultConfig = defaultFeatureConfig
-
-    project.wuff.extensions.create('features', EclipseFeaturesExtension)
-    project.wuff.features.defaultConfig = defaultFeatureConfig
-    project.wuff.features.featureList.add(project.wuff.feature)
+    project.wuff.ext.featureList = []
+    project.wuff.ext.defaultFeatureList = null
+    
+    project.wuff.metaClass {
+      feature = { Object... args ->
+        String id
+        Closure closure
+        for(def arg in args)
+          if(arg instanceof String)
+            id = arg
+          else if(arg instanceof Closure)
+            closure = arg
+        if(!id)
+          id = project.wuff.ext.defaultFeatureConfig.id
+        def f = project.wuff.ext.featureList.find { it.id == id }
+        if(f == null) {
+          f = new EclipseFeatureExtension(id, project.wuff.ext.defaultFeatureConfig)
+          project.wuff.ext.featureList.add(f)
+        }
+        if(closure != null) {
+          closure.delegate = f
+          closure.resolveStrategy = Closure.DELEGATE_FIRST
+          closure()
+        }
+      }
+    }
 
     project.configurations {
       feature {
@@ -152,7 +174,13 @@ class EclipseFeatureConfigurer {
   }
 
   Collection<EclipseFeatureExtension> getFeatures() {
-    project.wuff.features.featureList
+    def result = project.wuff.ext.featureList
+    if(!result) {
+      result = project.wuff.ext.defaultFeatureList
+      if(!result)
+        result = project.wuff.ext.defaultFeatureList = [ new EclipseFeatureExtension(null, project.wuff.ext.defaultFeatureConfig) ]
+    }
+    result
   }
 
   File getFeatureTempDir(EclipseFeatureExtension featureExt) {

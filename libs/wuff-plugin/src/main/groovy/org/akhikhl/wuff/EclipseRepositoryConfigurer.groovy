@@ -27,6 +27,10 @@ import org.slf4j.LoggerFactory
  */
 class EclipseRepositoryConfigurer {
 
+  static boolean isRepositoryProject(Project proj) {
+    proj != null && proj.extensions.findByName('wuff') && proj.wuff.ext.has('repositoryList')
+  }
+
   protected static final Logger log = LoggerFactory.getLogger(EclipseRepositoryConfigurer)
 
   protected final Project project
@@ -42,26 +46,48 @@ class EclipseRepositoryConfigurer {
       configurer.apply()
     }
 
-    if(project.wuff.extensions.findByName('repository')) {
+    if(project.wuff.ext.has('repositoryList')) {
       log.warn 'Attempt to apply {} more than once on project {}', this.getClass().getName(), project
       return
     }
 
-    def defaultRepositoryConfig = new EclipseRepositoryExtension(
-      id: project.name.replace('-', '.'),
-      version: (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version
-    )
-    defaultRepositoryConfig.category project.name.replace('-', '.')
+    def defaultRepositoryConfig = project.wuff.ext.defaultRepositoryConfig = new EclipseRepositoryExtension(project.name.replace('-', '.'), null)
     defaultRepositoryConfig.archiveFileName = { EclipseRepositoryExtension repositoryExt ->
       "${repositoryExt.id}_${repositoryExt.version}.zip"
     }
+    defaultRepositoryConfig.metaClass {
+      getVersion = {
+        (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version
+      }
+    }
+    defaultRepositoryConfig.category project.name.replace('-', '.')
 
-    project.wuff.extensions.create('repository', EclipseRepositoryExtension)
-    project.wuff.repository.defaultConfig = defaultRepositoryConfig
-
-    project.wuff.extensions.create('repositories', EclipseRepositoriesExtension)
-    project.wuff.repositories.defaultConfig = defaultRepositoryConfig
-    project.wuff.repositories.repositoryList.add(project.wuff.repository)
+    project.wuff.ext.repositoryList = []
+    project.wuff.ext.defaultRepositoryList = []
+    
+    project.wuff.metaClass {
+      repository = { Object... args ->
+        String id
+        Closure closure
+        for(def arg in args)
+          if(arg instanceof String)
+            id = arg
+          else if(arg instanceof Closure)
+            closure = arg
+        if(!id)
+          id = project.wuff.ext.defaultRepositoryConfig.id
+        def f = project.wuff.ext.repositoryList.find { it.id == id }
+        if(f == null) {
+          f = new EclipseRepositoryExtension(id, project.wuff.ext.defaultRepositoryConfig)
+          project.wuff.ext.repositoryList.add(f)
+        }
+        if(closure != null) {
+          closure.delegate = f
+          closure.resolveStrategy = Closure.DELEGATE_FIRST
+          closure()
+        }
+      }
+    }
 
     project.configurations {
       repository {
@@ -332,7 +358,13 @@ class EclipseRepositoryConfigurer {
   }
 
   Collection<EclipseRepositoryExtension> getRepositories() {
-    project.wuff.repositories.repositoryList
+    def result = project.wuff.ext.repositoryList
+    if(!result) {
+      result = project.wuff.ext.defaultRepositoryList
+      if(!result)
+        result = project.wuff.ext.defaultRepositoryList = [ new EclipseRepositoryExtension(null, project.wuff.ext.defaultRepositoryConfig) ]
+    }
+    result
   }
 
   File getRepositoryOutputArchiveFile(EclipseRepositoryExtension repositoryExt) {

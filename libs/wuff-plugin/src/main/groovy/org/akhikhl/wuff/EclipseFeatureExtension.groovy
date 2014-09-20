@@ -13,7 +13,7 @@ package org.akhikhl.wuff
  */
 class EclipseFeatureExtension {
 
-	String id
+	private final String id
   String version
   String label
   String providerName
@@ -22,7 +22,12 @@ class EclipseFeatureExtension {
   String licenseText
   String configuration
   
-	EclipseFeatureExtension defaultConfig
+	final EclipseFeatureExtension defaultConfig
+  
+  EclipseFeatureExtension(String id, EclipseFeatureExtension defaultConfig) {
+    this.id = id
+    this.defaultConfig = defaultConfig
+  }
 
   String getConfiguration() {
     configuration ?: defaultConfig?.configuration
@@ -42,10 +47,6 @@ class EclipseFeatureExtension {
   
   void setConfiguration(String newValue) {
     configuration = newValue
-  }
-  
-  void setId(String newValue) {
-    id = newValue
   }
   
   void setLabel(String newValue) {
