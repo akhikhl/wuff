@@ -18,8 +18,14 @@ class EclipseCategory {
   String description
   String configuration
   
+  final List features = []
+  
   EclipseCategory(String name) {
     this.name = name
+  }
+  
+  void feature(String id) {
+    features.add(id)
   }
 }
 

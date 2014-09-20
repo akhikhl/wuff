@@ -48,15 +48,6 @@ class EclipseFeatureConfigurer {
       return
     }
 
-    def defaultFeatureConfig = project.wuff.ext.defaultFeatureConfig = new EclipseFeatureExtension(project.name.replace('-', '.'), null)
-    defaultFeatureConfig.label = project.name
-    defaultFeatureConfig.configuration = 'feature'
-    defaultFeatureConfig.metaClass {
-      getVersion = {
-        (!project.version || project.version == 'unspecified') ? '1.0.0' : project.version
-      }
-    }
-
     project.wuff.ext.featureList = []
     project.wuff.ext.defaultFeatureList = null
     
@@ -70,10 +61,10 @@ class EclipseFeatureConfigurer {
           else if(arg instanceof Closure)
             closure = arg
         if(!id)
-          id = project.wuff.ext.defaultFeatureConfig.id
+          id = EclipseFeature.getDefaultId(project)
         def f = project.wuff.ext.featureList.find { it.id == id }
         if(f == null) {
-          f = new EclipseFeatureExtension(id, project.wuff.ext.defaultFeatureConfig)
+          f = new EclipseFeature(project, id)
           project.wuff.ext.featureList.add(f)
         }
         if(closure != null) {
@@ -118,7 +109,7 @@ class EclipseFeatureConfigurer {
         }
         inputs.files { getPluginFiles() }
         outputs.files {
-          getNonEmptyFeatures().collect { getFeatureXmlFile(it) }
+          getNonEmptyFeatures().collect { it.getTempFeatureXmlFile() }
         }
         doLast {
           getNonEmptyFeatures().each { writeFeatureXml(it) }
@@ -130,16 +121,16 @@ class EclipseFeatureConfigurer {
         description = 'archives eclipse feature(s)'
         dependsOn project.tasks.featurePrepareConfigFiles
         inputs.files {
-          getNonEmptyFeatures().collect { getFeatureXmlFile(it) }
+          getNonEmptyFeatures().collect { it.getTempFeatureXmlFile() }
         }
         outputs.files {
-          getNonEmptyFeatures().collect { getFeatureArchiveFile(it) }
+          getNonEmptyFeatures().collect { it.getArchiveFile() }
         }
         doLast {
           getNonEmptyFeatures().each { featureExt ->
-            ArchiveUtils.jar getFeatureArchiveFile(featureExt), {
-              from getFeatureTempDir(featureExt), {
-                add getFeatureXmlFile(featureExt)
+            ArchiveUtils.jar featureExt.getArchiveFile(), {
+              from featureExt.getTempDir(), {
+                add featureExt.getTempFeatureXmlFile()
               }
             }
           }
@@ -157,68 +148,34 @@ class EclipseFeatureConfigurer {
     } // afterEvaluate
   }
 
-  File getFeatureArchiveFile(EclipseFeatureExtension featureExt) {
-    new File(getFeatureOutputDir(), featureExt.id + '_' + featureExt.version + '.jar')
-  }
-
   Collection<File> getFeatureArchiveFiles() {
-    getNonEmptyFeatures().collect { getFeatureArchiveFile(it) }
+    getNonEmptyFeatures().collect { it.getArchiveFile() }
   }
 
-  Configuration getFeatureConfiguration(EclipseFeatureExtension featureExt) {
-    project.configurations[featureExt.configuration]
-  }
-
-  File getFeatureOutputDir() {
-    new File(project.buildDir, 'feature-output')
-  }
-
-  Collection<EclipseFeatureExtension> getFeatures() {
+  Collection<EclipseFeature> getFeatures() {
     def result = project.wuff.ext.featureList
     if(!result) {
       result = project.wuff.ext.defaultFeatureList
       if(!result)
-        result = project.wuff.ext.defaultFeatureList = [ new EclipseFeatureExtension(null, project.wuff.ext.defaultFeatureConfig) ]
+        result = project.wuff.ext.defaultFeatureList = [ new EclipseFeature(project, null) ]
     }
     result
   }
 
-  File getFeatureTempDir(EclipseFeatureExtension featureExt) {
-    new File(project.buildDir, 'feature-temp/' + featureExt.id + '_' + featureExt.version)
-  }
-
-  File getFeatureXmlFile(EclipseFeatureExtension featureExt) {
-    new File(getFeatureTempDir(featureExt), 'feature.xml')
-  }
-
-  Collection<EclipseFeatureExtension> getNonEmptyFeatures() {
-    getFeatures().findAll { hasPluginFiles(it) }
+  Collection<EclipseFeature> getNonEmptyFeatures() {
+    getFeatures().findAll { it.hasPluginFiles() }
   }
 
   Collection<File> getPluginFiles() {
-    getFeatures().collectMany { getPluginFiles(it) }
-  }
-
-  Collection<File> getPluginFiles(EclipseFeatureExtension featureExt) {
-    getFeatureConfiguration(featureExt).files
+    getFeatures().collectMany { it.getPluginFiles() }
   }
 
   Collection<Task> getPluginJarTasks() {
-    getFeatures().collectMany { getPluginJarTasks(it) }
-  }
-
-  Collection<Task> getPluginJarTasks(EclipseFeatureExtension featureExt) {
-    getFeatureConfiguration(featureExt).dependencies.findResults { dep ->
-      dep instanceof ProjectDependency ? dep.dependencyProject.tasks.findByName('jar') : null
-    }
+    getFeatures().collectMany { it.getPluginJarTasks() }
   }
 
   boolean hasPluginFiles() {
-    getFeatures().any { hasPluginFiles(it) }
-  }
-
-  boolean hasPluginFiles(EclipseFeatureExtension featureExt) {
-    !getFeatureConfiguration(featureExt).isEmpty()
+    getFeatures().any { it.hasPluginFiles() }
   }
 
   String mavenVersionToEclipseVersion(String version) {
@@ -230,8 +187,8 @@ class EclipseFeatureConfigurer {
     version
   }
 
-  void writeFeatureXml(EclipseFeatureExtension featureExt) {
-    File file = getFeatureXmlFile(featureExt)
+  void writeFeatureXml(EclipseFeature featureExt) {
+    File file = featureExt.getTempFeatureXmlFile()
     file.parentFile.mkdirs()
     file.withWriter { writer ->
       def xml = new MarkupBuilder(writer)
@@ -249,7 +206,7 @@ class EclipseFeatureConfigurer {
         if(featureExt.licenseUrl || featureExt.licenseText)
           license(([url: featureExt.licenseUrl].findAll { it.value }), featureExt.licenseText)
 
-        getFeatureConfiguration(featureExt).files.each { f ->
+        featureExt.getPluginFiles().each { f ->
           def manifest = ManifestUtils.getManifest(project, f)
           if(ManifestUtils.isBundle(manifest)) {
             String bundleSymbolicName = manifest.mainAttributes?.getValue('Bundle-SymbolicName')
