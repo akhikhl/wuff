@@ -54,7 +54,7 @@ class EclipseFeature {
   }
 
   String getLabel() {
-    label ?: project.name
+    label ?: getId()
   }
   
   File getOutputDir() {
