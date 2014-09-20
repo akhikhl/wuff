@@ -23,9 +23,9 @@ class EclipseFeature {
   }
 
   final Project project
-	private final String id
-  String version
-  String label
+  private final String id
+  private String version
+  private String label
   String providerName
   String copyright
   String licenseUrl
