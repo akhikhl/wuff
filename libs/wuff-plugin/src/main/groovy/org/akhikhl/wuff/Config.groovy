@@ -29,6 +29,7 @@ class Config {
   boolean filterManifest = false
   boolean filterProperties = false
   boolean filterHtml = false
+  boolean ignoreManifest = true
 
   void eclipseVersion(String versionString, Closure closure) {
     List<Closure> closureList = lazyVersions[versionString]
@@ -97,6 +98,8 @@ class Config {
       target.filterProperties = true
     if(source.filterHtml)
       target.filterHtml = true
+    if(source.ignoreManifest)
+      target.ignoreManifest = true
   }
   
   boolean supportsE4() {
