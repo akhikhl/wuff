@@ -187,10 +187,6 @@ class EclipseRepository {
     new File(getTempBaseDir(project), getId() + '_' + getVersion())
   }
 
-  File getTempCategoryXmlFile() {
-    new File(getTempDir(), 'category.xml')
-  }
-
   Collection<File> getTempFeatureArchiveFiles() {
     getTempFeaturesDir().listFiles({ it.name.endsWith('.jar') } as FileFilter) ?: []
   }
@@ -205,6 +201,10 @@ class EclipseRepository {
 
   File getTempPluginsDir() {
     new File(getTempDir(), 'plugins')
+  }
+
+  File getTempSiteXmlFile() {
+    new File(getTempDir(), 'site.xml')
   }
   
   String getVersion() {

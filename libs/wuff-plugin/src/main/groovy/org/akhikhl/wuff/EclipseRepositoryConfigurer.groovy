@@ -189,7 +189,7 @@ class EclipseRepositoryConfigurer {
               categoryXml: writeCategoryXmlString(repositoryExt) ]
           }
         }
-        outputs.files { getTempCategoryXmlFiles() }
+        outputs.files { getTempSiteXmlFiles() }
         doLast {
           getNonEmptyRepositories().each { repositoryExt ->
             writeCategoryXmlFile(repositoryExt)
@@ -215,16 +215,18 @@ class EclipseRepositoryConfigurer {
           getNonEmptyRepositories().each { repositoryExt ->
             File sourceDir = repositoryExt.getTempDir()
             File repositoryDir = repositoryExt.getOutputUnpackedDir()
-            File categoryXmlFile = repositoryExt.getTempCategoryXmlFile()
-            ExecResult result = project.javaexec {
+            File tempSiteXmlFile = repositoryExt.getTempSiteXmlFile()
+            ExecResult result
+            result = project.javaexec {
               main = 'main'
               jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
               jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher'
               jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
               jvmArgs '-artifactRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
               jvmArgs '-source', sourceDir.absolutePath
-              jvmArgs '-publishArtifacts'
+              jvmArgs '-configs', 'ANY'
               jvmArgs '-compress'
+              jvmArgs '-publishArtifacts'
             }
             result.assertNormalExitValue()
             result = project.javaexec {
@@ -232,11 +234,15 @@ class EclipseRepositoryConfigurer {
               jvmArgs '-jar', equinoxLauncherPlugin.absolutePath
               jvmArgs '-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher'
               jvmArgs '-metadataRepository', repositoryDir.canonicalFile.toURI().toURL().toString()
-              jvmArgs '-categoryDefinition', categoryXmlFile.canonicalFile.toURI().toURL().toString()
+              jvmArgs '-categoryDefinition', tempSiteXmlFile.canonicalFile.toURI().toURL().toString()
               jvmArgs '-categoryQualifier'
               jvmArgs '-compress'
             }
             result.assertNormalExitValue()
+            project.copy {
+              from tempSiteXmlFile
+              into repositoryDir
+            }
           }
         }
       }
@@ -310,8 +316,8 @@ class EclipseRepositoryConfigurer {
     result
   }
 
-  Collection<File> getTempCategoryXmlFiles() {
-    getNonEmptyRepositories().collect { it.getTempCategoryXmlFile() }
+  Collection<File> getTempSiteXmlFiles() {
+    getNonEmptyRepositories().collect { it.getTempSiteXmlFile() }
   }
 
   Collection<File> getTempFeatureArchiveFiles() {
@@ -363,7 +369,7 @@ class EclipseRepositoryConfigurer {
   }
 
   String writeCategoryXmlFile(EclipseRepository repositoryExt) {
-    File file = repositoryExt.getTempCategoryXmlFile()
+    File file = repositoryExt.getTempSiteXmlFile()
     file.parentFile.mkdirs()
     file.withWriter {
       writeCategoryXml(repositoryExt, it)
