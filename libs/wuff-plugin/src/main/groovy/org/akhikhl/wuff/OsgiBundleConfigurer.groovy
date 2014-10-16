@@ -504,15 +504,15 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected void readManifest() {
     File userManifestFile = PluginUtils.findPluginManifestFile(project)
-    if(userManifestFile) {
+    println("project.wuff.ignoreManifest=" + project.wuff.ignoreManifest)
+    if (!project.wuff.ignoreManifest && userManifestFile != null) {
       userManifestFile.withInputStream {
         userManifest = new java.util.jar.Manifest(it)
       }
       def bundleSymbolicName = userManifest?.mainAttributes?.getValue('Bundle-SymbolicName')
       bundleSymbolicName = bundleSymbolicName.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
       project.ext.bundleSymbolicName = bundleSymbolicName
-    }
-    else {
+    } else {
       userManifest = null
       project.ext.bundleSymbolicName = project.name
     }
