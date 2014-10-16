@@ -186,13 +186,13 @@ class EclipseRepositoryConfigurer {
           getNonEmptyRepositories().collect { repositoryExt ->
             [ repositoryId: repositoryExt.id,
               repositoryVersion: repositoryExt.version,
-              categoryXml: writeCategoryXmlString(repositoryExt) ]
+              categoryXml: writeSiteXmlString(repositoryExt) ]
           }
         }
         outputs.files { getTempSiteXmlFiles() }
         doLast {
           getNonEmptyRepositories().each { repositoryExt ->
-            writeCategoryXmlFile(repositoryExt)
+            writeSiteXmlFile(repositoryExt)
           }
         }
       }
@@ -332,7 +332,7 @@ class EclipseRepositoryConfigurer {
     getRepositories().any { it.hasFeaturesAndPluginFiles() }
   }
 
-  void writeCategoryXml(EclipseRepository repositoryExt, Writer writer) {
+  void writeSiteXml(EclipseRepository repositoryExt, Writer writer) {
     def xml = new MarkupBuilder(writer)
     xml.doubleQuotes = true
     xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
@@ -349,7 +349,7 @@ class EclipseRepositoryConfigurer {
 
       for(EclipseCategory categoryDef in repositoryExt.categories)
         for(EclipseFeature featureExt in repositoryExt.getFeaturesForCategory(categoryDef))
-          featureMap[featureExt.id] = [ version: '0.0.0', category: categoryDef.name ]
+          featureMap[featureExt.id] = [ version: featureExt.getVersion(), category: categoryDef.name ]
 
       for(def e in featureMap)
         feature id: e.key, version: e.value.version, {
@@ -368,17 +368,17 @@ class EclipseRepositoryConfigurer {
     }
   }
 
-  String writeCategoryXmlFile(EclipseRepository repositoryExt) {
+  String writeSiteXmlFile(EclipseRepository repositoryExt) {
     File file = repositoryExt.getTempSiteXmlFile()
     file.parentFile.mkdirs()
     file.withWriter {
-      writeCategoryXml(repositoryExt, it)
+      writeSiteXml(repositoryExt, it)
     }
   }
 
-  String writeCategoryXmlString(EclipseRepository repositoryExt) {
+  String writeSiteXmlString(EclipseRepository repositoryExt) {
     def writer = new StringWriter()
-    writeCategoryXml(repositoryExt, writer)
+    writeSiteXml(repositoryExt, writer)
     writer.toString()
   }
 }
