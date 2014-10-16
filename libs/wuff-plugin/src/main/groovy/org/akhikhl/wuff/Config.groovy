@@ -29,6 +29,7 @@ class Config {
   boolean filterManifest = false
   boolean filterProperties = false
   boolean filterHtml = false
+  String eclipseImports = ''
 
   void eclipseVersion(String versionString, Closure closure) {
     List<Closure> closureList = lazyVersions[versionString]

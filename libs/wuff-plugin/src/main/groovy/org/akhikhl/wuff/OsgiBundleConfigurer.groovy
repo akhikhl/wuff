@@ -169,14 +169,25 @@ class OsgiBundleConfigurer extends JavaConfigurer {
             } else
               mergeValue = details.mergeValue
             String newValue
-            if(details.key.equalsIgnoreCase('Require-Bundle'))
+            if(details.key.equalsIgnoreCase('Require-Bundle')) {
               newValue = ManifestUtils.mergeRequireBundle(details.baseValue, mergeValue)
-            else if(details.key.equalsIgnoreCase('Import-Package') || details.key.equalsIgnoreCase('Export-Package'))
+            } else if(details.key.equalsIgnoreCase('Export-Package')) {
               newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
-            else if(details.key.equalsIgnoreCase('Bundle-ClassPath'))
+            } else if(details.key.equalsIgnoreCase('Import-Package')) {
+              newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
+              // if the user has specified specific eclipse imports, append them to the end
+              if (!project.wuff.eclipseImports.isEmpty()) {
+                if (newValue.isEmpty()) {
+                  newValue = project.wuff.eclipseImports
+                } else {
+                  newValue = newValue + ',' +project.wuff.eclipseImports
+                }
+              }
+            } else if(details.key.equalsIgnoreCase('Bundle-ClassPath')) {
               newValue = ManifestUtils.mergeClassPath(details.baseValue, mergeValue)
-            else
+            } else {
               newValue = mergeValue ?: details.baseValue
+            }
             if(newValue)
               details.value = newValue
             else
