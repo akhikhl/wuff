@@ -52,6 +52,9 @@ class EclipseBundlePluginTest extends Specification {
       mavenCentral()
     }
     plugin.apply(project)
+    project.wuff {
+      generateBundleFiles = true
+    }
     project.evaluate()
   then:
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.swt') }

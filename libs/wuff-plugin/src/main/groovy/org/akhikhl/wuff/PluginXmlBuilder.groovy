@@ -59,6 +59,6 @@ class PluginXmlBuilder {
     return writer.toString()
   }
 
-  protected void populate(MarkupBuilder pluginXml) {
+  protected void populate(MarkupBuilder pluginXmlBuilder) {
   }
 }

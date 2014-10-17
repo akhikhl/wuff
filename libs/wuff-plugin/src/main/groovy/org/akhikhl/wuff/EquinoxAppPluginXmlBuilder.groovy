@@ -27,11 +27,11 @@ class EquinoxAppPluginXmlBuilder extends PluginXmlBuilder {
   }
 
   @Override
-  protected void populate(MarkupBuilder pluginXml) {
-    populateApplications(pluginXml)
+  protected void populate(MarkupBuilder pluginXmlBuilder) {
+    populateApplications(pluginXmlBuilder)
   }
 
-  protected void populateApplications(MarkupBuilder pluginXml) {
+  protected void populateApplications(MarkupBuilder pluginXmlBuilder) {
     List simpleAppIds = []
     existingConfig?.extension?.findAll({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.each {
       String appId = it.'@id'
@@ -51,7 +51,7 @@ class EquinoxAppPluginXmlBuilder extends PluginXmlBuilder {
           while(simpleAppIds.contains(appId))
             appId = "${simpleClassName}.${i}"
           log.info 'generating extension-point "org.eclipse.core.runtime.applications", id={}, class={}', appId, appClass
-          pluginXml.extension(id: appId, point: 'org.eclipse.core.runtime.applications') {
+          pluginXmlBuilder.extension(id: appId, point: 'org.eclipse.core.runtime.applications') {
             application {
               run 'class': appClass
             }

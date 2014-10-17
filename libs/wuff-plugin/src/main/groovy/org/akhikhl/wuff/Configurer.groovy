@@ -210,13 +210,13 @@ class Configurer {
 
   protected void postConfigure() {
 
-    if(project.version == 'unspecified')
-      project.version = getDefaultVersion()
-
     // guarded actuation of unpuzzle
     getSelectedEclipseMavenGroup()
 
     createVirtualConfigurations()
+
+    if(!project.version || project.version == 'unspecified')
+      project.version = getDefaultVersion()
 
     new ModuleConfigurer(project).configureModules(getModules())
     configureRepositories()

@@ -26,17 +26,17 @@ class EclipseIdeAppPluginXmlBuilder extends EclipseRcpAppPluginXmlBuilder {
   }
 
   @Override
-  protected void populate(MarkupBuilder pluginXml) {    
-    populateApplications(pluginXml)
-    populateProduct(pluginXml)
-    populatePerspectives(pluginXml)
-    populateViews(pluginXml)
-    populateIntro(pluginXml)
+  protected void populate(MarkupBuilder pluginXmlBuilder) {    
+    populateApplications(pluginXmlBuilder)
+    populateProduct(pluginXmlBuilder)
+    populatePerspectives(pluginXmlBuilder)
+    populateViews(pluginXmlBuilder)
+    populateIntro(pluginXmlBuilder)
   }
   
   @Override
-  protected void populateApplications(MarkupBuilder pluginXml) {
-    super.populateApplications(pluginXml)
+  protected void populateApplications(MarkupBuilder pluginXmlBuilder) {
+    super.populateApplications(pluginXmlBuilder)
     if(applicationIds.isEmpty())
       applicationIds.add('org.eclipse.ui.ide.workbench')
   }

@@ -23,12 +23,12 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
   }
 
   @Override
-  protected void populate(MarkupBuilder pluginXml) {
-    populatePerspectives(pluginXml)
-    populateViews(pluginXml)
+  protected void populate(MarkupBuilder pluginXmlBuilder) {
+    populatePerspectives(pluginXmlBuilder)
+    populateViews(pluginXmlBuilder)
   }
 
-  protected void populatePerspectives(MarkupBuilder pluginXml) {
+  protected void populatePerspectives(MarkupBuilder pluginXmlBuilder) {
     List perspectiveClasses = PluginUtils.findClassesInSources(project, '**/*Perspective.groovy', '**/*Perspective.java', '**/Perspective*.groovy', '**/Perspective*.java')
     for(String perspectiveClass in perspectiveClasses) {
       def existingPerspectiveDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectives' && it.perspective?.'@class'?.text() == perspectiveClass })
@@ -42,7 +42,7 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
         String simpleClassName = dotPos >= 0 ? perspectiveClass.substring(dotPos + 1) : perspectiveClass
         perspectiveId = "${project.name}.${simpleClassName}"
         log.debug 'perspective class: {}, no existing perspective found, inserting new perspective {}', perspectiveClass, perspectiveId
-        pluginXml.extension(point: 'org.eclipse.ui.perspectives') {
+        pluginXmlBuilder.extension(point: 'org.eclipse.ui.perspectives') {
           perspective id: perspectiveId, name: "${project.name} ${simpleClassName}", 'class': perspectiveClass
         }
       }
@@ -50,7 +50,7 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
     }
   }
 
-  protected void populateViews(MarkupBuilder pluginXml) {
+  protected void populateViews(MarkupBuilder pluginXmlBuilder) {
     List<String> viewClasses = PluginUtils.findClassesInSources(project, '**/*View.groovy', '**/*View.java', '**/View*.groovy', '**/View*.java')
     Map viewClassToViewId = [:]
     for(String viewClass in viewClasses) {
@@ -62,7 +62,7 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
         int dotPos = viewClass.lastIndexOf('.')
         String simpleClassName = dotPos >= 0 ? viewClass.substring(dotPos + 1) : viewClass
         viewId = "${project.name}.${simpleClassName}"
-        pluginXml.extension(point: 'org.eclipse.ui.views') {
+        pluginXmlBuilder.extension(point: 'org.eclipse.ui.views') {
           view id: viewId, name: "${project.name} ${simpleClassName}", 'class': viewClass
         }
       }
@@ -72,7 +72,7 @@ class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
       String viewId = viewClassToViewId[viewClasses[0]]
       def existingPerspectiveExtension = existingConfig?.extension?.find { it.'@point' == 'org.eclipse.ui.perspectiveExtensions' }
       if(!existingPerspectiveExtension)
-        pluginXml.extension(point: 'org.eclipse.ui.perspectiveExtensions') {
+        pluginXmlBuilder.extension(point: 'org.eclipse.ui.perspectiveExtensions') {
           perspectiveExtension(targetID: perspectiveIds[0]) {
             view id: viewId, standalone: true, minimized: false, relative: 'org.eclipse.ui.editorss', relationship: 'left'
           }

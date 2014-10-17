@@ -30,22 +30,22 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
   }
 
   @Override
-  protected void populate(MarkupBuilder pluginXml) {
-    populateApplications(pluginXml)
-    populateProduct(pluginXml)
-    populatePerspectives(pluginXml)
-    populateViews(pluginXml)
-    populateIntro(pluginXml)
+  protected void populate(MarkupBuilder pluginXmlBuilder) {
+    populateApplications(pluginXmlBuilder)
+    populateProduct(pluginXmlBuilder)
+    populatePerspectives(pluginXmlBuilder)
+    populateViews(pluginXmlBuilder)
+    populateIntro(pluginXmlBuilder)
   }
   
   @Override
-  protected void populateApplications(MarkupBuilder pluginXml) {
-    super.populateApplications(pluginXml)
+  protected void populateApplications(MarkupBuilder pluginXmlBuilder) {
+    super.populateApplications(pluginXmlBuilder)
     if(project.effectiveWuff.supportsE4() && applicationIds.isEmpty())
       applicationIds.add('org.eclipse.e4.ui.workbench.swt.E4Application')
   }
   
-  protected void populateIntro(MarkupBuilder pluginXml) {
+  protected void populateIntro(MarkupBuilder pluginXmlBuilder) {
     File introFile = PluginUtils.findPluginIntroHtmlFile(project)
     if(introFile) {
       String introId
@@ -54,13 +54,13 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
         introId = existingIntroDef.intro?.'@id'?.text()
       else
         introId = "${project.name}.intro"
-        pluginXml.extension(point: 'org.eclipse.ui.intro') {
+        pluginXmlBuilder.extension(point: 'org.eclipse.ui.intro') {
           intro id: introId, 'class': 'org.eclipse.ui.intro.config.CustomizableIntroPart'
           introProductBinding introId: introId, productId: productId
         }
       if(!existingConfig?.extension.find({ it.'@point' == 'org.eclipse.ui.intro.config' })) {
         String contentPrefix = PluginUtils.getLocalizationDirs(project) ? '$nl$/' : ''
-        pluginXml.extension(point: 'org.eclipse.ui.intro.config') {
+        pluginXmlBuilder.extension(point: 'org.eclipse.ui.intro.config') {
           config(id: "${project.name}.introConfigId", introId: introId, content: "${contentPrefix}intro/introContent.xml") {
             presentation('home-page-id': 'homePageId', 'standby-page-id': 'homePageId') {
               implementation kind: 'html'
@@ -71,11 +71,11 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     }
   }
 
-  protected void populatePerspectives(MarkupBuilder pluginXml) {
-    eclipseBundlePluginXmlBuilder.populatePerspectives(pluginXml)
+  protected void populatePerspectives(MarkupBuilder pluginXmlBuilder) {
+    eclipseBundlePluginXmlBuilder.populatePerspectives(pluginXmlBuilder)
   }
 
-  protected void populateProduct(MarkupBuilder pluginXml) {
+  protected void populateProduct(MarkupBuilder pluginXmlBuilder) {
     def existingProductDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.core.runtime.products' })
     if(existingProductDef) {
       productId = existingProductDef.'@id'
@@ -98,7 +98,7 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
         String appId = applicationIds[0]
         productId = 'product'
         log.info 'generating extension-point "org.eclipse.core.runtime.products", id={}, application={}', productId, appId
-        pluginXml.extension(id: productId, point: 'org.eclipse.core.runtime.products') {
+        pluginXmlBuilder.extension(id: productId, point: 'org.eclipse.core.runtime.products') {
           product application: appId, name: project.name, {
             if(project.effectiveWuff.supportsE4())
               property name: 'appName', value: project.name
@@ -109,7 +109,7 @@ class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     }
   }
 
-  protected void populateViews(MarkupBuilder pluginXml) {
-    eclipseBundlePluginXmlBuilder.populateViews(pluginXml)
+  protected void populateViews(MarkupBuilder pluginXmlBuilder) {
+    eclipseBundlePluginXmlBuilder.populateViews(pluginXmlBuilder)
   }
 }

@@ -11,6 +11,7 @@ import groovy.text.SimpleTemplateEngine
 import org.akhikhl.unpuzzle.PlatformConfig
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang3.StringEscapeUtils
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.ManifestMergeSpec
@@ -23,8 +24,7 @@ import org.gradle.api.tasks.bundling.Jar
 class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected Map buildProperties
-  protected java.util.jar.Manifest userManifest
-  protected java.util.jar.Manifest effectiveManifest
+  protected Manifest userManifest
   protected final Map expandBinding
   protected final String snapshotQualifier
   protected SimpleTemplateEngine templateEngine
@@ -46,7 +46,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   @Override
   protected void configureDependencies() {
-    def addBundle = { bundleName ->
+    def dependOnBundle = { bundleName ->
       if(!project.configurations.compile.dependencies.find { it.name == bundleName }) {
         def proj = project.rootProject.subprojects.find {
           it.ext.has('bundleSymbolicName') && it.ext.bundleSymbolicName == bundleName
@@ -58,17 +58,17 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         }
       }
     }
-    userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
+    userManifest?.attributes?.'Require-Bundle'?.split(',')?.each { bundle ->
       def bundleName = bundle.contains(';') ? bundle.split(';')[0] : bundle
-      addBundle bundleName
+      dependOnBundle bundleName
     }
     def pluginXml = project.pluginXml
     if(pluginXml) {
       if(pluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' }) {
-        addBundle 'org.eclipse.ui.views'
+        dependOnBundle 'org.eclipse.ui.views'
       }
       if(pluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' }) {
-        addBundle 'org.eclipse.core.expressions'
+        dependOnBundle 'org.eclipse.core.expressions'
       }
     }
   }
@@ -87,35 +87,12 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
     }
   }
-
+  
   @Override
   protected void configureTasks() {
     super.configureTasks()
-    configureTask_createOsgiManifest()
+    configureTask_processBundleFiles()
   }
-
-  protected void configureTask_createOsgiManifest() {
-
-    project.task('createOsgiManifest') {
-      group = 'wuff'
-      description = 'creates OSGi manifest'
-
-      File generatedManifestFile = getGeneratedManifestFile()
-      dependsOn project.tasks.classes
-      inputs.property 'projectVersion', { project.version }
-      inputs.property 'localizationFiles', { PluginUtils.collectPluginLocalizationFiles(project) }
-      inputs.properties getExtraFilesProperties()
-      inputs.files { project.configurations.runtime }
-      outputs.files generatedManifestFile
-      doLast {
-        // workaround for OsgiManifest bug: it fails, when classesDir does not exist,
-        // i.e. when the project contains no java/groovy classes (resources-only project)
-        project.sourceSets.main.output.classesDir.mkdirs()
-        generatedManifestFile.parentFile.mkdirs()
-        generatedManifestFile.withWriter { createManifest().writeTo it }
-      }
-    }
-  } // configureTask_createOsgiManifest
 
   @Override
   protected void configureTask_Jar() {
@@ -138,10 +115,12 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
 
     project.tasks.jar { thisTask ->
-
-      dependsOn { project.tasks.createOsgiManifest }
-
-      inputs.files { getGeneratedManifestFile() }
+      
+      dependsOn { project.tasks.processBundleFiles }
+      
+      inputs.files {
+        project.effectiveWuff.generateBundleFiles ? [ getManifestFile() ] : []
+      }
 
       from { project.configurations.privateLib }
 
@@ -159,9 +138,46 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         }
       }
 
-      manifest = effectiveManifest
+      manifest = project.manifest {
+        from getManifestFile()
+      }
     }
   } // configureTask_Jar
+  
+  protected void configureTask_processBundleFiles() {
+    
+    project.task('processBundleFiles') {
+      group = 'wuff'
+      description = 'generates or merges bundle files'
+      dependsOn project.tasks.classes
+      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
+      inputs.property 'projectVersion', { project.version }
+      inputs.property 'localizationFiles', { PluginUtils.collectPluginLocalizationFiles(project) }
+      inputs.properties getExtraFilesProperties()
+      inputs.files { project.configurations.runtime }
+      outputs.files {
+        project.effectiveWuff.generateBundleFiles ? [ getManifestFile() ] : []
+      }
+      doLast {
+        if(project.effectiveWuff.generateBundleFiles) {
+          Manifest effectiveManifest = project.manifest {
+            // attention: call order is important here!
+            from generateManifest(), mergeManifest
+            if(userManifest != null)
+              from userManifest, mergeManifest
+          }
+          StringWriter sw = new StringWriter()
+          effectiveManifest.writeTo sw
+          String effectiveManifestText = sw.toString()
+          File generatedManifestFile = getManifestFile()
+          if(!generatedManifestFile.exists() || generatedManifestFile.text != effectiveManifestText) {
+            generatedManifestFile.parentFile.mkdirs()
+            generatedManifestFile.text = effectiveManifestText
+          }
+        }
+      }      
+    }
+  }
 
   protected void configureTask_processResources() {
 
@@ -278,27 +294,33 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
     }
   }
+  
+  File getManifestFile() {
+    new File(project.projectDir, 'META-INF/MANIFEST.MF')
+  }
 
-  protected void createEffectiveManifest() {
-    if(project.effectiveWuff.generateBundleFiles) {
-
-      effectiveManifest = project.manifest {
-
-        setName(project.name)
-        setVersion(project.version.replace('-SNAPSHOT', snapshotQualifier))
-
-        // attention: call order is important here!
-
-        from generateManifest(), mergeManifest
-        from userManifest, mergeManifest
-      }
-
-
-      effectiveManifest.write
-
-    } else {
-      effectiveManifest = userManifest
+  protected void prepareManifests() {
+    
+    File userManifestFile = PluginUtils.findUserManifestFile(project)
+    if(userManifestFile) {
+      userManifest = project.manifest {
+        from userManifestFile
+      }.effectiveManifest
     }
+    else
+      userManifest = null
+
+    def bundleSymbolicName = userManifest?.attributes?.'Bundle-SymbolicName' ?: project.name
+    bundleSymbolicName = bundleSymbolicName?.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
+    project.ext.bundleSymbolicName = bundleSymbolicName
+    
+    if(!project.effectiveWuff.generateBundleFiles) {
+      if(userManifest == null) {
+        log.error 'Problem in {}: wuff.generateBundleFiles=false and no user manifest is found.', project
+        log.error 'Please make sure the project contains META-INF/MANIFEST.MF file.'
+        throw new GradleException('No user manifest found.')
+      }
+    }    
   }
 
   @Override
@@ -336,6 +358,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     super.createVirtualConfigurations()
     createPluginXml()
     createPluginCustomization()
+    prepareManifests()
   }
 
   protected boolean extraFilesUpToDate() {
@@ -351,12 +374,18 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   protected Manifest generateManifest() {
+    
+    String bundleVersion = ((project.version && project.version != 'unspecified') ? project.version : '1.0.0.0').replace('-SNAPSHOT', snapshotQualifier)
+    
+    // workaround for OsgiManifest bug: it fails, when classesDir does not exist,
+    // i.e. when the project contains no java/groovy classes (resources-only project)
+    project.sourceSets.main.output.classesDir.mkdirs()
 
     def m = project.osgiManifest {
-      setName project.name
-      setVersion project.version.replace('-SNAPSHOT', snapshotQualifier)
+      setName project.ext.bundleSymbolicName
+      setVersion bundleVersion
       setClassesDir project.sourceSets.main.output.classesDir
-      setClasspath (project.configurations.runtime - project.configurations.privateLib)
+      setClasspath (project.configurations.runtime.copyRecursive() - project.configurations.privateLib.copyRecursive())
     }
 
     m = m.effectiveManifest
@@ -369,7 +398,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     def pluginXml = project.pluginXml
     if(pluginXml) {
-      m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName + '; singleton:=true'
+      m.attributes['Bundle-SymbolicName'] = project.ext.bundleSymbolicName + '; singleton:=true'
       Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, pluginXml).collectEntries { [ it, '' ] }
       importPackages << ManifestUtils.parsePackages(m.attributes['Import-Package'])
       m.attributes['Import-Package'] = ManifestUtils.packagesToString(importPackages)
@@ -377,10 +406,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     else {
       if(project.extensions.findByName('run')) {
         // eclipse 4 requires runnable application to be a singleton
-        m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName + '; singleton:=true'
+        m.attributes['Bundle-SymbolicName'] = project.ext.bundleSymbolicName + '; singleton:=true'
       }
       else {
-        m.attributes['Bundle-SymbolicName'] = project.bundleSymbolicName
+        m.attributes['Bundle-SymbolicName'] = project.ext.bundleSymbolicName
       }
     }
 
@@ -389,7 +418,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       m.attributes['Bundle-Localization'] = 'plugin'
     }
 
-    if(project.configurations.privateLib.files) {
+    if(project.configurations.privateLib.copyRecursive().files) {
       Map importPackages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
       PluginUtils.collectPrivateLibPackages(project).each { privatePackage ->
         def packageValue = importPackages.remove(privatePackage)
@@ -436,7 +465,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   @Override
   protected String getDefaultVersion() {
-    (userManifest?.mainAttributes?.getValue('Bundle-Version') ?: '1.0.0.0').replace('.qualifier', '-SNAPSHOT')
+    (userManifest?.attributes?.'Bundle-Version' ?: '1.0.0.0').replace('.qualifier', '-SNAPSHOT')
   }
 
   @Override
@@ -445,10 +474,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     result.pluginXml = getPluginXmlString()
     result.pluginCustomization = getPluginCustomizationString()
     return result
-  }
-
-  protected final File getGeneratedManifestFile() {
-    new File(project.buildDir, 'tmp-osgi/MANIFEST.MF')
   }
 
   @Override
@@ -478,7 +503,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     return null
   }
 
-  protected void mergeManifest(ManifestMergeSpec mergeSpec) {
+  protected Closure mergeManifest = { ManifestMergeSpec mergeSpec ->
     mergeSpec.eachEntry { details ->
       String mergeValue
       if(project.effectiveWuff.filterManifest && details.mergeValue) {
@@ -522,13 +547,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   @Override
-  protected void postConfigure() {
-    readUserManifest()
-    createEffectiveManifest()
-    super.postConfigure()
-  }
-
-  @Override
   protected void preConfigure() {
     // attention: call order is important here!
     readBuildProperties()
@@ -557,21 +575,5 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
     }
     buildProperties = m.isEmpty() ? null : m
-  }
-
-  protected void readUserManifest() {
-    File userManifestFile = PluginUtils.findUserManifestFile(project)
-    if(userManifestFile) {
-      userManifestFile.withInputStream {
-        userManifest = new java.util.jar.Manifest(it)
-      }
-      def bundleSymbolicName = userManifest?.mainAttributes?.getValue('Bundle-SymbolicName')
-      bundleSymbolicName = bundleSymbolicName.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
-      project.ext.bundleSymbolicName = bundleSymbolicName
-    }
-    else {
-      userManifest = null
-      project.ext.bundleSymbolicName = project.name
-    }
   }
 }

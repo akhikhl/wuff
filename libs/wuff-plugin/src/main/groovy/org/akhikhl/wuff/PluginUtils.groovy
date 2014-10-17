@@ -231,7 +231,7 @@ final class PluginUtils {
     File result
     if(project.effectiveWuff.generateBundleFiles) {
       def bundleSourceDir = project.effectiveWuff.bundleSourceDir
-      if(!bundleSourceDir instanceof File) {
+      if(!(bundleSourceDir instanceof File)) {
         bundleSourceDir = new File(bundleSourceDir)
       }
       if(!bundleSourceDir.isAbsolute()) {
