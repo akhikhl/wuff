@@ -13,6 +13,7 @@ import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang3.StringEscapeUtils
 import org.gradle.api.Project
 import org.gradle.api.java.archives.Manifest
+import org.gradle.api.java.archives.ManifestMergeSpec
 import org.gradle.api.tasks.bundling.Jar
 
 /**
@@ -23,8 +24,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected Map buildProperties
   protected java.util.jar.Manifest userManifest
+  protected java.util.jar.Manifest effectiveManifest
   protected final Map expandBinding
   protected final String snapshotQualifier
+  protected SimpleTemplateEngine templateEngine
 
   OsgiBundleConfigurer(Project project) {
     super(project)
@@ -156,62 +159,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         }
       }
 
-      manifest {
-
-        setName(project.name)
-        setVersion(project.version.replace('-SNAPSHOT', snapshotQualifier))
-
-        def templateEngine
-
-        def mergeManifest = {
-          eachEntry { details ->
-            String mergeValue
-            if(project.wuff.filterManifest && details.mergeValue) {
-              if(!templateEngine) {
-                templateEngine = new groovy.text.SimpleTemplateEngine()
-              }
-              mergeValue = templateEngine.createTemplate(details.mergeValue).make(expandBinding).toString()
-            } else {
-              mergeValue = details.mergeValue
-            }
-            String newValue
-            if(details.key.equalsIgnoreCase('Require-Bundle')) {
-              newValue = ManifestUtils.mergeRequireBundle(details.baseValue, mergeValue)
-            } else if(details.key.equalsIgnoreCase('Export-Package')) {
-              newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
-            } else if(details.key.equalsIgnoreCase('Import-Package')) {
-              newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
-              // if the user has specified specific eclipse imports, append them to the end
-              if (!project.wuff.eclipseImports.isEmpty()) {
-                if (newValue.isEmpty()) {
-                  newValue = project.wuff.eclipseImports
-                } else {
-                  newValue = newValue + ',' +project.wuff.eclipseImports
-                }
-              }
-            } else if(details.key.equalsIgnoreCase('Bundle-ClassPath')) {
-              newValue = ManifestUtils.mergeClassPath(details.baseValue, mergeValue)
-            } else {
-              newValue = mergeValue ?: details.baseValue
-            }
-            if(newValue) {
-              details.value = newValue
-            }
-            else {
-              details.exclude()
-            }
-          }
-        }
-
-        // attention: call order is important here!
-
-        from getGeneratedManifestFile().absolutePath, mergeManifest
-
-        File userManifestFile = PluginUtils.findPluginManifestFile(project)
-        if(userManifestFile != null) {
-          from userManifestFile.absolutePath, mergeManifest
-        }
-      }
+      manifest = effectiveManifest
     }
   } // configureTask_Jar
 
@@ -331,6 +279,28 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
   }
 
+  protected void createEffectiveManifest() {
+    if(project.effectiveWuff.generateBundleFiles) {
+
+      effectiveManifest = project.manifest {
+
+        setName(project.name)
+        setVersion(project.version.replace('-SNAPSHOT', snapshotQualifier))
+
+        // attention: call order is important here!
+
+        from generateManifest(), mergeManifest
+        from userManifest, mergeManifest
+      }
+
+
+      effectiveManifest.write
+
+    } else {
+      effectiveManifest = userManifest
+    }
+  }
+
   @Override
   protected void createExtraFiles() {
     super.createExtraFiles()
@@ -338,7 +308,49 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     FileUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
   }
 
-  protected Manifest createManifest() {
+  protected void createPluginCustomization() {
+    def m = [:]
+    def existingFile = PluginUtils.findPluginCustomizationFile(project)
+    if(existingFile) {
+      def props = new PropertiesConfiguration()
+      props.load(existingFile)
+      for(def key in props.getKeys()) {
+        m[key] = props.getProperty(key)
+      }
+    }
+    populatePluginCustomization(m)
+    project.ext.pluginCustomization = m.isEmpty() ? null : m
+  }
+
+  protected void createPluginXml() {
+    def pluginXml = new XmlParser().parseText(createPluginXmlBuilder().buildPluginXml())
+    project.ext.pluginXml = (pluginXml.iterator() as boolean) ? pluginXml : null
+  }
+
+  protected PluginXmlBuilder createPluginXmlBuilder() {
+    new PluginXmlBuilder(project)
+  }
+
+  @Override
+  protected void createVirtualConfigurations() {
+    super.createVirtualConfigurations()
+    createPluginXml()
+    createPluginCustomization()
+  }
+
+  protected boolean extraFilesUpToDate() {
+    if(!FileUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))) {
+      log.debug '{}: plugin-xml is not up-to-date', project.name
+      return false
+    }
+    if(!FileUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))) {
+      log.debug '{}: plugin-customization is not up-to-date', project.name
+      return false
+    }
+    return super.extraFilesUpToDate()
+  }
+
+  protected Manifest generateManifest() {
 
     def m = project.osgiManifest {
       setName project.name
@@ -420,48 +432,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     m.attributes['Bundle-ClassPath'] = bundleClasspath.join(',')
     return m
-  } // createManifest
-
-  protected void createPluginCustomization() {
-    def m = [:]
-    def existingFile = PluginUtils.findPluginCustomizationFile(project)
-    if(existingFile) {
-      def props = new PropertiesConfiguration()
-      props.load(existingFile)
-      for(def key in props.getKeys())
-      m[key] = props.getProperty(key)
-    }
-    populatePluginCustomization(m)
-    project.ext.pluginCustomization = m.isEmpty() ? null : m
-  }
-
-  protected void createPluginXml() {
-    def pluginXml = new XmlParser().parseText(createPluginXmlBuilder().buildPluginXml())
-    project.ext.pluginXml = (pluginXml.iterator() as boolean) ? pluginXml : null
-  }
-
-  protected PluginXmlBuilder createPluginXmlBuilder() {
-    new PluginXmlBuilder(project)
-  }
-
-  @Override
-  protected void createVirtualConfigurations() {
-    super.createVirtualConfigurations()
-    createPluginXml()
-    createPluginCustomization()
-  }
-
-  protected boolean extraFilesUpToDate() {
-    if(!FileUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))) {
-      log.debug '{}: plugin-xml is not up-to-date', project.name
-      return false
-    }
-    if(!FileUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))) {
-      log.debug '{}: plugin-customization is not up-to-date', project.name
-      return false
-    }
-    return super.extraFilesUpToDate()
-  }
+  } // generateManifest
 
   @Override
   protected String getDefaultVersion() {
@@ -507,7 +478,54 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     return null
   }
 
+  protected void mergeManifest(ManifestMergeSpec mergeSpec) {
+    mergeSpec.eachEntry { details ->
+      String mergeValue
+      if(project.effectiveWuff.filterManifest && details.mergeValue) {
+        if(!templateEngine) {
+          templateEngine = new groovy.text.SimpleTemplateEngine()
+        }
+        mergeValue = templateEngine.createTemplate(details.mergeValue).make(expandBinding).toString()
+      } else {
+        mergeValue = details.mergeValue
+      }
+      String newValue
+      if(details.key.equalsIgnoreCase('Require-Bundle')) {
+        newValue = ManifestUtils.mergeRequireBundle(details.baseValue, mergeValue)
+      } else if(details.key.equalsIgnoreCase('Export-Package')) {
+        newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
+      } else if(details.key.equalsIgnoreCase('Import-Package')) {
+        newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
+        // if the user has specified specific eclipse imports, append them to the end
+        if (!project.effectiveWuff.eclipseImports.isEmpty()) {
+          if (newValue.isEmpty()) {
+            newValue = project.effectiveWuff.eclipseImports
+          } else {
+            newValue = newValue + ',' + project.effectiveWuff.eclipseImports
+          }
+        }
+      } else if(details.key.equalsIgnoreCase('Bundle-ClassPath')) {
+        newValue = ManifestUtils.mergeClassPath(details.baseValue, mergeValue)
+      } else {
+        newValue = mergeValue ?: details.baseValue
+      }
+      if(newValue) {
+        details.value = newValue
+      }
+      else {
+        details.exclude()
+      }
+    }
+  }
+
   protected void populatePluginCustomization(Map props) {
+  }
+
+  @Override
+  protected void postConfigure() {
+    readUserManifest()
+    createEffectiveManifest()
+    super.postConfigure()
   }
 
   @Override
@@ -515,7 +533,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     // attention: call order is important here!
     readBuildProperties()
     super.preConfigure()
-    readManifest()
   }
 
   protected void readBuildProperties() {
@@ -542,8 +559,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     buildProperties = m.isEmpty() ? null : m
   }
 
-  protected void readManifest() {
-    File userManifestFile = PluginUtils.findPluginManifestFile(project)
+  protected void readUserManifest() {
+    File userManifestFile = PluginUtils.findUserManifestFile(project)
     if(userManifestFile) {
       userManifestFile.withInputStream {
         userManifest = new java.util.jar.Manifest(it)

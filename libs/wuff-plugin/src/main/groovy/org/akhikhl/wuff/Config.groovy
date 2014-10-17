@@ -25,6 +25,10 @@ class Config {
   Set<String> languagePacks = new LinkedHashSet()
   List<Closure> lazyWrappedLibs = []
   private WrappedLibsConfig wrappedLibs = null
+
+  Boolean generateBundleFiles = false
+  String bundleSourceDir
+
   boolean filterPluginXml = false
   boolean filterManifest = false
   boolean filterProperties = false
@@ -33,8 +37,9 @@ class Config {
 
   void eclipseVersion(String versionString, Closure closure) {
     List<Closure> closureList = lazyVersions[versionString]
-    if(closureList == null)
+    if(closureList == null) {
       closureList = lazyVersions[versionString] = []
+    }
     closureList.add(closure)
     versionConfigs = null
   }
@@ -75,31 +80,46 @@ class Config {
   }
 
   protected static void merge(Config target, Config source) {
-    if(source.parentConfig)
+    if(source.parentConfig) {
       merge(target, source.parentConfig)
-    if(source.localMavenRepositoryDir != null)
+    }
+    if(source.localMavenRepositoryDir != null) {
       target.localMavenRepositoryDir = source.localMavenRepositoryDir
-    if(source.wuffDir != null)
+    }
+    if(source.wuffDir != null) {
       target.wuffDir = source.wuffDir
-    if(source.selectedEclipseVersion != null)
+    }
+    if(source.selectedEclipseVersion != null) {
       target.selectedEclipseVersion = source.selectedEclipseVersion
+    }
     source.lazyVersions.each { String versionString, List<Closure> sourceClosureList ->
       List<Closure> targetClosureList = target.lazyVersions[versionString]
-      if(targetClosureList == null)
+      if(targetClosureList == null) {
         targetClosureList = target.lazyVersions[versionString] = []
+      }
       targetClosureList.addAll(sourceClosureList)
     }
     target.lazyWrappedLibs.addAll(source.lazyWrappedLibs)
-    if(source.filterPluginXml)
+    if(source.generateBundleFiles) {
+      target.generateBundleFiles = true
+    }
+    if(source.bundleSourceDir) {
+      target.bundleSourceDir = source.bundleSourceDir
+    }
+    if(source.filterPluginXml) {
       target.filterPluginXml = true
-    if(source.filterManifest)
+    }
+    if(source.filterManifest) {
       target.filterManifest = true
-    if(source.filterProperties)
+    }
+    if(source.filterProperties) {
       target.filterProperties = true
-    if(source.filterHtml)
+    }
+    if(source.filterHtml) {
       target.filterHtml = true
+    }
   }
-  
+
   boolean supportsE4() {
     assert selectedEclipseVersion != null
     (selectedEclipseVersion.split('\\.')[0] as int) >= 4

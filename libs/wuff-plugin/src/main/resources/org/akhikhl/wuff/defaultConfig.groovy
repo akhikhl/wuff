@@ -4,7 +4,10 @@ wuff {
 
   localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
 
-  selectedEclipseVersion = '4.4'
+  generateBundleFiles = false
+  bundleSourceDir = 'src/main/bundle'
+
+  selectedEclipseVersion = '4.4.1'
 
   def suffix_os = [ 'linux': 'linux-gtk', 'macosx': 'macosx-cocoa', 'windows': 'win32' ]
   def suffix_arch = [ 'x86_32': '', 'x86_64': '-x86_64' ]
@@ -132,7 +135,7 @@ wuff {
         provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
         if(hasIntro)
-          runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
       }
 
       project.tasks.jar.manifest {
@@ -143,7 +146,7 @@ wuff {
         instruction 'Require-Bundle', 'org.eclipse.ui'
         instruction 'Require-Bundle', 'org.eclipse.core.expressions'
         if(hasIntro)
-          instruction 'Require-Bundle', 'org.eclipse.ui.intro'
+        instruction 'Require-Bundle', 'org.eclipse.ui.intro'
       }
 
       supported_oses.each { platform ->
@@ -151,22 +154,22 @@ wuff {
 
           String productConfigName = "product_rcp_${platform}_${arch}"
           if(platform != 'macosx' || arch != 'x86_64')
-            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.filesystem.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
+          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.filesystem.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
           if(platform != 'macosx')
-            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
+          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
           project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
 
           supported_languages.each { language ->
 
             String localizedConfigName = "product_rcp_${platform}_${arch}_${language}"
             if(platform != 'macosx')
-              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
+            project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.nl_${language}:+"
             if(hasIntro)
-              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
+            project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
           }
         }
       }
@@ -326,7 +329,7 @@ wuff {
 
     sources {
 
-      source "${eclipseArchiveMirror}/technology/epp/downloads/release/kepler/SR1/eclipse-jee-kepler-SR1-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"      
+      source "${eclipseArchiveMirror}/technology/epp/downloads/release/kepler/SR1/eclipse-jee-kepler-SR1-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
       source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.3.1-201309111000/eclipse-SDK-4.3.1-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
       source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.3.1-201309111000/eclipse-4.3.1-delta-pack.zip"
 
@@ -385,7 +388,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.w3c.dom.smil:+"
         runtime "${eclipseMavenGroup}:org.w3c.dom.svg:+"
       }
-    }    
+    }
   }
 
   eclipseVersion('4.4.1') {

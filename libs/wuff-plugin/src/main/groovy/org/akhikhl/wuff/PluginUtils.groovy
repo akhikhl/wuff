@@ -75,12 +75,14 @@ final class PluginUtils {
     Set privatePackages = new LinkedHashSet()
     project.configurations.privateLib.files.each { File lib ->
       project.zipTree(lib).visit { f ->
-        if(f.isDirectory())
+        if(f.isDirectory()) {
           privatePackages.add(f.path.replace('/', '.').replace('\\', '.'))
+        }
       }
     }
-    if(privatePackages)
+    if(privatePackages) {
       log.info 'Packages {} found in privateLib dependencies of the project {}', privatePackages, project.name
+    }
     return privatePackages as List
   }
 
@@ -127,8 +129,9 @@ final class PluginUtils {
   static List<String> findImportPackagesInPluginConfigFile(Project project, pluginConfig) {
     log.info 'Analyzing import packages in {}', pluginConfig
     if(!(pluginConfig instanceof Node)) {
-      if(!(pluginConfig.getClass() in [File, InputSource, InputStream, Reader, String]))
+      if(!(pluginConfig.getClass() in [File, InputSource, InputStream, Reader, String])) {
         pluginConfig = new File(pluginConfig)
+      }
       pluginConfig = new XmlParser().parse(pluginConfig)
     }
     def classes = pluginConfig.extension.'**'.findAll({ it.'@class' })*.'@class' + pluginConfig.extension.'**'.findAll({ it.'@contributorClass' })*.'@contributorClass'
@@ -139,9 +142,9 @@ final class PluginUtils {
     List importPackages = []
     packages.each { String packageName ->
       String packagePath = packageName.replaceAll(/\./, Matcher.quoteReplacement(File.separator))
-      if(project.sourceSets.main.allSource.srcDirs.find { new File(it, packagePath).exists() })
+      if(project.sourceSets.main.allSource.srcDirs.find { new File(it, packagePath).exists() }) {
         log.info 'Found package {} within {}, no import needed', packageName, project.name
-      else {
+      } else {
         log.info 'Did not find package {} within {}, will be imported', packageName, project.name
         importPackages.add(packageName)
       }
@@ -160,8 +163,9 @@ final class PluginUtils {
       File f = new File(dir, 'plugin_customization.ini')
       f.exists() ? f : null
     }
-    if(result)
+    if(result) {
       log.info '{}: Found eclipse plugin customization: {}', project.name, result
+    }
     return result
   }
 
@@ -171,12 +175,14 @@ final class PluginUtils {
     String relPath2 = "${prefix}intro/welcome.htm"
     File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
       File f = new File(dir, relPath)
-      if(!f.exists())
+      if(!f.exists()) {
         f = new File(dir, relPath2)
+      }
       f.exists() ? f : null
     }
-    if(result)
+    if(result) {
       log.info '{}: Found eclipse plugin intro html: {}', project.name, result
+    }
     return result
   }
 
@@ -187,18 +193,9 @@ final class PluginUtils {
       File f = new File(dir, relPath)
       f.exists() ? f : null
     }
-    if(result)
+    if(result) {
       log.info '{}: Found eclipse plugin intro xml: {}', project.name, result
-    return result
-  }
-
-  static File findPluginManifestFile(Project project) {
-    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, 'META-INF/MANIFEST.MF')
-      f.exists() ? f : null
     }
-    if(result)
-      log.info '{}: Found manifest: {}', project.name, result
     return result
   }
 
@@ -207,8 +204,9 @@ final class PluginUtils {
       File f = new File(dir, 'splash.bmp')
       f.exists() ? f : null
     }
-    if(result)
+    if(result) {
       log.info '{}: Found eclipse plugin splash: {}', project.name, result
+    }
     return result
   }
 
@@ -223,35 +221,68 @@ final class PluginUtils {
       File f = new File(dir, 'plugin.xml')
       f.exists() ? f : null
     }
-    if(result)
+    if(result) {
       log.info '{}: Found eclipse plugin configuration: {}', project.name, result
+    }
+    return result
+  }
+
+  static File findUserManifestFile(Project project) {
+    File result
+    if(project.effectiveWuff.generateBundleFiles) {
+      def bundleSourceDir = project.effectiveWuff.bundleSourceDir
+      if(!bundleSourceDir instanceof File) {
+        bundleSourceDir = new File(bundleSourceDir)
+      }
+      if(!bundleSourceDir.isAbsolute()) {
+        bundleSourceDir = new File(project.projectDir, bundleSourceDir.getPath())
+      }
+      result = new File(bundleSourceDir, 'META-INF/MANIFEST.MF')
+      if(!result.exists()) {
+        result = null
+      }
+    } else {
+      result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+        File f = new File(dir, 'META-INF/MANIFEST.MF')
+        f.exists() ? f : null
+      }
+    }
+    if(result != null) {
+      log.info '{}: Found manifest: {}', project.name, result
+    }
     return result
   }
 
   static String getEclipseApplicationId(Project project) {
     String result
-    if(project.pluginXml)
+    if(project.pluginXml) {
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
-    if(result)
+    }
+    if(result) {
       result = "${project.name}.${result}"
+    }
     return result
   }
 
   static String getEclipseIntroId(Project project) {
     String result
-    if(project.pluginXml)
+    if(project.pluginXml) {
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
-    if(result)
+    }
+    if(result) {
       result = "${project.name}.$result"
+    }
     return result
   }
 
   static String getEclipseProductId(Project project) {
     String result
-    if(project.pluginXml)
+    if(project.pluginXml) {
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
-    if(result)
+    }
+    if(result) {
       result = "${project.name}.$result"
+    }
     return result
   }
 
@@ -281,8 +312,9 @@ final class PluginUtils {
     List result = []
     ([project.projectDir] + project.sourceSets.main.resources.srcDirs).each { File dir ->
       File f = new File(dir, 'nl')
-      if(f.exists())
+      if(f.exists()) {
         result.addAll(f.listFiles({ it.isDirectory() } as FileFilter))
+      }
     }
     return result
   }
