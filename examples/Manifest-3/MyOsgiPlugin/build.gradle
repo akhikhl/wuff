@@ -33,3 +33,8 @@ jar {
     instruction 'My-Attribute', 'test'
   }
 }
+
+wuff {
+  generateBundleFiles = true
+}
+

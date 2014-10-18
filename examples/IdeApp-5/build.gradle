@@ -18,3 +18,9 @@ subprojects {
   }
 }
 
+apply plugin: 'org.akhikhl.wuff.eclipse-config'
+
+wuff {
+  generateBundleFiles = true
+}
+

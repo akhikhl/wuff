@@ -39,4 +39,6 @@ jar {
 
 wuff {
   filterManifest = true
+  generateBundleFiles = true
 }
+

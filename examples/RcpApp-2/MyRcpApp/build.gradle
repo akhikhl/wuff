@@ -19,6 +19,10 @@ repositories {
 apply plugin: 'java'
 apply plugin: 'org.akhikhl.wuff.eclipse-rcp-app'
 
+wuff {
+  generateBundleFiles = true
+}
+
 products {
   product platform: 'linux', arch: 'x86_32'
   product platform: 'linux', arch: 'x86_64'

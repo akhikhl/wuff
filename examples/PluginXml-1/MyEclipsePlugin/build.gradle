@@ -19,3 +19,7 @@ repositories {
 apply plugin: 'java'
 apply plugin: 'org.akhikhl.wuff.eclipse-bundle'
 
+wuff {
+  generateBundleFiles = true
+}
+

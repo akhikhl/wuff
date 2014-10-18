@@ -21,6 +21,7 @@ apply plugin: 'org.akhikhl.wuff.eclipse-bundle'
 
 wuff {
   filterPluginXml = true
+  generateBundleFiles = true
 }
 
 ext {

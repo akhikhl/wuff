@@ -18,3 +18,10 @@ subprojects {
   }
 }
 
+apply plugin: 'org.akhikhl.wuff.eclipse-config'
+
+wuff {
+  languagePack 'de'
+  generateBundleFiles = true
+}
+
