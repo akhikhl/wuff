@@ -17,16 +17,16 @@ import org.akhikhl.unpuzzle.PlatformConfig
  *
  * @author akhikhl
  */
-class PluginXmlBuilder {
+class PluginXmlGenerator {
 
-  protected static final Logger log = LoggerFactory.getLogger(PluginXmlBuilder)
+  protected static final Logger log = LoggerFactory.getLogger(PluginXmlGenerator)
 
   protected final Project project
   protected final Node existingConfig
 
-  PluginXmlBuilder(Project project) {
+  PluginXmlGenerator(Project project) {
     this.project = project
-    File pluginXmlFile = PluginUtils.findPluginXmlFile(project)
+    File pluginXmlFile = PluginUtils.findUserPluginXmlFile(project)
     if(pluginXmlFile) {
       if(project.wuff.filterPluginXml) {
         String pluginXmlText = pluginXmlFile.getText('UTF-8')

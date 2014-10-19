@@ -14,11 +14,11 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class EquinoxAppPluginXmlBuilder extends PluginXmlBuilder {
+class EquinoxAppPluginXmlGenerator extends PluginXmlGenerator {
 
   protected List applicationIds = []
 
-  EquinoxAppPluginXmlBuilder(Project project) {
+  EquinoxAppPluginXmlGenerator(Project project) {
     super(project)
   }
 

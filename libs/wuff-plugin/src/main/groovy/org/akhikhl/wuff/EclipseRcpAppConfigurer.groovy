@@ -17,6 +17,9 @@ import org.akhikhl.unpuzzle.PlatformConfig
  */
 class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
+  // key is language or empty string, value is Node
+  protected Map userIntroContentXmlMap = [:]
+
   EclipseRcpAppConfigurer(Project project) {
     super(project)
   }
@@ -42,41 +45,8 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   @Override
-  protected void createExtraFiles() {
-    super.createExtraFiles()
-    FileUtils.stringToFile(getIntroXmlString(), PluginUtils.getExtraIntroXmlFile(project))
-    for(File dir in PluginUtils.getLocalizationDirs(project))
-      FileUtils.stringToFile(getIntroXmlString(dir.name), PluginUtils.getExtraIntroXmlFile(project, dir.name))
-  }
-
-  private void createIntroXml() {
-    createIntroXml(null)
-    for(File dir in PluginUtils.getLocalizationDirs(project))
-      createIntroXml(dir.name)
-  }
-
-  private void createIntroXml(String language) {
-    def existingConfig = PluginUtils.findPluginIntroXmlFile(project, language)?.withReader('UTF-8') {
-      new XmlParser().parse(it)
-    }
-    StringWriter writer = new StringWriter()
-    def xml = new MarkupBuilder(writer)
-    xml.doubleQuotes = true
-    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
-    xml.introContent {
-      existingConfig?.children().each {
-        XmlUtils.writeNode(xml, it)
-      }
-      populatePluginIntroXml(xml, existingConfig, language)
-    }
-    def introXml = new XmlParser().parseText(writer.toString())
-    String key = language == null ? 'introXml' : "introXml_$language"
-    project.ext[key] = (introXml.iterator() as boolean) ? introXml : null
-  }
-
-  @Override
-  protected PluginXmlBuilder createPluginXmlBuilder() {
-    new EclipseRcpAppPluginXmlBuilder(project)
+  protected PluginXmlGenerator createPluginXmlGenerator() {
+    new EclipseRcpAppPluginXmlGenerator(project)
   }
 
   @Override
@@ -150,6 +120,37 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
       if(perspectiveIds?.size() == 1)
         props['org.eclipse.ui/defaultPerspectiveId'] = perspectiveIds[0]
     }
+  }
+
+  @Override
+  protected void readUserBundleFiles() {
+    super.readUserBundleFiles()
+    for(File dir in getSourceBundleDirs(project))
+      readUserIntroContentXml(dir, '')
+    for(File dir in PluginUtils.findUserLocalizationDirs(project))
+      readUserIntroContentXml(dir, dir.name)
+  }
+
+  private void readUserIntroContentXml(File dir, String language) {
+    File introContentXmlFile = new File(dir, 'intro/introContent.xml')
+    if(introContentXmlFile.exists())
+      userIntroContentXmlMap[language] = introContentXmlFile.withReader('UTF-8') {
+        new XmlParser().parse(it)
+      }
+    /* StringWriter writer = new StringWriter()
+    def xml = new MarkupBuilder(writer)
+    xml.doubleQuotes = true
+    xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
+    xml.introContent {
+      existingConfig?.children().each {
+        XmlUtils.writeNode(xml, it)
+      }
+      populatePluginIntroXml(xml, existingConfig, language)
+    }
+    def introXml = new XmlParser().parseText(writer.toString())
+    String key = language == null ? 'introXml' : "introXml_$language"
+    project.ext[key] = (introXml.iterator() as boolean) ? introXml : null
+    */
   }
 }
 

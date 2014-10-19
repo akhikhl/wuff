@@ -6,25 +6,14 @@
  * See the file "LICENSE" for copying and usage permission.
  */
 package org.akhikhl.wuff
-
-import java.nio.file.Paths
-import java.util.Properties
-import java.util.regex.Matcher
-
-import groovy.transform.CompileStatic
-import groovy.util.Node
-import groovy.util.XmlParser
-
 import org.apache.commons.io.FilenameUtils
-
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 import org.xml.sax.InputSource
 
+import java.nio.file.Paths
+import java.util.regex.Matcher
 /**
  * Eclipse Plugin utils
  *
@@ -119,6 +108,51 @@ final class PluginUtils {
   }
 
   /**
+   * Finds effective bundle file.
+   * If wuff.generateBundleFiles is true, the file is searched in project root.
+   * If wuff.generateBundleFiles is false, the file is searched in project root and src/main/resources.
+   *
+   * @param project project being analyzed (not modified).
+   * @param path relative path to user-defined bundle file.
+   * @return java.io.File, pointing to user-defined bundle file, or null, if such file does not exist.
+   */
+  static File findEffectiveBundleFile(Project project, String path) {
+    File result
+    if(project.effectiveWuff.generateBundleFiles) {
+      result = new File(project.projectDir, path)
+    } else {
+      result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
+        File f = new File(dir, path)
+        f.exists() ? f : null
+      }
+    }
+    if(result != null) {
+      log.debug '{}: Effective file: {}', project, result
+    }
+    return result
+  }
+
+  /**
+   * Finds effective MANIFEST.MF file.
+   *
+   * @param project project being analyzed (not modified).
+   * @return java.io.File, pointing to MANIFEST.MF, or null, if such file does not exist.
+   */
+  static File findEffectiveManifestFile(Project project) {
+    findEffectiveBundleFile(project, 'META-INF/MANIFEST.MF')
+  }
+
+  /**
+   * Finds effective plugin.xml file.
+   *
+   * @param project project being analyzed (not modified).
+   * @return java.io.File, pointing to plugin.xml, or null, if such file does not exist.
+   */
+  static File findEffectivePluginXmlFile(Project project) {
+    findEffectiveBundleFile(project, 'plugin.xml')
+  }
+
+  /**
    * Finds list of import-packages in the given plugin configuration file, 'plugin.xml'.
    *
    * @param project project being analyzed, not modified.
@@ -186,19 +220,6 @@ final class PluginUtils {
     return result
   }
 
-  static File findPluginIntroXmlFile(Project project, String language = null) {
-    String prefix = language ? "nl/$language/" : ''
-    String relPath = "${prefix}intro/introContent.xml"
-    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, relPath)
-      f.exists() ? f : null
-    }
-    if(result) {
-      log.info '{}: Found eclipse plugin intro xml: {}', project.name, result
-    }
-    return result
-  }
-
   static File findPluginSplashFile(Project project) {
     File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
       File f = new File(dir, 'splash.bmp')
@@ -211,46 +232,50 @@ final class PluginUtils {
   }
 
   /**
-   * Finds eclipse plugin configuration file, 'plugin.xml'.
+   * Finds user-defined bundle file.
+   * If wuff.generateBundleFiles is true, the file is searched in src/main/bundle.
+   * If wuff.generateBundleFiles is false, the file is searched in project root and src/main/resources.
    *
-   * @param project project being analyzed, not modified.
-   * @return java.io.File, pointing to 'plugin.xml', or null, if such file does not exist.
+   * @param project project being analyzed (not modified).
+   * @param path relative path to user-defined bundle file.
+   * @return java.io.File, pointing to user-defined bundle file, or null, if such file does not exist.
    */
-  static File findPluginXmlFile(Project project) {
-    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, 'plugin.xml')
+  static File findUserBundleFile(Project project, String path) {
+    File result = getSourceBundleDirs(project).findResult { File dir ->
+      File f = new File(dir, path)
       f.exists() ? f : null
     }
-    if(result) {
-      log.info '{}: Found eclipse plugin configuration: {}', project.name, result
+    if(result != null) {
+      log.debug '{}: User file: {}', project, result
     }
     return result
   }
 
+  static List<File> findUserLocalizationDirs(Project project) {
+    getSourceBundleDirs(project).collectMany { File dir ->
+      File f = new File(dir, 'nl')
+      f.exists() ? f.listFiles({ it.isDirectory() } as FileFilter) : []
+    }
+  }
+
+  /**
+   * Finds user-defined MANIFEST.MF file.
+   *
+   * @param project project being analyzed (not modified).
+   * @return java.io.File, pointing to MANIFEST.MF, or null, if such file does not exist.
+   */
   static File findUserManifestFile(Project project) {
-    File result
-    if(project.effectiveWuff.generateBundleFiles) {
-      def bundleSourceDir = project.effectiveWuff.bundleSourceDir
-      if(!(bundleSourceDir instanceof File)) {
-        bundleSourceDir = new File(bundleSourceDir)
-      }
-      if(!bundleSourceDir.isAbsolute()) {
-        bundleSourceDir = new File(project.projectDir, bundleSourceDir.getPath())
-      }
-      result = new File(bundleSourceDir, 'META-INF/MANIFEST.MF')
-      if(!result.exists()) {
-        result = null
-      }
-    } else {
-      result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-        File f = new File(dir, 'META-INF/MANIFEST.MF')
-        f.exists() ? f : null
-      }
-    }
-    if(result != null) {
-      log.info '{}: Found manifest: {}', project.name, result
-    }
-    return result
+    findUserBundleFile(project, 'META-INF/MANIFEST.MF')
+  }
+
+  /**
+   * Finds user-defined plugin.xml file.
+   *
+   * @param project project being analyzed (not modified).
+   * @return java.io.File, pointing to plugin.xml, or null, if such file does not exist.
+   */
+  static File findUserPluginXmlFile(Project project) {
+    findUserBundleFile(project, 'plugin.xml')
   }
 
   static String getEclipseApplicationId(Project project) {
@@ -308,17 +333,6 @@ final class PluginUtils {
     new File(getExtraDir(project), 'plugin_customization.ini')
   }
 
-  static List<File> getLocalizationDirs(Project project) {
-    List result = []
-    ([project.projectDir] + project.sourceSets.main.resources.srcDirs).each { File dir ->
-      File f = new File(dir, 'nl')
-      if(f.exists()) {
-        result.addAll(f.listFiles({ it.isDirectory() } as FileFilter))
-      }
-    }
-    return result
-  }
-
   static File getOsgiFrameworkFile(Project project) {
     return project.configurations.runtime.find { getPluginName(it.name) == osgiFrameworkPluginName }
   }
@@ -329,6 +343,20 @@ final class PluginUtils {
 
   static File getProductOutputBaseDir(Project project) {
     return new File(project.buildDir, 'output')
+  }
+
+  static List<File> getSourceBundleDirs(Project project) {
+    if(project.effectiveWuff.generateBundleFiles) {
+      def bundleSourceDir = project.effectiveWuff.bundleSourceDir
+      if (!(bundleSourceDir instanceof File)) {
+        bundleSourceDir = new File(bundleSourceDir)
+      }
+      if (!bundleSourceDir.isAbsolute()) {
+        bundleSourceDir = new File(project.projectDir, bundleSourceDir.getPath())
+      }
+      return bundleSourceDir.exists() ? [ bundleSourceDir ] : []
+    }
+    [ project.projectDir ] + project.sourceSets.main.resources.srcDirs
   }
 
   static File getWrappedLibsDir(Project project) {

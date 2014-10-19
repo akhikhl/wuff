@@ -7,13 +7,10 @@
  */
 package org.akhikhl.wuff
 
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.RelativePath
-import org.gradle.api.tasks.Copy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 /**
  *
  * @author akhikhl
@@ -62,22 +59,7 @@ class Configurer {
   }
 
   protected void configureTasks() {
-    configureTask_createExtraFiles()
     configureTask_scaffold()
-  }
-
-  protected void configureTask_createExtraFiles() {
-    project.task('createExtraFiles') {
-      group = 'wuff'
-      description = 'creates project-specific extra files in buildDir/extra'
-      inputs.properties getExtraFilesProperties()
-      outputs.upToDateWhen {
-        extraFilesUpToDate()
-      }
-      doLast {
-        createExtraFiles()
-      }
-    }
   }
 
   protected void configureTask_scaffold() {
@@ -134,9 +116,6 @@ class Configurer {
     }
   }
 
-  protected void createExtraFiles() {
-  }
-
   protected void createVirtualConfigurations() {
   }
 
@@ -144,7 +123,7 @@ class Configurer {
     return true
   }
 
-  protected String getDefaultVersion() {
+  protected String getDefaultProjectVersion() {
     '1.0'
   }
 
@@ -216,7 +195,7 @@ class Configurer {
     createVirtualConfigurations()
 
     if(!project.version || project.version == 'unspecified')
-      project.version = getDefaultVersion()
+      project.version = getDefaultProjectVersion()
 
     new ModuleConfigurer(project).configureModules(getModules())
     configureRepositories()

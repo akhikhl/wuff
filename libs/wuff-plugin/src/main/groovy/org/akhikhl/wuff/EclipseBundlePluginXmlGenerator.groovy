@@ -14,11 +14,11 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class EclipseBundlePluginXmlBuilder extends PluginXmlBuilder {
+class EclipseBundlePluginXmlGenerator extends PluginXmlGenerator {
 
   protected List perspectiveIds = []
 
-  EclipseBundlePluginXmlBuilder(Project project) {
+  EclipseBundlePluginXmlGenerator(Project project) {
     super(project)
   }
 

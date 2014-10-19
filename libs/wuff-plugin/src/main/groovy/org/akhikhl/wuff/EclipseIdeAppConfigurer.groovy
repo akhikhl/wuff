@@ -7,9 +7,6 @@
  */
 package org.akhikhl.wuff
 
-import java.nio.file.Paths
-import groovy.xml.MarkupBuilder
-import groovy.util.Node
 import org.gradle.api.Project
 import org.akhikhl.unpuzzle.PlatformConfig
 
@@ -44,8 +41,8 @@ class EclipseIdeAppConfigurer extends EclipseRcpAppConfigurer {
   }
 
   @Override
-  protected PluginXmlBuilder createPluginXmlBuilder() {
-    new EclipseIdeAppPluginXmlBuilder(project)
+  protected PluginXmlGenerator createPluginXmlGenerator() {
+    new EclipseIdeAppPluginXmlGenerator(project)
   }
 
   @Override

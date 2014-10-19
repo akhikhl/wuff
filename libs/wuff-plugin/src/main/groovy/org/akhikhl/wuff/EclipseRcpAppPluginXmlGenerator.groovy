@@ -14,14 +14,25 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class EclipseRcpAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
+class EclipseRcpAppPluginXmlGenerator extends EquinoxAppPluginXmlGenerator {
 
   protected String productId
-  protected EclipseBundlePluginXmlBuilder eclipseBundlePluginXmlBuilder
+  protected EclipseBundlePluginXmlGenerator eclipseBundlePluginXmlBuilder
 
-  EclipseRcpAppPluginXmlBuilder(Project project) {
+  EclipseRcpAppPluginXmlGenerator(Project project) {
     super(project)
-    eclipseBundlePluginXmlBuilder = new EclipseBundlePluginXmlBuilder(project)
+    eclipseBundlePluginXmlBuilder = new EclipseBundlePluginXmlGenerator(project)
+  }
+
+  @Override
+  protected void configureTask_processBundleFiles() {
+    super.configureTask_processBundleFiles()
+
+    project.task('processIntroFiles') {
+
+    }
+
+    project.task.processBundleFiles.dependsOn project.task.processIntroFiles
   }
 
   @Override

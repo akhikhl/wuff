@@ -14,9 +14,9 @@ import org.gradle.api.Project
  *
  * @author akhikhl
  */
-class EclipseIdeAppPluginXmlBuilder extends EclipseRcpAppPluginXmlBuilder {
+class EclipseIdeAppPluginXmlGenerator extends EclipseRcpAppPluginXmlGenerator {
 
-  EclipseIdeAppPluginXmlBuilder(Project project) {
+  EclipseIdeAppPluginXmlGenerator(Project project) {
     super(project)
   }
 
