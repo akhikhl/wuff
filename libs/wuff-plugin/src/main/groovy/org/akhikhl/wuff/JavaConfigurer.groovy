@@ -33,17 +33,8 @@ class JavaConfigurer extends Configurer {
       }
   }
 
-  @Override
-  protected void configureTasks() {
-    super.configureTasks()
-    configureTask_Jar()
-  }
-
   protected void configureProducts() {
     // by default there are no products
-  }
-
-  protected void configureTask_Jar() {
   }
 
   protected void createSourceSets() {

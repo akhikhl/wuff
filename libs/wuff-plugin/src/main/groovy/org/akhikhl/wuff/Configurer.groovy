@@ -58,16 +58,12 @@ class Configurer {
     }
   }
 
-  protected void configureTasks() {
-    configureTask_scaffold()
-  }
-
   protected void configureTask_scaffold() {
-    String resourceDir = getScaffoldResourceDir()
-    if(resourceDir != null) {
-      if(!resourceDir.endsWith('/'))
-        resourceDir += '/'
-      project.task('scaffold') {
+    project.task('scaffold') {
+      String resourceDir = getScaffoldResourceDir()
+      if(resourceDir != null) {
+        if(!resourceDir.endsWith('/'))
+          resourceDir += '/'
         group = 'wuff'
         description = 'creates default source code files and configuration files'
         outputs.upToDateWhen { false }
@@ -92,6 +88,10 @@ class Configurer {
         }
       }
     }
+  }
+
+  protected void configureTasks() {
+    configureTask_scaffold()
   }
 
   protected void createConfigurations() {

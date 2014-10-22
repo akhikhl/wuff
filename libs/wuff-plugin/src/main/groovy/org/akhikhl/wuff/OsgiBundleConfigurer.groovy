@@ -6,7 +6,6 @@
  * See the file "LICENSE" for copying and usage permission.
  */
 package org.akhikhl.wuff
-
 import groovy.text.SimpleTemplateEngine
 import groovy.xml.MarkupBuilder
 import org.akhikhl.unpuzzle.PlatformConfig
@@ -17,7 +16,6 @@ import org.gradle.api.Project
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.ManifestMergeSpec
 import org.gradle.api.tasks.bundling.Jar
-
 /**
  *
  * @author akhikhl
@@ -30,7 +28,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   protected Node effectivePluginXml
   protected final Map expandBinding
   protected final String snapshotQualifier
-  protected SimpleTemplateEngine templateEngine
+
+  protected SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
 
   OsgiBundleConfigurer(Project project) {
     super(project)
@@ -90,18 +89,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
     }
   }
-  
-  @Override
-  protected void configureTasks() {
-    super.configureTasks()
-    configureTask_processBundleFiles()
-    configureTask_processResources()
-  }
 
-  @Override
-  protected void configureTask_Jar() {
-
-    super.configureTask_Jar()
+  protected void configureTask_jar() {
 
     buildProperties?.source?.each { sourceName, sourceDir ->
       def sourceSetName = sourceName == '.' ? 'main' : sourceName
@@ -119,12 +108,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
 
     project.tasks.jar { thisTask ->
-      
+
       dependsOn { project.tasks.processBundleFiles }
-      
-      inputs.files {
-        [ PluginUtils.findEffectiveManifestFile(project), PluginUtils.findEffectivePluginXmlFile(project) ].findResults { it }
-      }
+
+      inputs.file(new File(project.projectDir, 'META-INF/MANIFEST.MF'))
+      inputs.file(new File(project.projectDir, 'plugin.xml'))
 
       from { project.configurations.privateLib }
 
@@ -143,17 +131,50 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
 
       manifest = project.manifest {
+        File f = new File(project.projectDir, 'META-INF/MANIFEST.MF')
         from PluginUtils.findEffectiveManifestFile(project)
       }
     }
-  } // configureTask_Jar
-  
+  }
+
   protected void configureTask_processBundleFiles() {
+
+    project.task('processBundleFiles') {
+      group = 'wuff'
+      description = 'processes bundle files'
+      dependsOn { project.tasks.processManifest }
+    }
+  }
+
+  protected void configureTask_processManifest() {
+
+    project.task('processManifest') {
+      group = 'wuff'
+      description = 'processes manifest file'
+      dependsOn { project.tasks.processPluginXml }
+      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
+      inputs.property 'projectVersion', { project.version }
+      inputs.property 'effectiveBundleVersion', { getEffectiveBundleVersion() }
+      inputs.properties getExtraFilesProperties() // ??
+      inputs.files { project.configurations.runtime }
+      File manifestFile = new File(project.projectDir, 'META-INF/MANIFEST.MF')
+      outputs.files {
+        project.effectiveWuff.generateBundleFile ? [ result.add(manifestFile) ] : []
+      }
+      doLast {
+        if(project.effectiveWuff.generateBundleFiles) {
+          generateEffectiveManifest()
+        }
+      }
+    }
+  }
+
+  protected void configureTask_processPluginXml() {
 
     project.task('processPluginXml') {
       group = 'wuff'
       description = 'generates or merges plugin.xml'
-      dependsOn project.tasks.classes
+      dependsOn { project.tasks.classes }
       inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
       inputs.property 'localizationFiles', { PluginUtils.collectPluginLocalizationFiles(project) }
       inputs.files { project.configurations.runtime }
@@ -172,73 +193,26 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         }
       }
     }
-
-    project.task('processManifest') {
-      group = 'wuff'
-      description = 'generates or merges MANIFEST.MF'
-      dependsOn project.tasks.processPluginXml
-      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
-      inputs.property 'projectVersion', { project.version }
-      inputs.property 'effectiveBundleVersion', { getEffectiveBundleVersion() }
-      inputs.properties getExtraFilesProperties() // ??
-      inputs.files { project.configurations.runtime }
-      outputs.files {
-        List result = []
-        if(project.effectiveWuff.generateBundleFiles) {
-          def f = PluginUtils.findEffectiveManifestFile(project)
-          if(f)
-            result.add(f)
-        }
-        result
-      }
-      doLast {
-        if(project.effectiveWuff.generateBundleFiles) {
-          generateEffectiveManifest()
-        }
-      }      
-    }
-
-    project.task('processBundleFiles') {
-      group = 'wuff'
-      description = 'generates or merges bundle files'
-      dependsOn project.tasks.processManifest
-    }
   }
 
   protected void configureTask_processResources() {
 
-    def templateEngine = new SimpleTemplateEngine()
-
-    /*
-     * This is special filter for *.property files.
-     * According to javadoc on java.util.Properties, such files need to be
-     * encoded in ISO 8859-1 encoding.
-     * Non-ASCII Unicode characters must be encoded as java unicode escapes
-     * in property files. We use escapeJava for such encoding.
-     */
-    def filterExpandProperties = { line ->
-      def w = new StringWriter()
-      templateEngine.createTemplate(new StringReader(line)).make(expandBinding).writeTo(w)
-      StringEscapeUtils.escapeJava(w.toString())
-    }
-
-    Set effectiveResources = new LinkedHashSet()
-    if(buildProperties) {
-      // "plugin.xml" and "plugin_customization.ini" are not included,
-      // because they are generated as extra-files in createExtraFiles.
-      def virtualResources = ['.', 'META-INF/', 'plugin.xml', 'plugin_customization.ini']
-      buildProperties?.bin?.includes?.each { relPath ->
-        if(!(relPath in virtualResources)) {
-          effectiveResources.add(relPath)
-        }
-      }
-    } else {
-      effectiveResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/', 'Application.e4xmi'])
-      effectiveResources.addAll(project.projectDir.listFiles({ (it.name =~ /plugin.*\.properties/) as boolean } as FileFilter).collect { it.name })
-    }
-    log.debug 'configureTask_processResources, effectiveResources: {}', effectiveResources
-
     project.tasks.processResources {
+
+      Set effectiveResources = new LinkedHashSet()
+      if(buildProperties) {
+        // "plugin.xml" and "plugin_customization.ini" are not included,
+        // because they are generated as extra-files in createExtraFiles.
+        def virtualResources = ['.', 'META-INF/', 'plugin.xml', 'plugin_customization.ini']
+        buildProperties?.bin?.includes?.each { relPath ->
+          if(!(relPath in virtualResources)) {
+            effectiveResources.add(relPath)
+          }
+        }
+      } else {
+        effectiveResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/', 'Application.e4xmi'])
+        effectiveResources.addAll(project.projectDir.listFiles({ (it.name =~ /plugin.*\.properties/) as boolean } as FileFilter).collect { it.name })
+      }
 
       for(File f in effectiveResources.collect { new File(project.projectDir, it).canonicalFile }.findAll { it.isDirectory() }) {
         inputs.dir f
@@ -298,14 +272,24 @@ class OsgiBundleConfigurer extends JavaConfigurer {
             }
           }
         } else
-        from project.projectDir, {
-          include res
-          if(res.endsWith('.properties') && effectiveConfig.filterProperties) {
-            filter filterExpandProperties
+          from project.projectDir, {
+            include res
+            if(res.endsWith('.properties') && effectiveConfig.filterProperties) {
+              filter filterExpandProperties
+            }
           }
-        }
       }
     }
+  }
+  
+  @Override
+  protected void configureTasks() {
+    super.configureTasks()
+    configureTask_jar()
+    configureTask_processBundleFiles()
+    configureTask_processManifest()
+    configureTask_processPluginXml()
+    configureTask_processResources()
   }
 
   @Override
@@ -367,6 +351,19 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       return false
     }
     return super.extraFilesUpToDate()
+  }
+
+  /**
+   * This is a special filter for *.property files.
+   * According to javadoc on java.util.Properties, such files need to be
+   * encoded in ISO 8859-1 encoding.
+   * Non-ASCII Unicode characters must be encoded as java unicode escapes
+   * in property files. We use escapeJava for such encoding.
+   */
+  protected Closure filterExpandProperties = { String line ->
+    StringWriter w = new StringWriter()
+    templateEngine.createTemplate(new StringReader(line)).make(expandBinding).writeTo(w)
+    StringEscapeUtils.escapeJava(w.toString())
   }
 
   protected void generateEffectiveManifest() {
@@ -493,7 +490,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
                       current_os: PlatformConfig.current_os,
                       current_arch: PlatformConfig.current_arch,
                       current_language: PlatformConfig.current_language ]
-      pluginXmlText = new groovy.text.SimpleTemplateEngine().createTemplate(pluginXmlText).make(binding).toString()
+      pluginXmlText = templateEngine.createTemplate(pluginXmlText).make(binding).toString()
     }
 
     effectivePluginXml = new XmlParser().parseText(pluginXmlText)
@@ -543,14 +540,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   protected Closure mergeManifest = { ManifestMergeSpec mergeSpec ->
     mergeSpec.eachEntry { details ->
       String mergeValue
-      if(project.effectiveWuff.filterManifest && details.mergeValue) {
-        if(!templateEngine) {
-          templateEngine = new groovy.text.SimpleTemplateEngine()
-        }
+      if(project.effectiveWuff.filterManifest && details.mergeValue)
         mergeValue = templateEngine.createTemplate(details.mergeValue).make(expandBinding).toString()
-      } else {
+      else
         mergeValue = details.mergeValue
-      }
       String newValue
       if(details.key.equalsIgnoreCase('Require-Bundle')) {
         newValue = ManifestUtils.mergeRequireBundle(details.baseValue, mergeValue)

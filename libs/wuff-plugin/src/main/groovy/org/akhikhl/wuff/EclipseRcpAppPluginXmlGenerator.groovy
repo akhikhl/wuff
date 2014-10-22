@@ -25,17 +25,6 @@ class EclipseRcpAppPluginXmlGenerator extends EquinoxAppPluginXmlGenerator {
   }
 
   @Override
-  protected void configureTask_processBundleFiles() {
-    super.configureTask_processBundleFiles()
-
-    project.task('processIntroFiles') {
-
-    }
-
-    project.task.processBundleFiles.dependsOn project.task.processIntroFiles
-  }
-
-  @Override
   protected boolean mustDefineApplicationExtensionPoint() {
     !project.effectiveWuff.supportsE4()
   }
