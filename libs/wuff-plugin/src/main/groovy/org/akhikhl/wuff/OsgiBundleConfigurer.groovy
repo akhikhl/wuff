@@ -111,9 +111,15 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       dependsOn { project.tasks.processBundleFiles }
 
-      inputs.file(new File(project.projectDir, 'META-INF/MANIFEST.MF'))
-      inputs.file(new File(project.projectDir, 'plugin.xml'))
+      def inputFiles = {
+        [ PluginUtils.getEffectiveManifestFile(project),
+          PluginUtils.getEffectivePluginXmlFile(project),
+          PluginUtils.getEffectivePluginCustomizationFile(project) ].findResults { it } +
+          PluginUtils.getEffectivePluginLocalizationFiles(project)
+      }
 
+      inputs.files inputFiles
+      from inputFiles
       from { project.configurations.privateLib }
 
       def namePart1 = [baseName, appendix].findResults { it ?: null }.join('-')
@@ -142,7 +148,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     project.task('processBundleFiles') {
       group = 'wuff'
       description = 'processes bundle files'
-      dependsOn { project.tasks.processManifest }
+      dependsOn { [ project.tasks.processManifest, project.tasks.processPluginCustomization ] }
     }
   }
 
@@ -158,7 +164,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.files { project.configurations.runtime }
       File manifestFile = new File(project.projectDir, 'META-INF/MANIFEST.MF')
       outputs.files {
-        project.effectiveWuff.generateBundleFile ? [ result.add(manifestFile) ] : []
+        def result = []
+        if(project.effectiveWuff.generateBundleFiles)
+          result.add(manifestFile)
+        result
       }
       doLast {
         if(project.effectiveWuff.generateBundleFiles)
@@ -199,7 +208,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
       inputs.files {
         List result = []
-        def f = findUserPluginXmlFile(project)
+        def f = PluginUtils.findUserPluginXmlFile(project)
         if(f)
           result.add(f)
         result
@@ -368,42 +377,42 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       setName project.ext.bundleSymbolicName
       setVersion getEffectiveBundleVersion()
       setClassesDir project.sourceSets.main.output.classesDir
-      setClasspath (project.configurations.runtime.copyRecursive() - project.configurations.privateLib.copyRecursive())
+      setClasspath(project.configurations.runtime.copyRecursive() - project.configurations.privateLib.copyRecursive())
     }
 
     m = m.effectiveManifest
 
     String activator = PluginUtils.findClassInSources(project, '**/Activator.groovy', '**/Activator.java')
-    if(activator) {
+    if (activator) {
       m.attributes['Bundle-Activator'] = activator
       m.attributes['Bundle-ActivationPolicy'] = 'lazy'
     }
 
-    if(project.effectivePluginXml) {
+    if (project.effectivePluginXml) {
       m.attributes['Bundle-SymbolicName'] = project.ext.bundleSymbolicName + '; singleton:=true'
-      Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, project.effectivePluginXml).collectEntries { [ it, '' ] }
+      Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, project.effectivePluginXml).collectEntries {
+        [it, '']
+      }
       importPackages << ManifestUtils.parsePackages(m.attributes['Import-Package'])
       m.attributes['Import-Package'] = ManifestUtils.packagesToString(importPackages)
-    }
-    else {
-      if(project.extensions.findByName('run')) {
+    } else {
+      if (project.extensions.findByName('run')) {
         // eclipse 4 requires runnable application to be a singleton
         m.attributes['Bundle-SymbolicName'] = project.ext.bundleSymbolicName + '; singleton:=true'
-      }
-      else {
+      } else {
         m.attributes['Bundle-SymbolicName'] = project.ext.bundleSymbolicName
       }
     }
 
     def localizationFiles = PluginUtils.getEffectivePluginLocalizationFiles(project)
-    if(localizationFiles)
+    if (localizationFiles)
       m.attributes['Bundle-Localization'] = 'plugin'
 
-    if(project.configurations.privateLib.copyRecursive().files) {
+    if (project.configurations.privateLib.copyRecursive().files) {
       Map importPackages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
       PluginUtils.collectPrivateLibPackages(project).each { privatePackage ->
         def packageValue = importPackages.remove(privatePackage)
-        if(packageValue != null) {
+        if (packageValue != null) {
           project.logger.info 'Package {} is referenced by private library, will be excluded from Import-Package.', privatePackage
           importPackages['!' + privatePackage] = packageValue
         }
@@ -412,27 +421,26 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
 
     def requiredBundles = new LinkedHashSet()
-    if(project.effectivePluginXml) {
+    if (project.effectivePluginXml) {
       if (project.effectivePluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' })
         requiredBundles.add 'org.eclipse.core.expressions'
       if (project.effectivePluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' })
         requiredBundles.add 'org.eclipse.ui.views'
     }
     project.configurations.compile.allDependencies.each {
-      if(it.name.startsWith('org.eclipse.') && !PlatformConfig.isPlatformFragment(it) && !PlatformConfig.isLanguageFragment(it)) {
+      if (it.name.startsWith('org.eclipse.') && !PlatformConfig.isPlatformFragment(it) && !PlatformConfig.isLanguageFragment(it)) {
         requiredBundles.add it.name
       }
     }
     m.attributes 'Require-Bundle': requiredBundles.sort().join(',')
 
     def bundleClasspath = m.attributes['Bundle-ClassPath']
-    if(bundleClasspath) {
+    if (bundleClasspath)
       bundleClasspath = bundleClasspath.split(',\\s*').collect()
-    }
-    else {
+    else
       bundleClasspath = []
-    }
-    bundleClasspath.add(0, '.')
+    if (!bundleClasspath.contains('.'))
+      bundleClasspath.add(0, '.')
 
     project.configurations.privateLib.files.each {
       bundleClasspath.add(it.name)
@@ -445,7 +453,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     Manifest effectiveManifest = project.manifest {
       // attention: call order is important here!
       from m, mergeManifest
-      if(userManifest != null)
+      if (userManifest != null)
         from userManifest, mergeManifest
     }
 
@@ -453,7 +461,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     effectiveManifest.writeTo sw
     String manifestText = sw.toString()
     File file = PluginUtils.getEffectiveManifestFile(project)
-    if(!file.exists() || file.getText('UTF-8') != manifestText) {
+    if (file.exists() && file.getText('UTF-8') == manifestText)
+      log.info 'skipped {}', file
+    else {
+      log.info 'writing {}', file
       file.parentFile.mkdirs()
       file.setText(manifestText, 'UTF-8')
     }
@@ -471,7 +482,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       props.save(sw)
       String effectivePluginCustomizationText = sw.toString()
       File file = PluginUtils.getEffectivePluginCustomizationFile(project)
-      if(!file.exists() || file.getText('UTF-8') != effectivePluginCustomizationText) {
+      if(file.exists() && file.getText('UTF-8') == effectivePluginCustomizationText)
+        log.info 'skipped {}', file
+      else {
+        log.info 'writing {}', file
         file.parentFile.mkdirs()
         file.setText(effectivePluginCustomizationText, 'UTF-8')
       }
@@ -486,7 +500,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     xml.mkp.xmlDeclaration version: '1.0', encoding: 'UTF-8'
     xml.pi eclipse: [version: '3.2']
     xml.plugin {
-      userPluginXml.children().each {
+      userPluginXml?.children().each {
         XmlUtils.writeNode(xml, it)
       }
       createPluginXmlGenerator().populate(xml)
@@ -504,7 +518,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     project.effectivePluginXml = new XmlParser().parseText(pluginXmlText)
 
     File file = PluginUtils.getEffectivePluginXmlFile(project)
-    if(!file.exists() || file.getText('UTF-8') != pluginXmlText) {
+    if(file.exists() && !file.getText('UTF-8') != pluginXmlText)
+      log.info 'skipped {}', file
+    else {
+      log.info 'writing {}', file
       file.parentFile.mkdirs()
       file.setText(pluginXmlText, 'UTF-8')
     }

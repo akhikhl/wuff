@@ -69,7 +69,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   @Override
   protected void configureTask_processBundleFiles() {
     super.configureTask_processBundleFiles()
-    project.task.processBundleFiles.dependsOn { project.task.processIntroFiles }
+    project.tasks.processBundleFiles.dependsOn { project.task.processIntroFiles }
   }
 
   protected void configureTask_processIntroFiles() {
@@ -155,7 +155,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   @Override
   protected void readUserBundleFiles() {
     super.readUserBundleFiles()
-    for(File dir in getSourceBundleDirs(project))
+    for(File dir in PluginUtils.getSourceBundleDirs(project))
       readUserIntroContentXml(dir, '')
     for(File dir in PluginUtils.findUserLocalizationDirs(project))
       readUserIntroContentXml(dir, dir.name)

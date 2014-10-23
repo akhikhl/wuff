@@ -54,9 +54,9 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     project.task('prepareRunConfig') {
       group = 'wuff'
       description = 'prepares run configuration in buildDir/run'
-      dependsOn project.tasks.jar
-      dependsOn project.tasks.wrapLibs
-      dependsOn project.tasks.processPluginXml
+      dependsOn { project.tasks.jar }
+      dependsOn { project.tasks.wrapLibs }
+      dependsOn { project.tasks.processPluginXml }
       inputs.file { project.tasks.jar.archivePath }
       inputs.file { project.configurations.runtime }
       inputs.file { PluginUtils.getEffectivePluginXmlFile(project) }
