@@ -24,8 +24,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected Map buildProperties
   protected Manifest userManifest
+  protected Map userPluginCustomization
   protected Node userPluginXml
-  protected Node effectivePluginXml
   protected final Map expandBinding
   protected final String snapshotQualifier
 
@@ -132,7 +132,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       manifest = project.manifest {
         File f = new File(project.projectDir, 'META-INF/MANIFEST.MF')
-        from PluginUtils.findEffectiveManifestFile(project)
+        from PluginUtils.getEffectiveManifestFile(project)
       }
     }
   }
@@ -155,15 +155,36 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
       inputs.property 'projectVersion', { project.version }
       inputs.property 'effectiveBundleVersion', { getEffectiveBundleVersion() }
-      inputs.properties getExtraFilesProperties() // ??
       inputs.files { project.configurations.runtime }
       File manifestFile = new File(project.projectDir, 'META-INF/MANIFEST.MF')
       outputs.files {
         project.effectiveWuff.generateBundleFile ? [ result.add(manifestFile) ] : []
       }
       doLast {
-        if(project.effectiveWuff.generateBundleFiles) {
+        if(project.effectiveWuff.generateBundleFiles)
           generateEffectiveManifest()
+      }
+    }
+  }
+
+  protected void configureTask_processPluginCustomization() {
+
+    project.task('processPluginCustomization') {
+      group = 'wuff'
+      description = 'processes plugin_customization.ini'
+      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
+      outputs.files {
+        List result = []
+        if(project.effectiveWuff.generateBundleFiles) {
+          def f = PluginUtils.findUserPluginCustomizationFile(project)
+          if(f)
+            result.add(f)
+        }
+        result
+      }
+      doLast {
+        if(project.effectiveWuff.generateBundleFiles) {
+          generateEffectivePluginCustomization()
         }
       }
     }
@@ -173,15 +194,22 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     project.task('processPluginXml') {
       group = 'wuff'
-      description = 'generates or merges plugin.xml'
+      description = 'processes plugin.xml'
       dependsOn { project.tasks.classes }
       inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
-      inputs.property 'localizationFiles', { PluginUtils.collectPluginLocalizationFiles(project) }
+      inputs.files {
+        List result = []
+        def f = findUserPluginXmlFile(project)
+        if(f)
+          result.add(f)
+        result
+      }
+      inputs.files { PluginUtils.findUserPluginLocalizationFiles(project) }
       inputs.files { project.configurations.runtime }
       outputs.files {
         List result = []
         if(project.effectiveWuff.generateBundleFiles) {
-          def f = PluginUtils.findEffectivePluginXmlFile(project)
+          def f = PluginUtils.getEffectivePluginXmlFile(project)
           if(f)
             result.add(f)
         }
@@ -190,6 +218,12 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       doLast {
         if(project.effectiveWuff.generateBundleFiles) {
           generateEffectivePluginXml()
+          for(def f in PluginUtils.findUserPluginLocalizationFiles(project))
+            if(f.parentFile != project.projectDir)
+              project.copy {
+                from f
+                into project.projectDir
+              }
         }
       }
     }
@@ -201,13 +235,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       Set effectiveResources = new LinkedHashSet()
       if(buildProperties) {
-        // "plugin.xml" and "plugin_customization.ini" are not included,
-        // because they are generated as extra-files in createExtraFiles.
-        def virtualResources = ['.', 'META-INF/', 'plugin.xml', 'plugin_customization.ini']
+        def virtualResources = ['.', 'META-INF/']
         buildProperties?.bin?.includes?.each { relPath ->
-          if(!(relPath in virtualResources)) {
+          if(!(relPath in virtualResources))
             effectiveResources.add(relPath)
-          }
         }
       } else {
         effectiveResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/', 'Application.e4xmi'])
@@ -288,6 +319,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     configureTask_jar()
     configureTask_processBundleFiles()
     configureTask_processManifest()
+    configureTask_processPluginCustomization()
     configureTask_processPluginXml()
     configureTask_processResources()
   }
@@ -303,54 +335,14 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
   }
 
-  @Override
-  protected void createExtraFiles() {
-    super.createExtraFiles()
-    FileUtils.stringToFile(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))
-    FileUtils.stringToFile(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))
-  }
-
-  protected void createPluginCustomization() {
-    def m = [:]
-    def existingFile = PluginUtils.findPluginCustomizationFile(project)
-    if(existingFile) {
-      def props = new PropertiesConfiguration()
-      props.load(existingFile)
-      for(def key in props.getKeys()) {
-        m[key] = props.getProperty(key)
-      }
-    }
-    populatePluginCustomization(m)
-    project.ext.pluginCustomization = m.isEmpty() ? null : m
-  }
-
-  protected void createPluginXml() {
-    def pluginXml = new XmlParser().parseText(createPluginXmlGenerator().buildPluginXml())
-    project.ext.pluginXml = (pluginXml.iterator() as boolean) ? pluginXml : null
-  }
-
   protected PluginXmlGenerator createPluginXmlGenerator() {
     new PluginXmlGenerator(project)
   }
 
   @Override
-  protected void createVirtualConfigurations() {
-    super.createVirtualConfigurations()
-    createPluginXml()
-    createPluginCustomization()
+  protected void readUserFiles() {
+    super.readUserFiles()
     readUserBundleFiles()
-  }
-
-  protected boolean extraFilesUpToDate() {
-    if(!FileUtils.stringToFileUpToDate(getPluginXmlString(), PluginUtils.getExtraPluginXmlFile(project))) {
-      log.debug '{}: plugin-xml is not up-to-date', project.name
-      return false
-    }
-    if(!FileUtils.stringToFileUpToDate(getPluginCustomizationString(), PluginUtils.getExtraPluginCustomizationFile(project))) {
-      log.debug '{}: plugin-customization is not up-to-date', project.name
-      return false
-    }
-    return super.extraFilesUpToDate()
   }
 
   /**
@@ -387,9 +379,9 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       m.attributes['Bundle-ActivationPolicy'] = 'lazy'
     }
 
-    if(effectivePluginXml) {
+    if(project.effectivePluginXml) {
       m.attributes['Bundle-SymbolicName'] = project.ext.bundleSymbolicName + '; singleton:=true'
-      Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, effectivePluginXml).collectEntries { [ it, '' ] }
+      Map importPackages = PluginUtils.findImportPackagesInPluginConfigFile(project, project.effectivePluginXml).collectEntries { [ it, '' ] }
       importPackages << ManifestUtils.parsePackages(m.attributes['Import-Package'])
       m.attributes['Import-Package'] = ManifestUtils.packagesToString(importPackages)
     }
@@ -403,10 +395,9 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
     }
 
-    def localizationFiles = PluginUtils.collectPluginLocalizationFiles(project)
-    if(localizationFiles) {
+    def localizationFiles = PluginUtils.getEffectivePluginLocalizationFiles(project)
+    if(localizationFiles)
       m.attributes['Bundle-Localization'] = 'plugin'
-    }
 
     if(project.configurations.privateLib.copyRecursive().files) {
       Map importPackages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
@@ -421,13 +412,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
 
     def requiredBundles = new LinkedHashSet()
-    if(effectivePluginXml) {
-      if (effectivePluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' }) {
+    if(project.effectivePluginXml) {
+      if (project.effectivePluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' })
         requiredBundles.add 'org.eclipse.core.expressions'
-      }
-      if (effectivePluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' }) {
+      if (project.effectivePluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' })
         requiredBundles.add 'org.eclipse.ui.views'
-      }
     }
     project.configurations.compile.allDependencies.each {
       if(it.name.startsWith('org.eclipse.') && !PlatformConfig.isPlatformFragment(it) && !PlatformConfig.isLanguageFragment(it)) {
@@ -463,10 +452,29 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     StringWriter sw = new StringWriter()
     effectiveManifest.writeTo sw
     String manifestText = sw.toString()
-    File file = PluginUtils.findEffectiveManifestFile(project)
+    File file = PluginUtils.getEffectiveManifestFile(project)
     if(!file.exists() || file.getText('UTF-8') != manifestText) {
       file.parentFile.mkdirs()
       file.setText(manifestText, 'UTF-8')
+    }
+  }
+
+  protected void generateEffectivePluginCustomization() {
+    def effectivePluginCustomization = [:] + this.userPluginCustomization
+    populatePluginCustomization(effectivePluginCustomization)
+    if(effectivePluginCustomization) {
+      def props = new PropertiesConfiguration()
+      effectivePluginCustomization.each { String key, value ->
+        props.setProperty(key, value)
+      }
+      StringWriter sw = new StringWriter()
+      props.save(sw)
+      String effectivePluginCustomizationText = sw.toString()
+      File file = PluginUtils.getEffectivePluginCustomizationFile(project)
+      if(!file.exists() || file.getText('UTF-8') != effectivePluginCustomizationText) {
+        file.parentFile.mkdirs()
+        file.setText(effectivePluginCustomizationText, 'UTF-8')
+      }
     }
   }
 
@@ -493,9 +501,9 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       pluginXmlText = templateEngine.createTemplate(pluginXmlText).make(binding).toString()
     }
 
-    effectivePluginXml = new XmlParser().parseText(pluginXmlText)
+    project.effectivePluginXml = new XmlParser().parseText(pluginXmlText)
 
-    File file = PluginUtils.findEffectivePluginXmlFile(project)
+    File file = PluginUtils.getEffectivePluginXmlFile(project)
     if(!file.exists() || file.getText('UTF-8') != pluginXmlText) {
       file.parentFile.mkdirs()
       file.setText(pluginXmlText, 'UTF-8')
@@ -512,29 +520,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   @Override
-  protected Map getExtraFilesProperties() {
-    Map result = [:]
-    result.pluginXml = getPluginXmlString()
-    result.pluginCustomization = getPluginCustomizationString()
-    return result
-  }
-
-  @Override
   protected List<String> getModules() {
     return super.getModules() + [ 'osgiBundle' ]
-  }
-
-  protected final String getPluginCustomizationString() {
-    if(project.hasProperty('pluginCustomization') && project.pluginCustomization != null) {
-      def props = new PropertiesConfiguration()
-      project.pluginCustomization.each { key, value ->
-        props.setProperty(key, value)
-      }
-      def writer = new StringWriter()
-      props.save(writer)
-      return writer.toString()
-    }
-    return null
   }
 
   protected Closure mergeManifest = { ManifestMergeSpec mergeSpec ->
@@ -579,6 +566,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   @Override
   protected void preConfigure() {
     // attention: call order is important here!
+    project.ext.bundleSymbolicName = null
+    project.ext.effectivePluginXml = null
     readBuildProperties()
     super.preConfigure()
   }
@@ -618,6 +607,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     else
       userManifest = null
 
+    def bundleSymbolicName = userManifest?.attributes?.'Bundle-SymbolicName' ?: project.name
+    bundleSymbolicName = bundleSymbolicName?.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
+    project.ext.bundleSymbolicName = bundleSymbolicName
+
     if(!project.effectiveWuff.generateBundleFiles) {
       if(userManifest == null) {
         log.error 'Problem in {}: wuff.generateBundleFiles=false and no user manifest is found.', project
@@ -637,8 +630,14 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
     // absent plugin.xml is OK
 
-    def bundleSymbolicName = userManifest?.attributes?.'Bundle-SymbolicName' ?: project.name
-    bundleSymbolicName = bundleSymbolicName?.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
-    project.ext.bundleSymbolicName = bundleSymbolicName
+    userPluginCustomization = [:]
+    def userPluginCustomizationFile = PluginUtils.findUserPluginCustomizationFile(project)
+    if(userPluginCustomizationFile) {
+      def props = new PropertiesConfiguration()
+      props.load(userPluginCustomizationFile)
+      for(def key in props.getKeys()) {
+        userPluginCustomization[key] = props.getProperty(key)
+      }
+    }
   }
 }

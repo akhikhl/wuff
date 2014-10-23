@@ -66,14 +66,6 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
       'scaffold/eclipse-rcp-app/'
   }
 
-  protected void populatePluginCustomization(Map props) {
-    if(!props.containsKey('org.eclipse.ui/defaultPerspectiveId')) {
-      List perspectiveIds = project.pluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })?.perspective?.collect { it.'@id' }
-      if(perspectiveIds?.size() == 1)
-        props['org.eclipse.ui/defaultPerspectiveId'] = perspectiveIds[0]
-    }
-  }
-
   @Override
   protected void configureTask_processBundleFiles() {
     super.configureTask_processBundleFiles()
@@ -126,7 +118,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
       }
       File introFile = PluginUtils.findPluginIntroHtmlFile(project, language)
       if(introFile) {
-        String homePageId = userPluginXml?.extension?.find({ it.'@point' == 'org.eclipse.ui.intro.config' })?.config?.presentation?.'@home-page-id'?.text()
+        String homePageId = project.effectivePluginXml?.extension?.find({ it.'@point' == 'org.eclipse.ui.intro.config' })?.config?.presentation?.'@home-page-id'?.text()
         if(homePageId && !userIntroContentXml?.page.find { it.'@id' == homePageId })
           xml.page id: homePageId, url: introFile.name
       }
@@ -149,6 +141,14 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
         dir = new File(dir, 'nl/' + language)
       File f = new File(dir, 'intro/introContent.xml')
       f.exists() ? f : null
+    }
+  }
+
+  protected void populatePluginCustomization(Map props) {
+    if(!props.containsKey('org.eclipse.ui/defaultPerspectiveId')) {
+      List perspectiveIds = project.effectivePluginXml?.extension.find({ it.'@point' == 'org.eclipse.ui.perspectives' })?.perspective?.collect { it.'@id' }
+      if(perspectiveIds?.size() == 1)
+        props['org.eclipse.ui/defaultPerspectiveId'] = perspectiveIds[0]
     }
   }
 

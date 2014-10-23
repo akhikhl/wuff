@@ -116,11 +116,7 @@ class Configurer {
     }
   }
 
-  protected void createVirtualConfigurations() {
-  }
-
-  protected boolean extraFilesUpToDate() {
-    return true
+  protected void readUserFiles() {
   }
 
   protected String getDefaultProjectVersion() {
@@ -149,10 +145,6 @@ class Configurer {
 
   protected String getScaffoldResourceDir() {
     null
-  }
-
-  protected Map getExtraFilesProperties() {
-    [:]
   }
 
   protected List<String> getModules() {
@@ -192,7 +184,7 @@ class Configurer {
     // guarded actuation of unpuzzle
     getSelectedEclipseMavenGroup()
 
-    createVirtualConfigurations()
+    readUserFiles()
 
     if(!project.version || project.version == 'unspecified')
       project.version = getDefaultProjectVersion()
