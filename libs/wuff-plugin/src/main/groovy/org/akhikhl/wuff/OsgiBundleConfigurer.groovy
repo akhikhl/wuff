@@ -158,19 +158,19 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       group = 'wuff'
       description = 'processes manifest file'
       dependsOn { project.tasks.processPluginXml }
-      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
+      inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
       inputs.property 'projectVersion', { project.version }
       inputs.property 'effectiveBundleVersion', { getEffectiveBundleVersion() }
       inputs.files { project.configurations.runtime }
       File manifestFile = new File(project.projectDir, 'META-INF/MANIFEST.MF')
       outputs.files {
         def result = []
-        if(project.effectiveWuff.generateBundleFiles)
+        if(effectiveConfig.generateBundleFiles)
           result.add(manifestFile)
         result
       }
       doLast {
-        if(project.effectiveWuff.generateBundleFiles)
+        if(effectiveConfig.generateBundleFiles)
           generateEffectiveManifest()
       }
     }
@@ -181,10 +181,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     project.task('processPluginCustomization') {
       group = 'wuff'
       description = 'processes plugin_customization.ini'
-      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
+      inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
       outputs.files {
         List result = []
-        if(project.effectiveWuff.generateBundleFiles) {
+        if(effectiveConfig.generateBundleFiles) {
           def f = PluginUtils.findUserPluginCustomizationFile(project)
           if(f)
             result.add(f)
@@ -192,7 +192,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         result
       }
       doLast {
-        if(project.effectiveWuff.generateBundleFiles) {
+        if(effectiveConfig.generateBundleFiles) {
           generateEffectivePluginCustomization()
         }
       }
@@ -205,7 +205,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       group = 'wuff'
       description = 'processes plugin.xml'
       dependsOn { project.tasks.classes }
-      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
+      inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
       inputs.files {
         List result = []
         def f = PluginUtils.findUserPluginXmlFile(project)
@@ -217,7 +217,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.files { project.configurations.runtime }
       outputs.files {
         List result = []
-        if(project.effectiveWuff.generateBundleFiles) {
+        if(effectiveConfig.generateBundleFiles) {
           def f = PluginUtils.getEffectivePluginXmlFile(project)
           if(f)
             result.add(f)
@@ -225,7 +225,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         result
       }
       doLast {
-        if(project.effectiveWuff.generateBundleFiles) {
+        if(effectiveConfig.generateBundleFiles) {
           generateEffectivePluginXml()
           for(def f in PluginUtils.findUserPluginLocalizationFiles(project))
             if(f.parentFile != project.projectDir)
@@ -507,7 +507,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
     String pluginXmlText = sw.toString()
 
-    if(project.effectiveWuff.filterPluginXml) {
+    if(effectiveConfig.filterPluginXml) {
       Map binding = [ project: project,
                       current_os: PlatformConfig.current_os,
                       current_arch: PlatformConfig.current_arch,
@@ -544,7 +544,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   protected Closure mergeManifest = { ManifestMergeSpec mergeSpec ->
     mergeSpec.eachEntry { details ->
       String mergeValue
-      if(project.effectiveWuff.filterManifest && details.mergeValue)
+      if(effectiveConfig.filterManifest && details.mergeValue)
         mergeValue = templateEngine.createTemplate(details.mergeValue).make(expandBinding).toString()
       else
         mergeValue = details.mergeValue
@@ -556,11 +556,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       } else if(details.key.equalsIgnoreCase('Import-Package')) {
         newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
         // if the user has specified specific eclipse imports, append them to the end
-        if (!project.effectiveWuff.eclipseImports.isEmpty()) {
+        if (!effectiveConfig.eclipseImports.isEmpty()) {
           if (newValue.isEmpty()) {
-            newValue = project.effectiveWuff.eclipseImports
+            newValue = effectiveConfig.eclipseImports
           } else {
-            newValue = newValue + ',' + project.effectiveWuff.eclipseImports
+            newValue = newValue + ',' + effectiveConfig.eclipseImports
           }
         }
       } else if(details.key.equalsIgnoreCase('Bundle-ClassPath')) {
@@ -628,7 +628,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     bundleSymbolicName = bundleSymbolicName?.contains(';') ? bundleSymbolicName.split(';')[0] : bundleSymbolicName
     project.ext.bundleSymbolicName = bundleSymbolicName
 
-    if(!project.effectiveWuff.generateBundleFiles) {
+    if(!effectiveConfig.generateBundleFiles) {
       if(userManifest == null) {
         log.error 'Problem in {}: wuff.generateBundleFiles=false and no user manifest is found.', project
         log.error 'Please make sure the project contains META-INF/MANIFEST.MF file.'
@@ -644,6 +644,16 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
     else
       userPluginXml = null
+
+    File effectivePluginXmlFile = PluginUtils.getEffectivePluginXmlFile(project)
+    if(effectivePluginXmlFile.exists())
+      project.ext.effectivePluginXml = effectivePluginXmlFile.withInputStream {
+        new XmlParser().parse(it)
+      }
+    else if(userPluginXmlFile)
+      project.ext.effectivePluginXml = userPluginXmlFile.withInputStream {
+        new XmlParser().parse(it)
+      }
 
     // absent plugin.xml is OK
 

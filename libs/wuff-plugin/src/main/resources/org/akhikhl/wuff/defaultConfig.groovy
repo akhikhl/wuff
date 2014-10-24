@@ -125,7 +125,7 @@ wuff {
 
     rcpApp {
 
-      boolean hasIntro = PluginUtils.getEclipseIntroId(project)
+      boolean hasIntro = PluginUtils.hasEclipseIntro(project)
 
       project.dependencies {
         runtime "${eclipseMavenGroup}:org.eclipse.core.filesystem:+"
@@ -135,7 +135,7 @@ wuff {
         provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
         if(hasIntro)
-        runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
+          runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
       }
 
       project.tasks.jar.manifest {
@@ -146,7 +146,7 @@ wuff {
         instruction 'Require-Bundle', 'org.eclipse.ui'
         instruction 'Require-Bundle', 'org.eclipse.core.expressions'
         if(hasIntro)
-        instruction 'Require-Bundle', 'org.eclipse.ui.intro'
+          instruction 'Require-Bundle', 'org.eclipse.ui.intro'
       }
 
       supported_oses.each { platform ->
@@ -154,22 +154,22 @@ wuff {
 
           String productConfigName = "product_rcp_${platform}_${arch}"
           if(platform != 'macosx' || arch != 'x86_64')
-          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.filesystem.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
+            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.filesystem.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
           if(platform != 'macosx')
-          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
+            project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
           project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}:+"
 
           supported_languages.each { language ->
 
             String localizedConfigName = "product_rcp_${platform}_${arch}_${language}"
             if(platform != 'macosx')
-            project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.core.net.${map_os_to_filesystem_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.jface.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.swt.${map_os_to_suffix[platform]}${map_arch_to_suffix[platform + '-' + arch]}.nl_${language}:+"
             project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.nl_${language}:+"
             if(hasIntro)
-            project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
+              project.dependencies.add localizedConfigName, "${eclipseMavenGroup}:org.eclipse.ui.intro.nl_${language}:+"
           }
         }
       }

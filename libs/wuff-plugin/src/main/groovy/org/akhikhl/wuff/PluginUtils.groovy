@@ -231,6 +231,13 @@ final class PluginUtils {
     return result
   }
 
+  static boolean hasEclipseIntro(Project project) {
+    if(project.effectivePluginXml)
+      project.effectivePluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
+    else
+      PluginUtils.findPluginIntroHtmlFile(project) != null
+  }
+
   static String getEclipseIntroId(Project project) {
     String result
     if(project.effectivePluginXml)

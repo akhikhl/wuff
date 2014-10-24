@@ -69,7 +69,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   @Override
   protected void configureTask_processBundleFiles() {
     super.configureTask_processBundleFiles()
-    project.tasks.processBundleFiles.dependsOn { project.task.processIntroFiles }
+    project.tasks.processBundleFiles.dependsOn { project.tasks.processIntroFiles }
   }
 
   protected void configureTask_processIntroFiles() {
@@ -129,14 +129,14 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   protected File getIntroContentXmlFile(String language) {
-    File dir = new File(project.projectDir)
+    File dir = project.projectDir
     if(language)
       dir = new File(dir, 'nl/' + language)
     new File(dir, 'intro/introContent.xml')
   }
 
   protected File getUserIntroContentXmlFile(String language) {
-    getSourceBundleDirs(project).findResult { dir ->
+    PluginUtils.getSourceBundleDirs(project).findResult { dir ->
       if (language)
         dir = new File(dir, 'nl/' + language)
       File f = new File(dir, 'intro/introContent.xml')
