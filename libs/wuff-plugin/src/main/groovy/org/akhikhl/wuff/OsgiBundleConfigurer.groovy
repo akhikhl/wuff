@@ -90,6 +90,38 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
   }
 
+  protected void configureTask_clean() {
+
+    if(!project.tasks.findByName('clean'))
+      project.task('clean') {
+        doLast {
+          project.buildDir.deleteDir()
+        }
+      }
+
+    project.tasks.clean {
+      doLast {
+        if(effectiveConfig.generateBundleFiles) {
+          File f = PluginUtils.getGeneratedManifestFile(project)
+          if(f.exists())
+            f.delete()
+          if(f.parentFile.exists() && !f.parentFile.listFiles())
+            f.parentFile.deleteDir()
+          f = PluginUtils.getGeneratedPluginXmlFile(project)
+          if(f.exists())
+            f.delete()
+          f = PluginUtils.getGeneratedPluginCustomizationFile(project)
+          if(f.exists())
+            f.delete()
+          PluginUtils.getGeneratedPluginLocalizationFiles(project).each {
+            if(it.exists())
+              it.delete()
+          }
+        }
+      }
+    }
+  }
+
   protected void configureTask_jar() {
 
     buildProperties?.source?.each { sourceName, sourceDir ->
@@ -112,13 +144,14 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       dependsOn { project.tasks.processBundleFiles }
 
       def inputFiles = {
-        [ PluginUtils.getEffectiveManifestFile(project),
-          PluginUtils.getEffectivePluginXmlFile(project),
-          PluginUtils.getEffectivePluginCustomizationFile(project) ].findResults { it } +
+        [ PluginUtils.getEffectivePluginXmlFile(project),
+          PluginUtils.getEffectivePluginCustomizationFile(project) ] +
           PluginUtils.getEffectivePluginLocalizationFiles(project)
       }
 
+      inputs.file { PluginUtils.getEffectiveManifestFile(project) }
       inputs.files inputFiles
+
       from inputFiles
       from { project.configurations.privateLib }
 
@@ -325,6 +358,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   @Override
   protected void configureTasks() {
     super.configureTasks()
+    configureTask_clean()
     configureTask_jar()
     configureTask_processBundleFiles()
     configureTask_processManifest()

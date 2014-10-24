@@ -59,7 +59,7 @@ class EclipseRcpAppPluginXmlGenerator extends EquinoxAppPluginXmlGenerator {
           introProductBinding introId: introId, productId: productId
         }
       if(!existingConfig?.extension.find({ it.'@point' == 'org.eclipse.ui.intro.config' })) {
-        String contentPrefix = PluginUtils.getLocalizationDirs(project) ? '$nl$/' : ''
+        String contentPrefix = PluginUtils.findUserLocalizationDirs(project) ? '$nl$/' : ''
         pluginXmlBuilder.extension(point: 'org.eclipse.ui.intro.config') {
           config(id: "${project.name}.introConfigId", introId: introId, content: "${contentPrefix}intro/introContent.xml") {
             presentation('home-page-id': 'homePageId', 'standby-page-id': 'homePageId') {

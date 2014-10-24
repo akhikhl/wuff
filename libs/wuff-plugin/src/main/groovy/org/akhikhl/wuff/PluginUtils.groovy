@@ -296,7 +296,7 @@ final class PluginUtils {
 
   static List<File> getEffectivePluginLocalizationFiles(Project project) {
     if(project.effectiveWuff.generateBundleFiles)
-      findUserPluginLocalizationFiles(project).collect { new File(project.projectDir, it.name) }
+      getGeneratedPluginLocalizationFiles(project)
     else
       findUserPluginLocalizationFiles(project)
   }
@@ -317,6 +317,26 @@ final class PluginUtils {
 
   static File getEquinoxLauncherFile(Project project) {
     return project.configurations.runtime.find { getPluginName(it.name) == equinoxLauncherPluginName }
+  }
+
+  static File getGeneratedBundleFile(Project project, String path) {
+    new File(project.projectDir, path)
+  }
+
+  static File getGeneratedManifestFile(Project project) {
+    getGeneratedBundleFile(project, 'META-INF/MANIFEST.MF')
+  }
+
+  static List<File> getGeneratedPluginLocalizationFiles(Project project) {
+    findUserPluginLocalizationFiles(project).collect { new File(project.projectDir, it.name) }
+  }
+
+  static File getGeneratedPluginCustomizationFile(Project project) {
+    getGeneratedBundleFile(project, 'plugin_customization.ini')
+  }
+
+  static File getGeneratedPluginXmlFile(Project project) {
+    getGeneratedBundleFile(project, 'plugin.xml')
   }
 
   static File getOsgiFrameworkFile(Project project) {
