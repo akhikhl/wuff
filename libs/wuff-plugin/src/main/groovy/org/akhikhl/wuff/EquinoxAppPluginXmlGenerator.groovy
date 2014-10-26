@@ -41,7 +41,7 @@ class EquinoxAppPluginXmlGenerator extends PluginXmlGenerator {
         simpleAppIds.add(appId)
     }    
     if(project.sourceSets.main.allSource.srcDirs.findAll { it.exists() }.size()) {
-      List appClasses = PluginUtils.findClassesInSources(project, '**/Application.groovy', '**/Application.java')
+      Set appClasses = PluginUtils.findApplicationClassesInSources(project)
       for(String appClass in appClasses)
         if(!existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.core.runtime.applications' && it.application?.run?.'@class'?.text() == appClass })) {
           int dotPos = appClass.lastIndexOf('.')

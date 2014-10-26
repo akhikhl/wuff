@@ -29,7 +29,7 @@ class EclipseBundlePluginXmlGenerator extends PluginXmlGenerator {
   }
 
   protected void populatePerspectives(MarkupBuilder pluginXmlBuilder) {
-    List perspectiveClasses = PluginUtils.findClassesInSources(project, '**/*Perspective.groovy', '**/*Perspective.java', '**/Perspective*.groovy', '**/Perspective*.java')
+    Set perspectiveClasses = PluginUtils.findPerspectiveClassesInSources(project)
     for(String perspectiveClass in perspectiveClasses) {
       def existingPerspectiveDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.perspectives' && it.perspective?.'@class'?.text() == perspectiveClass })
       String perspectiveId
@@ -51,7 +51,7 @@ class EclipseBundlePluginXmlGenerator extends PluginXmlGenerator {
   }
 
   protected void populateViews(MarkupBuilder pluginXmlBuilder) {
-    List<String> viewClasses = PluginUtils.findClassesInSources(project, '**/*View.groovy', '**/*View.java', '**/View*.groovy', '**/View*.java')
+    Set viewClasses = PluginUtils.findViewClassesInSources(project)
     Map viewClassToViewId = [:]
     for(String viewClass in viewClasses) {
       def existingViewDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.views' && it.view?.'@class'?.text() == viewClass })

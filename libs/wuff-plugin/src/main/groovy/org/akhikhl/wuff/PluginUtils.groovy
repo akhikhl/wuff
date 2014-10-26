@@ -50,6 +50,22 @@ final class PluginUtils {
     return privatePackages as List
   }
 
+  static void deleteGeneratedFile(Project project, File file) {
+    if (file.exists())
+      file.delete()
+    if(file.absolutePath.startsWith(project.projectDir.absolutePath)) {
+      File dir = file.parentFile
+      while (dir != project.projectDir && dir.exists() && !dir.listFiles()) {
+        dir.deleteDir()
+        dir = dir.parentFile
+      }
+    }
+  }
+
+  static Set<String> findApplicationClassesInSources(Project project) {
+    PluginUtils.findClassesInSources(project, '**/Application.groovy', '**/Application.java')
+  }
+
   /**
    * Finds classes in the sources of the project.
    *
@@ -57,17 +73,17 @@ final class PluginUtils {
    * @param sourceMasks - list of Ant-style file patterns
    * @return list of qualified names (package.class) of the found classes or empty list, if classes are not found.
    */
-  static List<String> findClassesInSources(Project project, String... sourceMasks) {
+  static Set<String> findClassesInSources(Project project, String... sourceMasks) {
     Set result = new LinkedHashSet()
-    sourceMasks.each { String sourceMask ->
-      project.sourceSets.main.allSource.srcDirs.each { File srcDir ->
+    project.sourceSets.main.allSource.srcDirs.each { File srcDir ->
+      sourceMasks.each { String sourceMask ->
         project.fileTree(srcDir).include(sourceMask).files.each { File sourceFile ->
           String path = Paths.get(srcDir.absolutePath).relativize(Paths.get(sourceFile.absolutePath)).toString()
           result.add(FilenameUtils.removeExtension(path).replace(File.separator, '.'))
         }
       }
     }
-    return result as List
+    return result
   }
 
   /**
@@ -78,7 +94,7 @@ final class PluginUtils {
    * @return qualified name (package.class) of the found class or null, if class is not found.
    */
   static String findClassInSources(Project project, String... sourceMasks) {
-    List classes = findClassesInSources(project, sourceMasks)
+    Set classes = findClassesInSources(project, sourceMasks)
     return classes ? classes[0] : null
   }
 
@@ -114,6 +130,10 @@ final class PluginUtils {
       }
     }
     return importPackages
+  }
+
+  static Set<String> findPerspectiveClassesInSources(Project project) {
+    PluginUtils.findClassesInSources(project, '**/*Perspective.groovy', '**/*Perspective.java', '**/Perspective*.groovy', '**/Perspective*.java')
   }
 
   static File findPluginIntroHtmlFile(Project project, String language = null) {
@@ -220,6 +240,10 @@ final class PluginUtils {
    */
   static File findUserPluginXmlFile(Project project) {
     findUserBundleFile(project, 'plugin.xml')
+  }
+
+  static Set<String> findViewClassesInSources(Project project) {
+    PluginUtils.findClassesInSources(project, '**/*View.groovy', '**/*View.java', '**/View*.groovy', '**/View*.java')
   }
 
   static String getEclipseApplicationId(Project project) {

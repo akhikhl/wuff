@@ -6,11 +6,9 @@
  * See the file "LICENSE" for copying and usage permission.
  */
 package org.akhikhl.wuff
-
 import groovy.xml.MarkupBuilder
-import org.gradle.api.Project
 import org.akhikhl.unpuzzle.PlatformConfig
-
+import org.gradle.api.Project
 /**
  *
  * @author akhikhl
@@ -25,45 +23,22 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   }
 
   @Override
-  protected void createConfigurations() {
-
-    super.createConfigurations()
-
-    PlatformConfig.supported_oses.each { platform ->
-      PlatformConfig.supported_archs.each { arch ->
-
-        def productConfig = project.configurations.create("product_rcp_${platform}_${arch}")
-        productConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}")
-
-        PlatformConfig.supported_languages.each { language ->
-          def localizedConfig = project.configurations.create("product_rcp_${platform}_${arch}_${language}")
-          localizedConfig.extendsFrom productConfig
-          localizedConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}_${language}")
+  protected void configureTask_clean() {
+    super.configureTask_clean()
+    project.tasks.clean {
+      doLast {
+        if (effectiveConfig.generateBundleFiles) {
+          File f = getIntroContentXmlFile('')
+          if(f.exists())
+            PluginUtils.deleteGeneratedFile(project, f)
+          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
+            f = getIntroContentXmlFile(dir.name)
+            if(f.exists())
+              PluginUtils.deleteGeneratedFile(project, f)
+          }
         }
       }
     }
-  }
-
-  @Override
-  protected PluginXmlGenerator createPluginXmlGenerator() {
-    new EclipseRcpAppPluginXmlGenerator(project)
-  }
-
-  @Override
-  protected List<String> getModules() {
-    super.getModules() + [ 'rcpApp' ]
-  }
-
-  protected String getProductConfigPrefix() {
-    'product_rcp_'
-  }
-
-  @Override
-  protected String getScaffoldResourceDir() {
-    if(project.effectiveWuff.supportsE4())
-      'scaffold/eclipse-rcp-app-e4/'
-    else
-      'scaffold/eclipse-rcp-app/'
   }
 
   @Override
@@ -104,6 +79,31 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
     configureTask_processIntroFiles()
   }
 
+  @Override
+  protected void createConfigurations() {
+
+    super.createConfigurations()
+
+    PlatformConfig.supported_oses.each { platform ->
+      PlatformConfig.supported_archs.each { arch ->
+
+        def productConfig = project.configurations.create("product_rcp_${platform}_${arch}")
+        productConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}")
+
+        PlatformConfig.supported_languages.each { language ->
+          def localizedConfig = project.configurations.create("product_rcp_${platform}_${arch}_${language}")
+          localizedConfig.extendsFrom productConfig
+          localizedConfig.extendsFrom project.configurations.findByName("product_equinox_${platform}_${arch}_${language}")
+        }
+      }
+    }
+  }
+
+  @Override
+  protected PluginXmlGenerator createPluginXmlGenerator() {
+    new EclipseRcpAppPluginXmlGenerator(project)
+  }
+
   protected void generateIntroContentXml(String language) {
     def userIntroContentXml = getUserIntroContentXmlFile(language)?.withReader('UTF-8') {
       new XmlParser().parse(it)
@@ -123,9 +123,14 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
           xml.page id: homePageId, url: introFile.name
       }
     }
+    def introXmlText = writer.toString()
+    def introXml = new XmlParser().parse(new StringReader(introXmlText))
     File introContentXmlFile = getIntroContentXmlFile(language)
-    introContentXmlFile.parentFile.mkdirs()
-    introContentXmlFile.setText(writer.toString(), 'UTF-8')
+    if(introXml.iterator()) { // non-empty intro?
+      introContentXmlFile.parentFile.mkdirs()
+      introContentXmlFile.setText(introXmlText, 'UTF-8')
+    } else
+      PluginUtils.deleteGeneratedFile(project, introContentXmlFile)
   }
 
   protected File getIntroContentXmlFile(String language) {
@@ -133,6 +138,23 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
     if(language)
       dir = new File(dir, 'nl/' + language)
     new File(dir, 'intro/introContent.xml')
+  }
+
+  @Override
+  protected List<String> getModules() {
+    super.getModules() + [ 'rcpApp' ]
+  }
+
+  protected String getProductConfigPrefix() {
+    'product_rcp_'
+  }
+
+  @Override
+  protected String getScaffoldResourceDir() {
+    if(project.effectiveWuff.supportsE4())
+      'scaffold/eclipse-rcp-app-e4/'
+    else
+      'scaffold/eclipse-rcp-app/'
   }
 
   protected File getUserIntroContentXmlFile(String language) {

@@ -65,14 +65,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         def bundleName = bundle.contains(';') ? bundle.split(';')[0] : bundle
         dependOnBundle bundleName
       }
-    if(userPluginXml) {
-      if(userPluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' }) {
-        dependOnBundle 'org.eclipse.ui.views'
-      }
-      if(userPluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' }) {
-        dependOnBundle 'org.eclipse.core.expressions'
-      }
-    }
+    if((userPluginXml && userPluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.ui.views' }) || PluginUtils.findViewClassesInSources(project))
+      dependOnBundle 'org.eclipse.ui.views'
+    if(userPluginXml && userPluginXml.extension.find { it.'@point'.startsWith 'org.eclipse.core.expressions' })
+      dependOnBundle 'org.eclipse.core.expressions'
   }
 
   @Override
@@ -214,6 +210,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     project.task('processPluginCustomization') {
       group = 'wuff'
       description = 'processes plugin_customization.ini'
+      dependsOn { project.tasks.processPluginXml }
+      inputs.files { PluginUtils.getEffectivePluginXmlFile(project) }
       inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
       outputs.files {
         List result = []
