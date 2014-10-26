@@ -28,16 +28,25 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
     project.tasks.clean {
       doLast {
         if (effectiveConfig.generateBundleFiles) {
-          File f = getIntroContentXmlFile('')
-          if(f.exists())
-            PluginUtils.deleteGeneratedFile(project, f)
-          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
-            f = getIntroContentXmlFile(dir.name)
-            if(f.exists())
-              PluginUtils.deleteGeneratedFile(project, f)
-          }
+          PluginUtils.deleteGeneratedFile(project, PluginUtils.getGeneratedIntroContentXmlFile(project, ''))
+          for(File dir in PluginUtils.findUserLocalizationDirs(project))
+            PluginUtils.deleteGeneratedFile(project, PluginUtils.getGeneratedIntroContentXmlFile(project, dir.name))
         }
       }
+    }
+  }
+
+  @Override
+  protected void configureTask_jar() {
+    super.configureTask_jar()
+    project.tasks.jar {
+      from PluginUtils.getGeneratedIntroContentXmlFile(project, ''), {
+        into 'intro'
+      }
+      for(File dir in PluginUtils.findUserLocalizationDirs(project))
+        from PluginUtils.getGeneratedIntroContentXmlFile(project, dir.name), {
+          into "nl/${dir.name}/intro"
+        }
     }
   }
 
@@ -57,9 +66,9 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
       outputs.files {
         List result = []
         if(project.effectiveWuff.generateBundleFiles) {
-          result.add getIntroContentXmlFile('')
+          result.add PluginUtils.getGeneratedIntroContentXmlFile(project, '')
           for(File dir in PluginUtils.findUserLocalizationDirs(project))
-            result.add getIntroContentXmlFile(dir.name)
+            result.add PluginUtils.getGeneratedIntroContentXmlFile(project, dir.name)
         }
         result
       }
@@ -125,19 +134,12 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
     }
     def introXmlText = writer.toString()
     def introXml = new XmlParser().parse(new StringReader(introXmlText))
-    File introContentXmlFile = getIntroContentXmlFile(language)
+    File introContentXmlFile = PluginUtils.getGeneratedIntroContentXmlFile(project, language)
     if(introXml.iterator()) { // non-empty intro?
       introContentXmlFile.parentFile.mkdirs()
       introContentXmlFile.setText(introXmlText, 'UTF-8')
     } else
       PluginUtils.deleteGeneratedFile(project, introContentXmlFile)
-  }
-
-  protected File getIntroContentXmlFile(String language) {
-    File dir = project.projectDir
-    if(language)
-      dir = new File(dir, 'nl/' + language)
-    new File(dir, 'intro/introContent.xml')
   }
 
   @Override

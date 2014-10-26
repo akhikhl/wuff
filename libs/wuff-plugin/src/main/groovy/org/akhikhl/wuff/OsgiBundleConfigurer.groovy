@@ -24,6 +24,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected Map buildProperties
   protected Manifest userManifest
+  protected Manifest inlineManifest
   protected Map userPluginCustomization
   protected Node userPluginXml
   protected final Map expandBinding
@@ -135,6 +136,8 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
     }
 
+    inlineManifest = project.jar.manifest
+
     project.tasks.jar { thisTask ->
 
       dependsOn { project.tasks.processBundleFiles }
@@ -191,11 +194,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.property 'projectVersion', { project.version }
       inputs.property 'effectiveBundleVersion', { getEffectiveBundleVersion() }
       inputs.files { project.configurations.runtime }
-      File manifestFile = new File(project.projectDir, 'META-INF/MANIFEST.MF')
       outputs.files {
         def result = []
         if(effectiveConfig.generateBundleFiles)
-          result.add(manifestFile)
+          result.add PluginUtils.getGeneratedManifestFile(project)
         result
       }
       doLast {
@@ -211,9 +213,9 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       group = 'wuff'
       description = 'processes plugin_customization.ini'
       dependsOn { project.tasks.processPluginXml }
-      inputs.files { PluginUtils.getEffectivePluginXmlFile(project) }
       inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
-      outputs.files {
+      inputs.files { PluginUtils.getEffectivePluginXmlFile(project) }
+      inputs.files {
         List result = []
         if(effectiveConfig.generateBundleFiles) {
           def f = PluginUtils.findUserPluginCustomizationFile(project)
@@ -222,10 +224,15 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         }
         result
       }
+      outputs.file {
+        List result = []
+        if(effectiveConfig.generateBundleFiles)
+          result.add PluginUtils.getGeneratedPluginCustomizationFile(project)
+        result
+      }
       doLast {
-        if(effectiveConfig.generateBundleFiles) {
+        if(effectiveConfig.generateBundleFiles)
           generateEffectivePluginCustomization()
-        }
       }
     }
   }
@@ -249,7 +256,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       outputs.files {
         List result = []
         if(effectiveConfig.generateBundleFiles) {
-          def f = PluginUtils.getEffectivePluginXmlFile(project)
+          def f = PluginUtils.getGeneratedPluginXmlFile(project)
           if(f)
             result.add(f)
         }
@@ -479,11 +486,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     }
 
     bundleClasspath.unique(true)
-
     m.attributes['Bundle-ClassPath'] = bundleClasspath.join(',')
 
     Manifest effectiveManifest = project.manifest {
       // attention: call order is important here!
+      from inlineManifest, mergeManifest
       from m, mergeManifest
       if (userManifest != null)
         from userManifest, mergeManifest
@@ -505,6 +512,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   protected void generateEffectivePluginCustomization() {
     def effectivePluginCustomization = [:] + this.userPluginCustomization
     populatePluginCustomization(effectivePluginCustomization)
+    File file = PluginUtils.getEffectivePluginCustomizationFile(project)
     if(effectivePluginCustomization) {
       def props = new PropertiesConfiguration()
       effectivePluginCustomization.each { String key, value ->
@@ -513,15 +521,15 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       StringWriter sw = new StringWriter()
       props.save(sw)
       String effectivePluginCustomizationText = sw.toString()
-      File file = PluginUtils.getEffectivePluginCustomizationFile(project)
       if(file.exists() && file.getText('UTF-8') == effectivePluginCustomizationText)
-        log.info 'skipped {}', file
+        log.debug 'skipped {}', file
       else {
-        log.info 'writing {}', file
+        log.debug 'writing {}', file
         file.parentFile.mkdirs()
         file.setText(effectivePluginCustomizationText, 'UTF-8')
       }
-    }
+    } else
+      PluginUtils.deleteGeneratedFile(project, file)
   }
 
   protected void generateEffectivePluginXml() {

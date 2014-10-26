@@ -256,10 +256,12 @@ final class PluginUtils {
   }
 
   static boolean hasEclipseIntro(Project project) {
+    boolean result
     if(project.effectivePluginXml)
-      project.effectivePluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
+      result = project.effectivePluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id' as boolean
     else
-      PluginUtils.findPluginIntroHtmlFile(project) != null
+      result = PluginUtils.findPluginIntroHtmlFile(project) != null
+    result
   }
 
   static String getEclipseIntroId(Project project) {
@@ -345,6 +347,13 @@ final class PluginUtils {
 
   static File getGeneratedBundleFile(Project project, String path) {
     new File(project.projectDir, path)
+  }
+
+  static File getGeneratedIntroContentXmlFile(Project project, String language) {
+    File dir = project.projectDir
+    if(language)
+      dir = new File(dir, 'nl/' + language)
+    new File(dir, 'intro/introContent.xml')
   }
 
   static File getGeneratedManifestFile(Project project) {

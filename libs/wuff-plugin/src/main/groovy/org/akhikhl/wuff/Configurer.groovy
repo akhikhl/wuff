@@ -180,7 +180,6 @@ class Configurer {
   }
 
   protected void postConfigure() {
-
     // guarded actuation of unpuzzle
     getSelectedEclipseMavenGroup()
 
