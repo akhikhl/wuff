@@ -387,15 +387,13 @@ final class PluginUtils {
   static List<File> getSourceBundleDirs(Project project) {
     if(project.effectiveWuff.generateBundleFiles) {
       def bundleSourceDir = project.effectiveWuff.bundleSourceDir
-      if (!(bundleSourceDir instanceof File)) {
+      if (!(bundleSourceDir instanceof File))
         bundleSourceDir = new File(bundleSourceDir)
-      }
-      if (!bundleSourceDir.isAbsolute()) {
+      if (!bundleSourceDir.isAbsolute())
         bundleSourceDir = new File(project.projectDir, bundleSourceDir.getPath())
-      }
       return bundleSourceDir.exists() ? [ bundleSourceDir ] : []
     }
-    ([ project.projectDir ] + project.sourceSets.main.resources.srcDirs).collect { it.exists() }
+    ([ project.projectDir ] + project.sourceSets.main.resources.srcDirs).findAll { it.exists() }
   }
 
   static File getWrappedLibsDir(Project project) {
