@@ -24,6 +24,11 @@ class EclipseRcpAppPluginXmlGenerator extends EquinoxAppPluginXmlGenerator {
     eclipseBundlePluginXmlBuilder = new EclipseBundlePluginXmlGenerator(project)
   }
 
+  protected void deduceDefaultApplicationIds() {
+    if(project.effectiveWuff.supportsE4() && applicationIds.isEmpty())
+      applicationIds.add('org.eclipse.e4.ui.workbench.swt.E4Application')
+  }
+
   @Override
   protected boolean mustDefineApplicationExtensionPoint() {
     !project.effectiveWuff.supportsE4()
@@ -37,12 +42,11 @@ class EclipseRcpAppPluginXmlGenerator extends EquinoxAppPluginXmlGenerator {
     populateViews(pluginXmlBuilder)
     populateIntro(pluginXmlBuilder)
   }
-  
+
   @Override
   protected void populateApplications(MarkupBuilder pluginXmlBuilder) {
     super.populateApplications(pluginXmlBuilder)
-    if(project.effectiveWuff.supportsE4() && applicationIds.isEmpty())
-      applicationIds.add('org.eclipse.e4.ui.workbench.swt.E4Application')
+    deduceDefaultApplicationIds()
   }
   
   protected void populateIntro(MarkupBuilder pluginXmlBuilder) {
@@ -58,7 +62,7 @@ class EclipseRcpAppPluginXmlGenerator extends EquinoxAppPluginXmlGenerator {
           intro id: introId, 'class': 'org.eclipse.ui.intro.config.CustomizableIntroPart'
           introProductBinding introId: introId, productId: productId
         }
-      if(!existingConfig?.extension.find({ it.'@point' == 'org.eclipse.ui.intro.config' })) {
+      if(!existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.intro.config' })) {
         String contentPrefix = PluginUtils.findUserLocalizationDirs(project) ? '$nl$/' : ''
         pluginXmlBuilder.extension(point: 'org.eclipse.ui.intro.config') {
           config(id: "${project.name}.introConfigId", introId: introId, content: "${contentPrefix}intro/introContent.xml") {

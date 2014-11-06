@@ -20,6 +20,11 @@ class EclipseIdeAppPluginXmlGenerator extends EclipseRcpAppPluginXmlGenerator {
     super(project)
   }
 
+  protected void deduceDefaultApplicationIds() {
+    if(applicationIds.isEmpty())
+      applicationIds.add('org.eclipse.ui.ide.workbench')
+  }
+
   @Override
   protected boolean mustDefineApplicationExtensionPoint() {
     false
@@ -32,13 +37,6 @@ class EclipseIdeAppPluginXmlGenerator extends EclipseRcpAppPluginXmlGenerator {
     populatePerspectives(pluginXmlBuilder)
     populateViews(pluginXmlBuilder)
     populateIntro(pluginXmlBuilder)
-  }
-  
-  @Override
-  protected void populateApplications(MarkupBuilder pluginXmlBuilder) {
-    super.populateApplications(pluginXmlBuilder)
-    if(applicationIds.isEmpty())
-      applicationIds.add('org.eclipse.ui.ide.workbench')
   }
 }
 
