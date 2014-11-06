@@ -67,13 +67,13 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
         List result = []
         if(effectiveConfig.generateBundleFiles) {
           def userIntroDir = PluginUtils.findUserIntroDir(project, '')
-          if(userIntroDir.exists())
+          if(userIntroDir && userIntroDir.exists())
             userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
               result.add it
             }
           for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
             userIntroDir = PluginUtils.findUserIntroDir(project, dir.name)
-            if(userIntroDir.exists())
+            if(userIntroDir && userIntroDir.exists())
               userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
                 result.add it
               }
@@ -87,7 +87,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
           result.add PluginUtils.getGeneratedIntroContentXmlFile(project, '')
           def userIntroDir = PluginUtils.findUserIntroDir(project, '')
           def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
-          if(userIntroDir.exists())
+          if(userIntroDir && userIntroDir.exists())
             userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
               result.add new File(generatedIntroDir, it.absolutePath - userIntroDir.absolutePath - '/')
             }
@@ -96,7 +96,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
             result.add PluginUtils.getGeneratedIntroContentXmlFile(project, language)
             userIntroDir = PluginUtils.findUserIntroDir(project, language)
             generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
-            if(userIntroDir.exists())
+            if(userIntroDir && userIntroDir.exists())
               userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
                 result.add new File(generatedIntroDir, it.absolutePath - userIntroDir.absolutePath - '/')
               }
@@ -108,19 +108,23 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
         if(effectiveConfig.generateBundleFiles) {
           generateIntroContentXml('')
           def userIntroDir = PluginUtils.findUserIntroDir(project, '')
-          def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
-          project.copy {
-            from userIntroDir
-            into generatedIntroDir
+          if(userIntroDir && userIntroDir.exists()) {
+            def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
+            project.copy {
+              from userIntroDir
+              into generatedIntroDir
+            }
           }
           for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
             String language = dir.name
             generateIntroContentXml(language)
             userIntroDir = PluginUtils.findUserIntroDir(project, language)
-            generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
-            project.copy {
-              from userIntroDir
-              into generatedIntroDir
+            if(userIntroDir && userIntroDir.exists()) {
+              generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
+              project.copy {
+                from userIntroDir
+                into generatedIntroDir
+              }
             }
           }
         }
