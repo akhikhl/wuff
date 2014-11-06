@@ -50,7 +50,7 @@ class EclipseRcpAppPluginXmlGenerator extends EquinoxAppPluginXmlGenerator {
   }
   
   protected void populateIntro(MarkupBuilder pluginXmlBuilder) {
-    File introFile = PluginUtils.findPluginIntroHtmlFile(project)
+    File introFile = PluginUtils.findUserIntroHtmlFile(project)
     if(introFile) {
       String introId
       def existingIntroDef = existingConfig?.extension?.find({ it.'@point' == 'org.eclipse.ui.intro' })

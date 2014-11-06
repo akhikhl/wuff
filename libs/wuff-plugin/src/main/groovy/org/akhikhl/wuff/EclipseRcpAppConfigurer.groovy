@@ -28,9 +28,9 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
     project.tasks.clean {
       doLast {
         if (effectiveConfig.generateBundleFiles) {
-          PluginUtils.deleteGeneratedFile(project, PluginUtils.getGeneratedIntroContentXmlFile(project, ''))
+          PluginUtils.deleteGeneratedFile(project, PluginUtils.getGeneratedIntroDir(project, ''))
           for(File dir in PluginUtils.findUserLocalizationDirs(project))
-            PluginUtils.deleteGeneratedFile(project, PluginUtils.getGeneratedIntroContentXmlFile(project, dir.name))
+            PluginUtils.deleteGeneratedFile(project, PluginUtils.getGeneratedIntroDir(project, dir.name))
         }
       }
     }
@@ -40,11 +40,11 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
   protected void configureTask_jar() {
     super.configureTask_jar()
     project.tasks.jar {
-      from PluginUtils.getGeneratedIntroContentXmlFile(project, ''), {
+      from PluginUtils.getGeneratedIntroDir(project, ''), {
         into 'intro'
       }
       for(File dir in PluginUtils.findUserLocalizationDirs(project))
-        from PluginUtils.getGeneratedIntroContentXmlFile(project, dir.name), {
+        from PluginUtils.getGeneratedIntroDir(project, dir.name), {
           into "nl/${dir.name}/intro"
         }
     }
@@ -62,21 +62,67 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
       group = 'wuff'
       description = 'processes intro files'
       dependsOn { project.tasks.processPluginXml }
-      inputs.property 'generateBundleFiles', { project.effectiveWuff.generateBundleFiles }
+      inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
+      inputs.files {
+        List result = []
+        if(effectiveConfig.generateBundleFiles) {
+          def userIntroDir = PluginUtils.findUserIntroDir(project, '')
+          if(userIntroDir.exists())
+            userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
+              result.add it
+            }
+          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
+            userIntroDir = PluginUtils.findUserIntroDir(project, dir.name)
+            if(userIntroDir.exists())
+              userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
+                result.add it
+              }
+          }
+        }
+        result
+      }
       outputs.files {
         List result = []
-        if(project.effectiveWuff.generateBundleFiles) {
+        if(effectiveConfig.generateBundleFiles) {
           result.add PluginUtils.getGeneratedIntroContentXmlFile(project, '')
-          for(File dir in PluginUtils.findUserLocalizationDirs(project))
-            result.add PluginUtils.getGeneratedIntroContentXmlFile(project, dir.name)
+          def userIntroDir = PluginUtils.findUserIntroDir(project, '')
+          def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
+          if(userIntroDir.exists())
+            userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
+              result.add new File(generatedIntroDir, it.absolutePath - userIntroDir.absolutePath - '/')
+            }
+          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
+            String language = dir.name
+            result.add PluginUtils.getGeneratedIntroContentXmlFile(project, language)
+            userIntroDir = PluginUtils.findUserIntroDir(project, language)
+            generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
+            if(userIntroDir.exists())
+              userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
+                result.add new File(generatedIntroDir, it.absolutePath - userIntroDir.absolutePath - '/')
+              }
+          }
         }
         result
       }
       doLast {
-        if(project.effectiveWuff.generateBundleFiles) {
+        if(effectiveConfig.generateBundleFiles) {
           generateIntroContentXml('')
-          for(File dir in PluginUtils.findUserLocalizationDirs(project))
-            generateIntroContentXml(dir.name)
+          def userIntroDir = PluginUtils.findUserIntroDir(project, '')
+          def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
+          project.copy {
+            from userIntroDir
+            into generatedIntroDir
+          }
+          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
+            String language = dir.name
+            generateIntroContentXml(language)
+            userIntroDir = PluginUtils.findUserIntroDir(project, language)
+            generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
+            project.copy {
+              from userIntroDir
+              into generatedIntroDir
+            }
+          }
         }
       }
     }
@@ -125,7 +171,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
       userIntroContentXml?.children().each {
         XmlUtils.writeNode(xml, it)
       }
-      File introFile = PluginUtils.findPluginIntroHtmlFile(project, language)
+      File introFile = PluginUtils.findUserIntroHtmlFile(project, language)
       if(introFile) {
         String homePageId = project.effectivePluginXml?.extension?.find({ it.'@point' == 'org.eclipse.ui.intro.config' })?.config?.presentation?.'@home-page-id'?.text()
         if(homePageId && !userIntroContentXml?.page.find { it.'@id' == homePageId })

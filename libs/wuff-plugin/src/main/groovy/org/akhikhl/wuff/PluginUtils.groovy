@@ -52,7 +52,7 @@ final class PluginUtils {
 
   static void deleteGeneratedFile(Project project, File file) {
     if (file.exists())
-      file.delete()
+      file.isDirectory() ? file.deleteDir() : file.delete()
     if(file.absolutePath.startsWith(project.projectDir.absolutePath)) {
       File dir = file.parentFile
       while (dir != project.projectDir && dir.exists() && !dir.listFiles()) {
@@ -136,23 +136,6 @@ final class PluginUtils {
     PluginUtils.findClassesInSources(project, '**/*Perspective.groovy', '**/*Perspective.java', '**/Perspective*.groovy', '**/Perspective*.java')
   }
 
-  static File findPluginIntroHtmlFile(Project project, String language = null) {
-    String prefix = language ? "nl/$language/" : ''
-    String relPath = "${prefix}intro/welcome.html"
-    String relPath2 = "${prefix}intro/welcome.htm"
-    File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
-      File f = new File(dir, relPath)
-      if(!f.exists()) {
-        f = new File(dir, relPath2)
-      }
-      f.exists() ? f : null
-    }
-    if(result) {
-      log.info '{}: Found eclipse plugin intro html: {}', project.name, result
-    }
-    return result
-  }
-
   static File findPluginSplashFile(Project project) {
     File result = ([project.projectDir] + project.sourceSets.main.resources.srcDirs).findResult { File dir ->
       File f = new File(dir, 'splash.bmp')
@@ -178,9 +161,29 @@ final class PluginUtils {
       File f = new File(dir, path)
       f.exists() ? f : null
     }
-    if(result != null) {
+    if(result != null)
       log.debug '{}: User file: {}', project, result
+    return result
+  }
+
+  static File findUserIntroDir(Project project, String language) {
+    String subDir = language ? "nl/$language/" : ''
+    findUserBundleFile(project, subDir + 'intro')
+  }
+
+  static File findUserIntroHtmlFile(Project project, String language = null) {
+    String prefix = language ? "nl/$language/" : ''
+    String relPath = "${prefix}intro/welcome.html"
+    String relPath2 = "${prefix}intro/welcome.htm"
+    File result = getSourceBundleDirs(project).findResult { File dir ->
+      File f = new File(dir, relPath)
+      if(!f.exists()) {
+        f = new File(dir, relPath2)
+      }
+      f.exists() ? f : null
     }
+    if(result)
+      log.info '{}: Found user-defined intro html: {}', project.name, result
     return result
   }
 
@@ -260,7 +263,7 @@ final class PluginUtils {
     if(project.effectivePluginXml)
       result = project.effectivePluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id' as boolean
     else
-      result = PluginUtils.findPluginIntroHtmlFile(project) != null
+      result = PluginUtils.findUserIntroHtmlFile(project) != null
     result
   }
 
@@ -350,10 +353,14 @@ final class PluginUtils {
   }
 
   static File getGeneratedIntroContentXmlFile(Project project, String language) {
+    new File(getGeneratedIntroDir(project, language), 'introContent.xml')
+  }
+
+  static File getGeneratedIntroDir(Project project, String language) {
     File dir = project.projectDir
     if(language)
       dir = new File(dir, 'nl/' + language)
-    new File(dir, 'intro/introContent.xml')
+    new File(dir, 'intro')
   }
 
   static File getGeneratedManifestFile(Project project) {
