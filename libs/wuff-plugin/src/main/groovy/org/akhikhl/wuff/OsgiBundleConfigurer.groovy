@@ -6,13 +6,16 @@
  * See the file "LICENSE" for copying and usage permission.
  */
 package org.akhikhl.wuff
+
 import groovy.text.SimpleTemplateEngine
 import groovy.xml.MarkupBuilder
 import org.akhikhl.unpuzzle.PlatformConfig
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang3.StringEscapeUtils
+import org.gradle.api.file.CopySpec
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.ManifestMergeSpec
 import org.gradle.api.tasks.bundling.Jar
@@ -194,10 +197,21 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.property 'projectVersion', { project.version }
       inputs.property 'effectiveBundleVersion', { getEffectiveBundleVersion() }
       inputs.files { project.configurations.runtime }
+      inputs.files {
+        List result = []
+        if(effectiveConfig.generateBundleFiles) {
+          def f = PluginUtils.findUserManifestFile(project)
+          if(f)
+            result.add(f)
+        }
+        result
+      }
       outputs.files {
         def result = []
-        if(effectiveConfig.generateBundleFiles)
+        if(effectiveConfig.generateBundleFiles) {
           result.add PluginUtils.getGeneratedManifestFile(project)
+          result.add new File(project.sourceSets.main.output.resourcesDir, 'META-INF/MANIFEST.MF')
+        }
         result
       }
       doLast {
@@ -246,9 +260,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
       inputs.files {
         List result = []
-        def f = PluginUtils.findUserPluginXmlFile(project)
-        if(f)
-          result.add(f)
+        if(effectiveConfig.generateBundleFiles) {
+          def f = PluginUtils.findUserPluginXmlFile(project)
+          if (f)
+            result.add(f)
+        }
         result
       }
       inputs.files { PluginUtils.findUserPluginLocalizationFiles(project) }
@@ -278,88 +294,42 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected void configureTask_processResources() {
 
-    project.tasks.processResources {
+    project.tasks.processResources { thisTask ->
 
-      Set effectiveResources = new LinkedHashSet()
+      Set additionalResources = new LinkedHashSet()
       if(buildProperties) {
         def virtualResources = ['.', 'META-INF/']
         buildProperties?.bin?.includes?.each { relPath ->
           if(!(relPath in virtualResources))
-            effectiveResources.add(relPath)
+            additionalResources.add(relPath)
         }
       } else {
-        effectiveResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/', 'Application.e4xmi'])
-        effectiveResources.addAll(project.projectDir.listFiles({ (it.name =~ /plugin.*\.properties/) as boolean } as FileFilter).collect { it.name })
+        additionalResources.addAll(['splash.bmp', 'OSGI-INF/', 'intro/', 'nl/', 'Application.e4xmi'])
+        additionalResources.addAll(project.projectDir.listFiles({ (it.name =~ /plugin.*\.properties/) as boolean } as FileFilter).collect { it.name })
       }
 
-      for(File f in effectiveResources.collect { new File(project.projectDir, it).canonicalFile }.findAll { it.isDirectory() }) {
+      for(File f in additionalResources.collect { project.file(it).canonicalFile }.findAll { it.isDirectory() })
         inputs.dir f
-      }
 
       inputs.files {
-        effectiveResources.collect { new File(project.projectDir, it).canonicalFile }.findAll { it.isFile() }
+        additionalResources.collect { project.file(it).canonicalFile }.findAll { it.isFile() }
       }
 
-      from project.sourceSets.main.resources.srcDirs, {
-        if(effectiveConfig.filterProperties) {
-          exclude '**/*.properties'
-        }
-        if(effectiveConfig.filterHtml) {
-          exclude '**/*.html', '**/*.htm'
-        }
-      }
+      for(def dir in project.sourceSets.main.resources.srcDirs)
+        filteredCopy(thisTask, dir)
 
-      if(effectiveConfig.filterProperties) {
-        from project.sourceSets.main.resources.srcDirs, {
-          include '**/*.properties'
-          filter filterExpandProperties
-        }
-      }
+      for(String res in additionalResources)
+        filteredCopy(thisTask, project.file(res))
 
-      if(effectiveConfig.filterHtml) {
-        from project.sourceSets.main.resources.srcDirs, {
-          include '**/*.html', '**/*.htm'
-          expand expandBinding
+      if(effectiveConfig.generateBundleFiles)
+        eachFile { FileCopyDetails details ->
+          File bundleFile = project.file("src/main/bundle/${details.path}")
+          if(bundleFile.exists())
+            details.exclude()
         }
-      }
-
-      for(String res in effectiveResources) {
-        def f = project.file(res)
-        if(f.isDirectory()) {
-          from f, {
-            if(effectiveConfig.filterProperties) {
-              exclude '**/*.properties'
-            }
-            if(effectiveConfig.filterHtml) {
-              exclude '**/*.html', '**/*.htm'
-            }
-            into res
-          }
-          if(effectiveConfig.filterProperties) {
-            from f, {
-              include '**/*.properties'
-              filter filterExpandProperties
-              into res
-            }
-          }
-          if(effectiveConfig.filterHtml) {
-            from f, {
-              include '**/*.html', '**/*.htm'
-              expand expandBinding
-              into res
-            }
-          }
-        } else
-          from project.projectDir, {
-            include res
-            if(res.endsWith('.properties') && effectiveConfig.filterProperties) {
-              filter filterExpandProperties
-            }
-          }
-      }
     }
   }
-  
+
   @Override
   protected void configureTasks() {
     super.configureTasks()
@@ -404,6 +374,38 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     StringWriter w = new StringWriter()
     templateEngine.createTemplate(new StringReader(line)).make(expandBinding).writeTo(w)
     StringEscapeUtils.escapeJava(w.toString())
+  }
+
+  protected void filteredCopy(CopySpec copy, File f) {
+    def res = project.relativePath(f)
+    if(f.isDirectory()) {
+      copy.from f, {
+        if(effectiveConfig.filterProperties)
+          exclude '**/*.properties'
+        if(effectiveConfig.filterHtml)
+          exclude '**/*.html', '**/*.htm'
+        into res
+      }
+      if(effectiveConfig.filterProperties)
+        copy.from f, {
+          include '**/*.properties'
+          filter filterExpandProperties
+          into res
+        }
+      if(effectiveConfig.filterHtml)
+        copy.from f, {
+          include '**/*.html', '**/*.htm'
+          expand expandBinding
+          into res
+        }
+    } else
+      copy.from project.projectDir, {
+        include res
+        if(res.endsWith('.properties') && effectiveConfig.filterProperties)
+          filter filterExpandProperties
+        if((res.endsWith('.html') || res.endsWith('.htm')) && effectiveConfig.filterHtml)
+          expand expandBinding
+      }
   }
 
   protected void generateEffectiveManifest() {
@@ -499,7 +501,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     StringWriter sw = new StringWriter()
     effectiveManifest.writeTo sw
     String manifestText = sw.toString()
-    File file = PluginUtils.getEffectiveManifestFile(project)
+    File file = PluginUtils.getGeneratedManifestFile(project)
     if (file.exists() && file.getText('UTF-8') == manifestText)
       log.info 'skipped {}', file
     else {
@@ -507,6 +509,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       file.parentFile.mkdirs()
       file.setText(manifestText, 'UTF-8')
     }
+    PluginUtils.getGeneratedResourceManifestFile(project)
   }
 
   protected void generateEffectivePluginCustomization() {

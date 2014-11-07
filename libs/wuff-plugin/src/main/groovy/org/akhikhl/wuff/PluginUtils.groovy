@@ -188,10 +188,13 @@ final class PluginUtils {
   }
 
   static List<File> findUserLocalizationDirs(Project project) {
-    getSourceBundleDirs(project).collectMany { File dir ->
+    List result = []
+    for(File dir in getSourceBundleDirs(project)) {
       File f = new File(dir, 'nl')
-      f.exists() ? f.listFiles({ it.isDirectory() } as FileFilter) : []
+      if(f.exists())
+        result.addAll f.listFiles({ it.isDirectory() } as FileFilter)
     }
+    result
   }
 
   /**
@@ -352,6 +355,10 @@ final class PluginUtils {
     new File(project.projectDir, path)
   }
 
+  static File getGeneratedResourceFile(Project project, String path) {
+    new File(project.sourceSets.main.output.resourcesDir, path)
+  }
+
   static File getGeneratedIntroContentXmlFile(Project project, String language) {
     new File(getGeneratedIntroDir(project, language), 'introContent.xml')
   }
@@ -365,6 +372,10 @@ final class PluginUtils {
 
   static File getGeneratedManifestFile(Project project) {
     getGeneratedBundleFile(project, 'META-INF/MANIFEST.MF')
+  }
+
+  static File getGeneratedResourceManifestFile(Project project) {
+    getGeneratedResourceFile(project, 'META-INF/MANIFEST.MF')
   }
 
   static List<File> getGeneratedPluginLocalizationFiles(Project project) {

@@ -120,7 +120,7 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
             generateIntroContentXml(language)
             userIntroDir = PluginUtils.findUserIntroDir(project, language)
             if(userIntroDir && userIntroDir.exists()) {
-              generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
+              def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
               project.copy {
                 from userIntroDir
                 into generatedIntroDir
