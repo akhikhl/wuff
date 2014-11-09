@@ -86,20 +86,28 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
         if(effectiveConfig.generateBundleFiles) {
           result.add PluginUtils.getGeneratedIntroContentXmlFile(project, '')
           def userIntroDir = PluginUtils.findUserIntroDir(project, '')
-          def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
-          if(userIntroDir && userIntroDir.exists())
+          if(userIntroDir && userIntroDir.exists()) {
+            def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
+            def generatedResourceIntroDir = PluginUtils.getGeneratedResourceIntroDir(project, '')
             userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
-              result.add new File(generatedIntroDir, it.absolutePath - userIntroDir.absolutePath - '/')
+              String relPath = it.absolutePath - userIntroDir.absolutePath - '/'
+              result.add new File(generatedIntroDir, relPath)
+              result.add new File(generatedResourceIntroDir, relPath)
             }
+          }
           for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
             String language = dir.name
             result.add PluginUtils.getGeneratedIntroContentXmlFile(project, language)
             userIntroDir = PluginUtils.findUserIntroDir(project, language)
-            generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
-            if(userIntroDir && userIntroDir.exists())
+            if(userIntroDir && userIntroDir.exists()) {
+              def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
+              def generatedResourceIntroDir = PluginUtils.getGeneratedResourceIntroDir(project, language)
               userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
-                result.add new File(generatedIntroDir, it.absolutePath - userIntroDir.absolutePath - '/')
+                String relPath = it.absolutePath - userIntroDir.absolutePath - '/'
+                result.add new File(generatedIntroDir, relPath)
+                result.add new File(generatedResourceIntroDir, relPath)
               }
+            }
           }
         }
         result
@@ -109,10 +117,11 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
           generateIntroContentXml('')
           def userIntroDir = PluginUtils.findUserIntroDir(project, '')
           if(userIntroDir && userIntroDir.exists()) {
-            def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
-            project.copy {
-              from userIntroDir
-              into generatedIntroDir
+            project.copy { copySpec ->
+              filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedIntroDir(project, ''))
+            }
+            project.copy { copySpec ->
+              filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedResourceIntroDir(project, ''))
             }
           }
           for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
@@ -120,10 +129,11 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
             generateIntroContentXml(language)
             userIntroDir = PluginUtils.findUserIntroDir(project, language)
             if(userIntroDir && userIntroDir.exists()) {
-              def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
-              project.copy {
-                from userIntroDir
-                into generatedIntroDir
+              project.copy { copySpec ->
+                filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedIntroDir(project, language))
+              }
+              project.copy { copySpec ->
+                filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedResourceIntroDir(project, language))
               }
             }
           }

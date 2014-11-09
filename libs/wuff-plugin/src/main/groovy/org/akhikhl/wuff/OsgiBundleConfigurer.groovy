@@ -316,16 +316,18 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
 
       for(def dir in project.sourceSets.main.resources.srcDirs)
-        filteredCopy(thisTask, dir)
+        filteredCopy(thisTask, dir, '.')
 
       for(String res in additionalResources)
-        filteredCopy(thisTask, project.file(res))
+        filteredCopy(thisTask, project.file(res), '.')
 
       if(effectiveConfig.generateBundleFiles)
         eachFile { FileCopyDetails details ->
-          File bundleFile = project.file("src/main/bundle/${details.path}")
-          if(bundleFile.exists())
+          File bundleFile = project.file("src/main/bundle/${details.sourcePath}")
+          if(bundleFile.exists()) {
+            log.warn 'Found in src/main/bundle, excluding from resource processing: {}', details.path
             details.exclude()
+          }
         }
     }
   }
@@ -376,34 +378,30 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     StringEscapeUtils.escapeJava(w.toString())
   }
 
-  protected void filteredCopy(CopySpec copy, File f) {
-    def res = project.relativePath(f)
-    if(f.isDirectory()) {
-      copy.from f, {
+  protected void filteredCopy(CopySpec copy, File source, destDir) {
+    copy.into destDir
+    if(source.isDirectory()) {
+      copy.from source, {
         if(effectiveConfig.filterProperties)
           exclude '**/*.properties'
         if(effectiveConfig.filterHtml)
           exclude '**/*.html', '**/*.htm'
-        into res
       }
       if(effectiveConfig.filterProperties)
-        copy.from f, {
+        copy.from source, {
           include '**/*.properties'
           filter filterExpandProperties
-          into res
         }
       if(effectiveConfig.filterHtml)
-        copy.from f, {
+        copy.from source, {
           include '**/*.html', '**/*.htm'
           expand expandBinding
-          into res
         }
     } else
-      copy.from project.projectDir, {
-        include res
-        if(res.endsWith('.properties') && effectiveConfig.filterProperties)
+      copy.from source, {
+        if(source.name.endsWith('.properties') && effectiveConfig.filterProperties)
           filter filterExpandProperties
-        if((res.endsWith('.html') || res.endsWith('.htm')) && effectiveConfig.filterHtml)
+        if((source.name.endsWith('.html') || source.name.endsWith('.htm')) && effectiveConfig.filterHtml)
           expand expandBinding
       }
   }
@@ -509,7 +507,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       file.parentFile.mkdirs()
       file.setText(manifestText, 'UTF-8')
     }
-    PluginUtils.getGeneratedResourceManifestFile(project)
   }
 
   protected void generateEffectivePluginCustomization() {

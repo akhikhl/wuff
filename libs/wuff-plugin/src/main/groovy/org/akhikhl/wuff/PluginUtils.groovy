@@ -364,18 +364,17 @@ final class PluginUtils {
   }
 
   static File getGeneratedIntroDir(Project project, String language) {
-    File dir = project.projectDir
-    if(language)
-      dir = new File(dir, 'nl/' + language)
-    new File(dir, 'intro')
+    String subdir = language ? "nl/$language/intro" : 'intro'
+    new File(project.projectDir, subdir)
+  }
+
+  static File getGeneratedResourceIntroDir(Project project, String language) {
+    String subdir = language ? "nl/$language/intro" : 'intro'
+    getGeneratedResourceFile(project, subdir)
   }
 
   static File getGeneratedManifestFile(Project project) {
     getGeneratedBundleFile(project, 'META-INF/MANIFEST.MF')
-  }
-
-  static File getGeneratedResourceManifestFile(Project project) {
-    getGeneratedResourceFile(project, 'META-INF/MANIFEST.MF')
   }
 
   static List<File> getGeneratedPluginLocalizationFiles(Project project) {
