@@ -9,6 +9,8 @@ package org.akhikhl.wuff
 import groovy.xml.MarkupBuilder
 import org.akhikhl.unpuzzle.PlatformConfig
 import org.gradle.api.Project
+import org.gradle.api.tasks.Copy
+
 /**
  *
  * @author akhikhl
@@ -58,85 +60,39 @@ class EclipseRcpAppConfigurer extends EquinoxAppConfigurer {
 
   protected void configureTask_processIntroFiles() {
 
-    project.task('processIntroFiles') {
+    project.task('processIntroFiles', type: Copy) {
       group = 'wuff'
       description = 'processes intro files'
       dependsOn { project.tasks.processPluginXml }
-      inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
-      inputs.files {
-        List result = []
-        if(effectiveConfig.generateBundleFiles) {
-          def userIntroDir = PluginUtils.findUserIntroDir(project, '')
-          if(userIntroDir && userIntroDir.exists())
-            userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
-              result.add it
-            }
-          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
-            userIntroDir = PluginUtils.findUserIntroDir(project, dir.name)
-            if(userIntroDir && userIntroDir.exists())
-              userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
-                result.add it
-              }
-          }
+      onlyIf { effectiveConfig.generateBundleFiles }
+      into '.'
+      into 'intro', { copySpec ->
+        filteredCopy(copySpec, PluginUtils.findUserBundleFile(project, 'intro'))
+      }
+      into project.relativePath(project.sourceSets.main.output.resourcesDir) + '/intro', { copySpec ->
+        filteredCopy(copySpec, PluginUtils.findUserBundleFile(project, 'intro'))
+      }
+      for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
+        String language = dir.name
+        into "nl/$language/intro", { copySpec ->
+          filteredCopy(copySpec, PluginUtils.findUserBundleFile(project, "nl/$language/intro"))
         }
-        result
+        into project.relativePath(project.sourceSets.main.output.resourcesDir) + "/nl/$language/intro", { copySpec ->
+          filteredCopy(copySpec, PluginUtils.findUserBundleFile(project, "nl/$language/intro"))
+        }
       }
       outputs.files {
         List result = []
-        if(effectiveConfig.generateBundleFiles) {
-          result.add PluginUtils.getGeneratedIntroContentXmlFile(project, '')
-          def userIntroDir = PluginUtils.findUserIntroDir(project, '')
-          if(userIntroDir && userIntroDir.exists()) {
-            def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, '')
-            def generatedResourceIntroDir = PluginUtils.getGeneratedResourceIntroDir(project, '')
-            userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
-              String relPath = it.absolutePath - userIntroDir.absolutePath - '/'
-              result.add new File(generatedIntroDir, relPath)
-              result.add new File(generatedResourceIntroDir, relPath)
-            }
-          }
-          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
-            String language = dir.name
-            result.add PluginUtils.getGeneratedIntroContentXmlFile(project, language)
-            userIntroDir = PluginUtils.findUserIntroDir(project, language)
-            if(userIntroDir && userIntroDir.exists()) {
-              def generatedIntroDir = PluginUtils.getGeneratedIntroDir(project, language)
-              def generatedResourceIntroDir = PluginUtils.getGeneratedResourceIntroDir(project, language)
-              userIntroDir.eachFileRecurse(groovy.io.FileType.FILES) {
-                String relPath = it.absolutePath - userIntroDir.absolutePath - '/'
-                result.add new File(generatedIntroDir, relPath)
-                result.add new File(generatedResourceIntroDir, relPath)
-              }
-            }
-          }
-        }
+        result.add PluginUtils.getGeneratedIntroContentXmlFile(project, '')
+        for(File dir in PluginUtils.findUserLocalizationDirs(project))
+          result.add PluginUtils.getGeneratedIntroContentXmlFile(project, dir.name)
         result
       }
       doLast {
         if(effectiveConfig.generateBundleFiles) {
           generateIntroContentXml('')
-          def userIntroDir = PluginUtils.findUserIntroDir(project, '')
-          if(userIntroDir && userIntroDir.exists()) {
-            project.copy { copySpec ->
-              filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedIntroDir(project, ''))
-            }
-            project.copy { copySpec ->
-              filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedResourceIntroDir(project, ''))
-            }
-          }
-          for(File dir in PluginUtils.findUserLocalizationDirs(project)) {
-            String language = dir.name
-            generateIntroContentXml(language)
-            userIntroDir = PluginUtils.findUserIntroDir(project, language)
-            if(userIntroDir && userIntroDir.exists()) {
-              project.copy { copySpec ->
-                filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedIntroDir(project, language))
-              }
-              project.copy { copySpec ->
-                filteredCopy(copySpec, userIntroDir, PluginUtils.getGeneratedResourceIntroDir(project, language))
-              }
-            }
-          }
+          for(File dir in PluginUtils.findUserLocalizationDirs(project))
+            generateIntroContentXml(dir.name)
         }
       }
     }

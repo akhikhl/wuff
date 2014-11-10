@@ -12,13 +12,15 @@ import groovy.xml.MarkupBuilder
 import org.akhikhl.unpuzzle.PlatformConfig
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang3.StringEscapeUtils
-import org.gradle.api.file.CopySpec
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.ManifestMergeSpec
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
+
 /**
  *
  * @author akhikhl
@@ -102,7 +104,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     project.tasks.clean {
       doLast {
         if(effectiveConfig.generateBundleFiles) {
-          File f = PluginUtils.getGeneratedManifestFile(project)
+          File f = PluginUtils.getGeneratedBundleFile(project, 'META-INF/MANIFEST.MF')
           if(f.exists())
             f.delete()
           if(f.parentFile.exists() && !f.parentFile.listFiles())
@@ -183,7 +185,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     project.task('processBundleFiles') {
       group = 'wuff'
       description = 'processes bundle files'
-      dependsOn { [ project.tasks.processManifest, project.tasks.processPluginCustomization ] }
+      dependsOn { [ project.tasks.processManifest, project.tasks.processPluginCustomization, project.tasks.processOsgiInf ] }
     }
   }
 
@@ -193,32 +195,32 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       group = 'wuff'
       description = 'processes manifest file'
       dependsOn { project.tasks.processPluginXml }
-      inputs.property 'generateBundleFiles', { effectiveConfig.generateBundleFiles }
+      onlyIf { effectiveConfig.generateBundleFiles }
       inputs.property 'projectVersion', { project.version }
       inputs.property 'effectiveBundleVersion', { getEffectiveBundleVersion() }
       inputs.files { project.configurations.runtime }
-      inputs.files {
-        List result = []
-        if(effectiveConfig.generateBundleFiles) {
-          def f = PluginUtils.findUserManifestFile(project)
-          if(f)
-            result.add(f)
-        }
-        result
-      }
-      outputs.files {
-        def result = []
-        if(effectiveConfig.generateBundleFiles) {
-          result.add PluginUtils.getGeneratedManifestFile(project)
-          result.add new File(project.sourceSets.main.output.resourcesDir, 'META-INF/MANIFEST.MF')
-        }
-        result
-      }
+      inputs.files { PluginUtils.findUserBundleFiles(project, 'META-INF/MANIFEST.MF') }
+      outputs.file { PluginUtils.getGeneratedBundleFile(project, 'META-INF/MANIFEST.MF') }
       doLast {
-        if(effectiveConfig.generateBundleFiles)
-          generateEffectiveManifest()
+        generateEffectiveManifest()
       }
     }
+  }
+
+  protected void configureTask_processOsgiInf() {
+
+    project.task('processOsgiInf', type: Copy) {
+      group = 'wuff'
+      description = 'processes OSGI-INF directory'
+      dependsOn { project.tasks.processPluginXml }
+      onlyIf { effectiveConfig.generateBundleFiles }
+      into '.'
+      into 'OSGI-INF', { copySpec ->
+        filteredCopy(copySpec, PluginUtils.findUserOsgiInfDir(project))
+      }
+    }
+
+    project.sourceSets.main.output.dir('OSGI-INF', builtBy: 'processOsgiInf')
   }
 
   protected void configureTask_processPluginCustomization() {
@@ -339,6 +341,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     configureTask_jar()
     configureTask_processBundleFiles()
     configureTask_processManifest()
+    configureTask_processOsgiInf()
     configureTask_processPluginCustomization()
     configureTask_processPluginXml()
     configureTask_processResources()
@@ -378,31 +381,24 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     StringEscapeUtils.escapeJava(w.toString())
   }
 
-  protected void filteredCopy(CopySpec copy, File source, destDir) {
-    copy.into destDir
-    if(source.isDirectory()) {
-      copy.from source, {
-        if(effectiveConfig.filterProperties)
-          exclude '**/*.properties'
-        if(effectiveConfig.filterHtml)
-          exclude '**/*.html', '**/*.htm'
-      }
+  protected void filteredCopy(CopySpec copy, File source) {
+    if(!source)
+      return
+    copy.from source, {
       if(effectiveConfig.filterProperties)
-        copy.from source, {
-          include '**/*.properties'
-          filter filterExpandProperties
-        }
+        exclude '**/*.properties'
       if(effectiveConfig.filterHtml)
-        copy.from source, {
-          include '**/*.html', '**/*.htm'
-          expand expandBinding
-        }
-    } else
+        exclude '**/*.html', '**/*.htm'
+    }
+    if(effectiveConfig.filterProperties)
       copy.from source, {
-        if(source.name.endsWith('.properties') && effectiveConfig.filterProperties)
-          filter filterExpandProperties
-        if((source.name.endsWith('.html') || source.name.endsWith('.htm')) && effectiveConfig.filterHtml)
-          expand expandBinding
+        include '**/*.properties'
+        filter filterExpandProperties
+      }
+    if(effectiveConfig.filterHtml)
+      copy.from source, {
+        include '**/*.html', '**/*.htm'
+        expand expandBinding
       }
   }
 
@@ -499,7 +495,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     StringWriter sw = new StringWriter()
     effectiveManifest.writeTo sw
     String manifestText = sw.toString()
-    File file = PluginUtils.getGeneratedManifestFile(project)
+    File file = PluginUtils.getGeneratedBundleFile(project, 'META-INF/MANIFEST.MF')
     if (file.exists() && file.getText('UTF-8') == manifestText)
       log.info 'skipped {}', file
     else {
@@ -655,12 +651,11 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   protected void readUserBundleFiles() {
 
-    File userManifestFile = PluginUtils.findUserManifestFile(project)
-    if(userManifestFile) {
+    File userManifestFile = PluginUtils.findUserBundleFile(project, 'META-INF/MANIFEST.MF')
+    if(userManifestFile)
       userManifest = project.manifest {
         from userManifestFile
       }.effectiveManifest
-    }
     else
       userManifest = null
 

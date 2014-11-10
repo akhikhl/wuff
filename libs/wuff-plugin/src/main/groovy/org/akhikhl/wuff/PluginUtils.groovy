@@ -157,13 +157,15 @@ final class PluginUtils {
    * @return java.io.File, pointing to user-defined bundle file, or null, if such file does not exist.
    */
   static File findUserBundleFile(Project project, String path) {
-    File result = getSourceBundleDirs(project).findResult { File dir ->
+    List files = findUserBundleFiles(project, path)
+    files ? files[0] : null
+  }
+
+  static List<File> findUserBundleFiles(Project project, String path) {
+    getSourceBundleDirs(project).findResults { File dir ->
       File f = new File(dir, path)
       f.exists() ? f : null
     }
-    if(result != null)
-      log.debug '{}: User file: {}', project, result
-    return result
   }
 
   static File findUserIntroDir(Project project, String language) {
@@ -197,14 +199,8 @@ final class PluginUtils {
     result
   }
 
-  /**
-   * Finds user-defined MANIFEST.MF file.
-   *
-   * @param project project being analyzed (not modified).
-   * @return java.io.File, pointing to MANIFEST.MF, or null, if such file does not exist.
-   */
-  static File findUserManifestFile(Project project) {
-    findUserBundleFile(project, 'META-INF/MANIFEST.MF')
+  static File findUserOsgiInfDir(Project project) {
+    findUserBundleFile(project, 'OSGI-INF')
   }
 
   /**
@@ -366,15 +362,6 @@ final class PluginUtils {
   static File getGeneratedIntroDir(Project project, String language) {
     String subdir = language ? "nl/$language/intro" : 'intro'
     new File(project.projectDir, subdir)
-  }
-
-  static File getGeneratedResourceIntroDir(Project project, String language) {
-    String subdir = language ? "nl/$language/intro" : 'intro'
-    getGeneratedResourceFile(project, subdir)
-  }
-
-  static File getGeneratedManifestFile(Project project) {
-    getGeneratedBundleFile(project, 'META-INF/MANIFEST.MF')
   }
 
   static List<File> getGeneratedPluginLocalizationFiles(Project project) {
