@@ -318,10 +318,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       }
 
       for(def dir in project.sourceSets.main.resources.srcDirs)
-        filteredCopy(thisTask, dir, '.')
+        filteredCopy(thisTask, dir)
 
       for(String res in additionalResources)
-        filteredCopy(thisTask, project.file(res), '.')
+        filteredCopy(thisTask, project.file(res))
 
       if(effectiveConfig.generateBundleFiles)
         eachFile { FileCopyDetails details ->
