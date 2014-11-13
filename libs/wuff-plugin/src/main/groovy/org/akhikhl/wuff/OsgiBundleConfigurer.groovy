@@ -158,6 +158,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       from inputFiles
       from { project.configurations.privateLib }
+      from 'OSGI-INF'
 
       def namePart1 = [baseName, appendix].findResults { it ?: null }.join('-')
       def namePart2 = [version, classifier].findResults { it ?: null }.join('-')
@@ -219,8 +220,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         filteredCopy(copySpec, PluginUtils.findUserOsgiInfDir(project))
       }
     }
-
-    project.sourceSets.main.output.dir('OSGI-INF', builtBy: 'processOsgiInf')
   }
 
   protected void configureTask_processPluginCustomization() {

@@ -351,10 +351,6 @@ final class PluginUtils {
     new File(project.projectDir, path)
   }
 
-  static File getGeneratedResourceFile(Project project, String path) {
-    new File(project.sourceSets.main.output.resourcesDir, path)
-  }
-
   static File getGeneratedIntroContentXmlFile(Project project, String language) {
     new File(getGeneratedIntroDir(project, language), 'introContent.xml')
   }
