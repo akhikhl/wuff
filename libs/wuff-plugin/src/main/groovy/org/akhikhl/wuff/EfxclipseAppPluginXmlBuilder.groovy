@@ -12,11 +12,6 @@ class EfxclipseAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
     }
 
     @Override
-    protected boolean mustDefineApplicationExtensionPoint() {
-        !project.effectiveWuff.supportsE4()
-    }
-
-    @Override
     protected void populate(MarkupBuilder pluginXml) {
         populateApplications(pluginXml)
         populateProduct(pluginXml)
@@ -24,7 +19,6 @@ class EfxclipseAppPluginXmlBuilder extends EquinoxAppPluginXmlBuilder {
 
     @Override
     protected void populateApplications(MarkupBuilder pluginXml) {
-        super.populateApplications(pluginXml)
         if(applicationIds.isEmpty())
             applicationIds.add('org.eclipse.fx.ui.workbench.fx.application')
     }

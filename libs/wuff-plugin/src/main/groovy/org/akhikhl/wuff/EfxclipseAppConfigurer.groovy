@@ -14,5 +14,14 @@ class EfxclipseAppConfigurer extends EquinoxAppConfigurer {
   EfxclipseAppConfigurer(Project project) {
     super(project)
   }
+
+    @Override
+    protected PluginXmlBuilder createPluginXmlBuilder() {
+        new EfxclipseAppPluginXmlBuilder(project)
+    }
+
+    protected List<String> getModules() {
+        super.getModules() + [ 'efxclipseApp' ]
+    }
 }
 
