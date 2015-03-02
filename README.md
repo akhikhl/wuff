@@ -12,11 +12,13 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 #### :star: What's new
 
-- Version 0.0.13-SNAPSHOT: Wuff configuration now supports "file:///..." URLs as sources of mavenized bundles.
+- 0.0.13-SNAPSHOT: new feature: generation of Eclipse Features and Repositories. See examples of code and documentation at: https://github.com/akhikhl/wuff-sandbox
 
-- Version 0.0.13-SNAPSHOT: Wuff now supports scaffolding and starting e4 model-driven applications.
+- 0.0.13-SNAPSHOT: Wuff configuration now supports "file:///..." URLs as sources of mavenized bundles.
 
-- Version 0.0.13-SNAPSHOT: fixed groovy-all version compatibility, upgraded to unpuzzle 0.0.17-SNAPSHOT.
+- 0.0.13-SNAPSHOT: Wuff now supports scaffolding and starting e4 model-driven applications.
+
+- 0.0.13-SNAPSHOT: fixed groovy-all version compatibility, upgraded to unpuzzle 0.0.17-SNAPSHOT.
 
 - From now on I'll push snapshot versions of Wuff to jfrog snapshot repository. If you want to use snapshot versions, please add the following to your build script:
 

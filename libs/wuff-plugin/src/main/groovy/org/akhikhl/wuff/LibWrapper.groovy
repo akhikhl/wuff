@@ -111,8 +111,6 @@ class LibWrapper {
         if(suffix.startsWith('-'))
           suffix = suffix.substring(1)
         if(suffix) {
-          if(suffix != 'patch')
-            fragmentHost = bundleName
           bundleName += '-' + suffix
         }
         bundleVersion = match[0][1]

@@ -14,7 +14,8 @@ group = rootProject.group
 version = rootProject.version
 
 dependencies {
-  testCompile 'org.codehaus.groovy:groovy-backports-compat23:2.3.6'
+  if(gradle.gradleVersion.startsWith('1.'))
+    testCompile 'org.codehaus.groovy:groovy-backports-compat23:${gradle_2x_groovy_version}'
   testCompile "org.spockframework:spock-core:${spock_version}", {
     exclude group: 'org.codehaus.groovy', module: 'groovy-all'
   }
