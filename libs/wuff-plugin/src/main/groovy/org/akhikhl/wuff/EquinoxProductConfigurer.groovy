@@ -291,6 +291,12 @@ class EquinoxProductConfigurer {
       configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
       if(PluginUtils.findPluginSplashFile(project))
         configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
+
+      File osgiExtensionFile = PluginUtils.getOsgiExtensionFile(project);
+
+      if(osgiExtensionFile != null) {
+        configWriter.println "osgi.framework.extensions=reference\\:file\\:${osgiExtensionFile.name}"
+      }
     }
   }
 
