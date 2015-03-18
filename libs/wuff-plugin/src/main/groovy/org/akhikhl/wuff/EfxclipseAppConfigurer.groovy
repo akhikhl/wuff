@@ -33,5 +33,10 @@ class EfxclipseAppConfigurer extends EquinoxAppConfigurer {
       }
 
   }
+
+  @Override
+  protected String getScaffoldResourceDir() {
+    'scaffold/eclipse-efxclipse-app/'
+  }
 }
 
