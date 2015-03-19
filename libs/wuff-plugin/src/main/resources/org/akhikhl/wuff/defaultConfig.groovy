@@ -410,7 +410,7 @@ wuff {
   eclipseVersion('efxclipse-1.2') {
       eclipseMavenGroup = 'efxclipse-1_2'
       sources {
-          source "http://download.eclipse.org/efxclipse/updates-released/1.2.0/site_assembly.zip"
+          source "http://download.eclipse.org/efxclipse/runtime-released/1.2.0/site_assembly.zip"
       }
 
       osgiBundle {
