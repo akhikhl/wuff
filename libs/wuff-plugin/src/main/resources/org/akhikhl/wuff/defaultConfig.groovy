@@ -437,6 +437,31 @@ wuff {
               compile "${eclipseMavenGroup}:org.eclipse.e4.ui.services:+"
               compile "${eclipseMavenGroup}:org.eclipse.e4.ui.workbench:+"
               compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
+
+              compile "${eclipseMavenGroup}:org.eclipse.fx.core:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.core.databinding:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.core.di:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.core.fxml:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.emf.databinding:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.emf.edit.ui:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.osgi.util:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.controls:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.databinding:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.di:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.dialogs:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.e4:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.generic:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.panes:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.services:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.theme:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.base:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.fx:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.base:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.fx:+"
+              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.services:+"
+
           }
 
       }
@@ -444,8 +469,16 @@ wuff {
       efxclipseApp {
           project.ext.osgiExecutionEnvironment = 'JavaSE-1.6,J2SE-1.6,J2SE-1.5,J2SE-1.4,J2SE-1.3,J2SE-1.2,JRE-1.1,CDC-1.1/Foundation-1.1,CDC-1.0/Foundation-1.0,OSGi/Minimum-1.2,OSGi/Minimum-1.1,OSGi/Minimum-1.0'
 
+          //Used only for the javax.annotation fix
+          project.repositories {
+              maven {
+                  url 'http://dl.bintray.com/mcmil/maven'
+              }
+          }
+
           project.dependencies {
               osgiExtension "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"
+              osgiExtension "pl.cmil.wuff.bundles:javax.annotation-osgi-extension:1.0"
 
               compile "${eclipseMavenGroup}:org.eclipse.equinox.app:+"
               runtime "${eclipseMavenGroup}:org.eclipse.equinox.ds:+"
@@ -457,7 +490,6 @@ wuff {
               runtime "${eclipseMavenGroup}:javax.xml:+"
 
               compile "${eclipseMavenGroup}:com.ibm.icu:+"
-              compile "${eclipseMavenGroup}:javax.annotation:+"
               compile "${eclipseMavenGroup}:javax.inject:+"
               compile "${eclipseMavenGroup}:javax.servlet:+"
               compile "${eclipseMavenGroup}:javax.xml:+"
@@ -516,6 +548,8 @@ wuff {
               runtime "${eclipseMavenGroup}:org.apache.felix.gogo.runtime:+"
               runtime "${eclipseMavenGroup}:org.apache.felix.gogo.shell:+"
               runtime "${eclipseMavenGroup}:org.apache.felix.gogo.command:+"
+
+              runtime "pl.cmil.wuff.bundles:javax.annotation-osgi-extension:1.0"
           }
 
           supported_oses.each { platform ->

@@ -294,7 +294,7 @@ final class PluginUtils {
   static List<File> getOsgiExtensionFiles(Project project) {
     List result = []
     if(project.configurations.findByName('osgiExtension') && !project.configurations.osgiExtension.empty) {
-      result.addAll(project.configurations.osgiExtension);
+      result.addAll(project.configurations.osgiExtension.collect());
     }
     return result;
   }

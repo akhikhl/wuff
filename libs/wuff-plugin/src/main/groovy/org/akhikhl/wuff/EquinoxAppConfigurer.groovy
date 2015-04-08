@@ -131,7 +131,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
           List osgiExtensionUris = PluginUtils.getOsgiExtensionFiles(project).collect {it.toURI()};
 
           if(!osgiExtensionUris.empty) {
-            configWriter.println "osgi.framework.extensions=reference\\:"+osgiExtensionUris.collect {',\\\n  '}
+            configWriter.println "osgi.framework.extensions=reference\\:"+osgiExtensionUris.join (',\\\n  ')
           }
         }
 
