@@ -128,10 +128,10 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
           configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
 
-          File osgiExtensionFile = PluginUtils.getOsgiExtensionFile(project);
+          List osgiExtensionUris = PluginUtils.getOsgiExtensionFiles(project).collect {it.toURI()};
 
-          if(osgiExtensionFile != null) {
-            configWriter.println "osgi.framework.extensions=reference\\:${osgiExtensionFile.toURI()}"
+          if(!osgiExtensionUris.empty) {
+            configWriter.println "osgi.framework.extensions=reference\\:"+osgiExtensionUris.collect {',\\\n  '}
           }
         }
 

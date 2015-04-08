@@ -291,11 +291,12 @@ final class PluginUtils {
     return project.configurations.runtime.find { getPluginName(it.name) == osgiFrameworkPluginName }
   }
 
-  static File getOsgiExtensionFile(Project project) {
+  static List<File> getOsgiExtensionFiles(Project project) {
+    List result = []
     if(project.configurations.findByName('osgiExtension') && !project.configurations.osgiExtension.empty) {
-      return project.configurations.osgiExtension.first();
+      result.addAll(project.configurations.osgiExtension);
     }
-    return null;
+    return result;
   }
 
   static String getPluginName(String fileName) {
