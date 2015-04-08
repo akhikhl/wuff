@@ -417,6 +417,8 @@ wuff {
           project.dependencies {
               compile "${eclipseMavenGroup}:javax.inject:+"
 
+              compile "${eclipseMavenGroup}:com.ibm.icu:+"
+
               compile "${eclipseMavenGroup}:org.eclipse.core.commands:+"
               compile "${eclipseMavenGroup}:org.eclipse.core.contenttype:+"
               compile "${eclipseMavenGroup}:org.eclipse.core.databinding:+"
