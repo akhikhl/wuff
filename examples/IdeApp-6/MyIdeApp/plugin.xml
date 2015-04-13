@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+  <extension point="org.eclipse.ui.perspectives">
+    <perspective id="MyIdeApp.VistaPerspective" name="la vista" class="myideapp.Perspective" />
+  </extension>
+  <extension id="product" point="org.eclipse.core.runtime.products">
+    <product application="org.eclipse.ui.ide.workbench" name="MyIdeApp">
+      <property name="appName" value="MyIdeApp" />
+    </product>
+  </extension>
+  <extension point="org.eclipse.ui.views">
+    <view id="MyIdeApp.View" name="MyIdeApp View" class="myideapp.View" />
+  </extension>
+  <extension point="org.eclipse.ui.perspectiveExtensions">
+    <perspectiveExtension targetID="MyIdeApp.VistaPerspective">
+      <view id="MyIdeApp.View" standalone="true" minimized="false" relative="org.eclipse.ui.editorss" relationship="left" />
+    </perspectiveExtension>
+  </extension>
+</plugin>
