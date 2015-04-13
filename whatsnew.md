@@ -1,5 +1,17 @@
 # What's new in Wuff
 
+### Version 0.0.13
+
+- support of Eclipse 4.4.2.
+
+- new feature: generation of Eclipse Features and Repositories. See examples of code and documentation at: https://github.com/akhikhl/wuff-sandbox
+
+- Wuff configuration now supports "file:///..." URLs as sources of mavenized bundles.
+
+- Wuff now supports scaffolding and starting e4 model-driven applications.
+
+- fixed groovy-all version compatibility, upgraded to unpuzzle 0.0.18.
+
 ### Version 0.0.12
 
 - Fixed compatibility with JDK6 (thanks to @jstarry for contribution).
