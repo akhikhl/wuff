@@ -1,8 +1,8 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
 [![Build Status](https://travis-ci.org/akhikhl/wuff.png?branch=master)](https://travis-ci.org/akhikhl/wuff)
-[![Release](http://img.shields.io/badge/release-0.0.12-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
-[![Snapshot](http://img.shields.io/badge/current-0.0.13--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
+[![Release](http://img.shields.io/badge/release-0.0.13-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
+[![Snapshot](http://img.shields.io/badge/current-0.0.14--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
 [![License](http://img.shields.io/badge/license-MIT-47b31f.svg)](#copyright-and-license)
 
 ### Introduction
