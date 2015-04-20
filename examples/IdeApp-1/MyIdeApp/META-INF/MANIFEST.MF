@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: MyIdeApp; singleton:=true
+Bundle-Version: 1.0.0.0
+Bundle-Name: MyIdeApp
+Require-Bundle: org.eclipse.osgi,org.eclipse.core.expressions,org.ecli
+ pse.equinox.app,org.eclipse.e4.ui.model.workbench,org.eclipse.ui.ide,
+ org.eclipse.ui.ide.application,org.eclipse.e4.ui.workbench,org.eclips
+ e.e4.core.di,org.eclipse.e4.ui.services,org.eclipse.ui,org.eclipse.co
+ re.runtime,org.eclipse.e4.core.contexts,org.eclipse.core.net,org.ecli
+ pse.jface,org.eclipse.core.filesystem,org.eclipse.e4.ui.di,org.eclips
+ e.swt
+Bundle-ManifestVersion: 2
+Bnd-LastModified: 1415488182000
+Created-By: 1.8.0_25 (Oracle Corporation)
+Tool: Bnd-2.1.0.20130426-122213
+Bundle-ClassPath: .
+

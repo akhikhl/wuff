@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Export-Package: myideplugin;version="1.0.0.0";uses:="org.eclipse.core.
+ commands"
+Bundle-SymbolicName: MyIdePlugin; singleton:=true
+Bundle-Version: 1.0.0.0
+Bundle-Name: MyIdePlugin
+Require-Bundle: org.eclipse.osgi,org.eclipse.ui,org.eclipse.core.expre
+ ssions,org.eclipse.core.runtime,org.eclipse.jface,org.eclipse.core.re
+ sources,org.eclipse.ui.ide,org.eclipse.core.commands,org.eclipse.swt
+Bundle-ManifestVersion: 2
+Bnd-LastModified: 1415540286000
+Created-By: 1.8.0_25 (Oracle Corporation)
+Tool: Bnd-2.1.0.20130426-122213
+Bundle-ClassPath: .
+

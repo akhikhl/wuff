@@ -3,7 +3,7 @@ apply from: 'unpuzzle.plugin'
 unpuzzle {
   unpuzzleDir = new File(System.getProperty('user.home'), '.wuff')
   localMavenRepositoryDir = new File(unpuzzleDir, 'm2_repository')
-  selectedEclipseVersion = '4.4'
+  selectedEclipseVersion = '4.4.2'
 }
 
 if(!tasks.findByName('build'))

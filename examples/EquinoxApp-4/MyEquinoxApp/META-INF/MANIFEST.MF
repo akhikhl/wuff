@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Export-Package: myequinoxapp;version="1.0.0.0";uses:="org.eclipse.equi
+ nox.app"
+Bundle-SymbolicName: MyEquinoxApp; singleton:=true
+Bundle-Version: 1.0.0.0
+Bundle-Name: MyEquinoxApp
+Require-Bundle: org.eclipse.osgi,org.eclipse.equinox.app,org.eclipse.c
+ ore.runtime
+Bundle-ManifestVersion: 2
+Bnd-LastModified: 1415488162000
+Import-Package: mybundle;version="[1.0,2)"
+Created-By: 1.8.0_25 (Oracle Corporation)
+Tool: Bnd-2.1.0.20130426-122213
+Bundle-ClassPath: .
+

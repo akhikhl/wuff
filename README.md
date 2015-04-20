@@ -1,9 +1,8 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
 [![Build Status](https://travis-ci.org/akhikhl/wuff.png?branch=master)](https://travis-ci.org/akhikhl/wuff)
-[![Maintainer Status](http://stillmaintained.com/akhikhl/wuff.png)](http://stillmaintained.com/akhikhl/wuff)
-[![Release](http://img.shields.io/badge/release-0.0.12-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
-[![Snapshot](http://img.shields.io/badge/current-0.0.13--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
+[![Release](http://img.shields.io/badge/release-0.0.13-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
+[![Snapshot](http://img.shields.io/badge/current-0.0.14--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
 [![License](http://img.shields.io/badge/license-MIT-47b31f.svg)](#copyright-and-license)
 
 ### Introduction
@@ -12,13 +11,15 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 #### :star: What's new
 
-- 0.0.13-SNAPSHOT: new feature: generation of Eclipse Features and Repositories. See examples of code and documentation at: https://github.com/akhikhl/wuff-sandbox
+- 0.0.13: support of Eclipse 4.4.2.
 
-- 0.0.13-SNAPSHOT: Wuff configuration now supports "file:///..." URLs as sources of mavenized bundles.
+- 0.0.13: new feature: generation of Eclipse Features and Repositories. See examples of code and documentation at: https://github.com/akhikhl/wuff-sandbox
 
-- 0.0.13-SNAPSHOT: Wuff now supports scaffolding and starting e4 model-driven applications.
+- 0.0.13: Wuff configuration now supports "file:///..." URLs as sources of mavenized bundles.
 
-- 0.0.13-SNAPSHOT: fixed groovy-all version compatibility, upgraded to unpuzzle 0.0.17-SNAPSHOT.
+- 0.0.13: Wuff now supports scaffolding and starting e4 model-driven applications.
+
+- 0.0.13: fixed groovy-all version compatibility, upgraded to unpuzzle 0.0.18.
 
 - From now on I'll push snapshot versions of Wuff to jfrog snapshot repository. If you want to use snapshot versions, please add the following to your build script:
 
@@ -42,10 +43,6 @@ repositories {
 apply plugin: 'java'
 apply plugin: 'org.akhikhl.wuff.eclipse-rcp-app'
 ```
-
-- Version 0.0.12: fixed compatibility with JDK6 (thanks to @jstarry for contribution). 
-
-- Version 0.0.11: introduced "white-listed" eclipse bundles when translating MANIFEST.MF bundles to gradle dependencies (contribution by @jstarry).
 
 See complete list of changes in [what's new list](whatsnew.md),
 
@@ -71,7 +68,7 @@ See more information on [prerequisites and usage](../../wiki/Prerequisites-and-u
 
 ### Copyright and License
 
-Copyright 2014 (c) Andrey Hihlovskiy and contributors
+Copyright 2014-2015 (c) Andrey Hihlovskiy and contributors
 
 All versions, present and past, of Wuff are licensed under [MIT license](LICENSE).
 
