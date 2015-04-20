@@ -464,6 +464,12 @@ wuff {
               compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.fx:+"
               compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.services:+"
 
+              compile "${eclipseMavenGroup}:org.eclipse.emf.common:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.change:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.xmi:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.edit:+"
+
           }
 
       }
@@ -543,6 +549,12 @@ wuff {
               compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.base:+"
               compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.fx:+"
               compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.services:+"
+
+              compile "${eclipseMavenGroup}:org.eclipse.emf.common:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.change:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.xmi:+"
+              compile "${eclipseMavenGroup}:org.eclipse.emf.edit:+"
 
               runtime "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"
               runtime "${eclipseMavenGroup}:org.eclipse.equinox.console:+"
