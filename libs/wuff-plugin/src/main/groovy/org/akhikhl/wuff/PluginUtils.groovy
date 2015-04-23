@@ -291,6 +291,14 @@ final class PluginUtils {
     return project.configurations.runtime.find { getPluginName(it.name) == osgiFrameworkPluginName }
   }
 
+  static List<File> getOsgiExtensionFiles(Project project) {
+    List result = []
+    if(project.configurations.findByName('osgiExtension') && !project.configurations.osgiExtension.empty) {
+      result.addAll(project.configurations.osgiExtension.collect());
+    }
+    return result;
+  }
+
   static String getPluginName(String fileName) {
     return fileName.replaceAll(eclipsePluginMask, '$1')
   }

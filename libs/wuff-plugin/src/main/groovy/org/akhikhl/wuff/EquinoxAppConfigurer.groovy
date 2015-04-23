@@ -127,6 +127,12 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
             configWriter.println "org.osgi.framework.executionenvironment=${project.ext.osgiExecutionEnvironment}"
           configWriter.println 'osgi.bundles.defaultStartLevel=4'
           configWriter.println 'osgi.bundles=' + bundleLaunchList.values().join(',\\\n  ')
+
+          List osgiExtensionUris = PluginUtils.getOsgiExtensionFiles(project).collect {it.toURI()};
+
+          if(!osgiExtensionUris.empty) {
+            configWriter.println "osgi.framework.extensions=reference\\:"+osgiExtensionUris.join (',\\\n  ')
+          }
         }
 
         project.copy {
