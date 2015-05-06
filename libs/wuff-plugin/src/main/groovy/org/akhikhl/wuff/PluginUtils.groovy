@@ -37,6 +37,7 @@ final class PluginUtils {
   static final String eclipsePluginMask = /([\da-zA-Z_.-]+?)-((\d+\.)+[\da-zA-Z_.-]*)/
   static final String osgiFrameworkPluginName = 'org.eclipse.osgi'
   static final String equinoxLauncherPluginName = 'org.eclipse.equinox.launcher'
+  static final String equinoxLauncherPlatformSpecifiPluginNamePrefix = "${equinoxLauncherPluginName}."
 
   /**
    * Collects eclipse plugin configuration localization files, 'plugin*.properties'.
