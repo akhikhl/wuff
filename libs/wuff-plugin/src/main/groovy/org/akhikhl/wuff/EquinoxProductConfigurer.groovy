@@ -9,6 +9,7 @@ package org.akhikhl.wuff
 
 import org.akhikhl.unpuzzle.PlatformConfig
 import org.akhikhl.unpuzzle.eclipse2maven.EclipseDeployer
+import org.apache.commons.configuration.plist.XMLPropertyListConfiguration
 import org.eclipse.pde.internal.swt.tools.IconExe
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -98,8 +99,7 @@ class EquinoxProductConfigurer {
           jreFolder = file
         else
           project.logger.warn 'the specified JRE path {} represents a file (it should be a folder)', file.absolutePath
-      }
-      else
+      } else
         project.logger.warn 'JRE folder {} does not exist', file.absolutePath
     }
     this.jreFolder = jreFolder
@@ -152,7 +152,7 @@ class EquinoxProductConfigurer {
         }
 
         if(project.products.nativeLauncher) {
-          writeNativeLauncher()
+          writeNativeLauncher(launchParameters, project.products.jvmArgs.clone())
         } else {
           if(launchers.contains('shell'))
             writeShellLaunchFile(launchParameters, project.products.jvmArgs.clone())
@@ -213,10 +213,10 @@ class EquinoxProductConfigurer {
         }
       }
       if(project.products.additionalFilesToArchive)
-        for(def f in project.products.additionalFilesToArchive)
+        for (def f in project.products.additionalFilesToArchive)
           addFileToArchive f, { into project.name }
       if(product.archiveFiles)
-        for(def f in product.archiveFiles)
+        for (def f in product.archiveFiles)
           addFileToArchive f, { into project.name }
       addFileToArchive 'CHANGES', { into project.name }
       addFileToArchive 'README', { into project.name }
@@ -240,7 +240,7 @@ class EquinoxProductConfigurer {
 
   void writeConfigIni() {
     // key is plugin name, value is complete launch entry for configuration
-    def bundleLaunchList = [:]
+    def bundleLaunchList = [ : ]
 
     def addBundle = { File file ->
       String pluginName = PluginUtils.getPluginName(file.name)
@@ -307,10 +307,10 @@ class EquinoxProductConfigurer {
       if(PluginUtils.findPluginSplashFile(project))
         configWriter.println "osgi.splashPath=file\\:plugins/${project.tasks.jar.archivePath.name}"
 
-      List osgiExtensionNames = PluginUtils.getOsgiExtensionFiles(project).collect {it.name};
+      List osgiExtensionNames = PluginUtils.getOsgiExtensionFiles(project).collect { it.name };
 
       if(!osgiExtensionNames.empty) {
-        configWriter.println "osgi.framework.extensions=reference\\:file\\:"+osgiExtensionNames.join(',\\\n  ')
+        configWriter.println "osgi.framework.extensions=reference\\:file\\:" + osgiExtensionNames.join(',\\\n  ')
       }
     }
   }
@@ -324,13 +324,13 @@ class EquinoxProductConfigurer {
     String javaLocation = ''
     if(jreFolder)
       javaLocation = 'SOURCE="${BASH_SOURCE[0]}"\n' +
-        'while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink\n' +
-        'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
-        'SOURCE="$(readlink "$SOURCE")\n' +
-        '[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located\n' +
-        'done\n' +
-        'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
-        '${DIR}/jre/bin/'
+              'while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink\n' +
+              'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
+              'SOURCE="$(readlink "$SOURCE")\n' +
+              '[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located\n' +
+              'done\n' +
+              'DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )\n' +
+              '${DIR}/jre/bin/'
     File launchScriptFile = new File(productOutputDir, "${project.name}.sh")
 
     if(platform == 'macosx')
@@ -345,10 +345,10 @@ class EquinoxProductConfigurer {
     if(platform == 'windows' || launchers.contains('windows'))
       lineSep = '\r\n'
     new File(productOutputDir, 'VERSION').text = "product: ${project.name}" + lineSep +
-      "version: ${project.version}" + lineSep +
-      "platform: $platform" + lineSep +
-      "architecture: $arch" + lineSep +
-      "language: ${language ?: 'en'}" + lineSep
+            "version: ${project.version}" + lineSep +
+            "platform: $platform" + lineSep +
+            "architecture: $arch" + lineSep +
+            "language: ${language ?: 'en'}" + lineSep
   }
 
   void writeWindowsLaunchFile(List<String> launchParameters, List<String> jvmArgs) {
@@ -358,7 +358,7 @@ class EquinoxProductConfigurer {
 
     String jvmArgsStr = jvmArgs.join(' ')
     if(jvmArgsStr)
-        jvmArgsStr = ' ' + jvmArgsStr
+      jvmArgsStr = ' ' + jvmArgsStr
 
     File equinoxLauncherFile = PluginUtils.getEquinoxLauncherFile(project)
     String equinoxLauncherName = 'plugins/' + equinoxLauncherFile.name.replaceAll(PluginUtils.eclipsePluginMask, '$1_$2')
@@ -372,7 +372,7 @@ class EquinoxProductConfigurer {
     launchScriptFile.text = scriptText
   }
 
-  void writeNativeLauncher() {
+  void writeNativeLauncher(List<String> launchParameters, List<String> jvmArgs) {
     File baseLocation = getDeltapackDir();
     File[] equinoxExecutablePlugins = new File(baseLocation, 'features').listFiles({
       it.name.matches ~/^org\.eclipse\.equinox\.executable_(.+)$/
@@ -381,7 +381,8 @@ class EquinoxProductConfigurer {
       throw new GradleException("Could not build feature: equinox executable not found in ${new File(baseLocation, 'features')}")
     File equinoxExecutablePlugin = equinoxExecutablePlugins[0]
 
-    File source = new File(equinoxExecutablePlugin, "bin/${getWs()}/${getOs()}/${getArch()}")
+    Platform platform = createPlatform()
+    File source = new File(equinoxExecutablePlugin, "bin/${platform.ws}/${platform.os}/${platform.arch}")
 
     project.copy {
       from source
@@ -389,35 +390,102 @@ class EquinoxProductConfigurer {
       into productOutputDir
     }
 
-    File sourceLauncher = getSourceLauncher()
-    File destinationLauncher = getDestinationLauncher()
+    platform.applyPlatformSpecificCustomization()
 
-    sourceLauncher.renameTo(destinationLauncher)
-    // TODO Maybe chmod destlauncher
+    if(!launchParameters.empty || !jvmArgs.empty){
+      customizeIniFile(launchParameters, jvmArgs)
+    }
+  }
 
-    if(platform == "macosx") {
-      File eclipseApp = new File(productOutputDir, "Eclipse.app")
-      File targetApp = new File(productOutputDir, "${project.name}.app")
-      eclipseApp.renameTo(targetApp);
+  private void customizeIniFile(List<String> launchParameters, List<String> jvmArgs){
+    File iniFile = platform.iniFile
 
-      File icon = project.products.macosxIcns;
-      if(icon != null) {
-        project.copy {
-          from icon
-          into new File(targetApp, "Resources")
-        }
-
-        File iniFile = new File(targetApp, "Contents/MacOS/eclipse.ini");
-        if(iniFile.exists() && iniFile.canWrite()) {
-          StringBuffer buf = new StringBuffer(iniFile.getText("UTF-8"));
-          int pos = buf.indexOf("Eclipse.icns");
-          buf.replace(pos, pos + 12, icon.getName());
-          iniFile.setText(buf.toString(), "UTF-8")
-        }
-      }
+    StringBuffer buf = new StringBuffer()
+    if(iniFile.exists()){
+      buf.append(iniFile.getText("UTF-8"))
     }
 
+    String launchParametersString = launchParameters.join("\n")
+    if(!launchParametersString.empty){
+      buf.insert(0, "${launchParametersString}\n")
+    }
+
+    if(!jvmArgs.empty){
+      if(!buf.contains("-jvmargs")){
+        buf.append("-jvmargs\n")
+      }
+
+      buf.append(jvmArgs.join("\n"))
+      buf.append("\n")
+    }
+
+    iniFile.setText(buf.toString(), "UTF-8")
+  }
+
+  private File getDeltapackDir() {
+    def unpuzzle = project.effectiveUnpuzzle
+    def eclipseSource = project.effectiveUnpuzzle.selectedVersionConfig.sources.find { it.url.contains('delta') }
+    EclipseDeployer.getUnpackDir(unpuzzle.unpuzzleDir, eclipseSource)
+  }
+
+  Platform createPlatform(){
     if(platform == "windows") {
+      return new WindowsPlatform()
+    }
+
+    if(platform == "linux") {
+      return new LinuxPlatform()
+    }
+
+    if(platform == "macosx") {
+      return new MacOSXPlatform()
+    }
+
+    throw new IllegalArgumentException("Unknow platform '$platform'")
+  }
+
+  private abstract class Platform {
+    abstract String getOs()
+    abstract String getWs()
+    abstract File getIniFile()
+    abstract void applyPlatformSpecificCustomization()
+
+    String getArch() {
+      if(EquinoxProductConfigurer.this.arch == "x86_32") {
+        return "x86"
+      }
+
+      if(EquinoxProductConfigurer.this.arch == "x86_64") {
+        return "x86_64"
+      }
+
+      throw new IllegalArgumentException("Unknow arch '$platform'")
+    }
+  }
+
+  private class WindowsPlatform extends Platform {
+    private File destinationLauncher = new File(productOutputDir, "${project.name}.exe")
+    private File iniFile = new File(productOutputDir, "eclipse.ini")
+
+    @Override
+    String getOs() {
+      return "win32"
+    }
+
+    @Override
+    String getWs() {
+      return "win32"
+    }
+
+    @Override
+    File getIniFile() {
+      return iniFile
+    }
+
+    @Override
+    void applyPlatformSpecificCustomization() {
+      new File(productOutputDir, "launcher.exe").renameTo(destinationLauncher)
+
       if(project.products.windowsIco != null) {
         IconExe.main([ destinationLauncher.absolutePath, project.products.windowsIco.absolutePath ] as String[]);
       } else {
@@ -435,8 +503,92 @@ class EquinoxProductConfigurer {
         }
       }
     }
+  }
 
-    if(platform == "linux") {
+  private class MacOSXPlatform extends Platform {
+    private File eclipseApp = new File(productOutputDir, "Eclipse.app");
+    private File executable = new File(eclipseApp, "Contents/MacOS/${project.name}")
+    private File targetApp = new File(productOutputDir, "${project.name}.app")
+    private File iniFile = new File(targetApp, "Contents/MacOS/eclipse.ini")
+
+    @Override
+    String getOs() {
+      return "macosx"
+    }
+
+    @Override
+    String getWs() {
+      return "cocoa"
+    }
+
+    @Override
+    File getIniFile() {
+      return iniFile
+    }
+
+    @Override
+    void applyPlatformSpecificCustomization() {
+      new File(eclipseApp, "Contents/MacOS/launcher").renameTo(executable)
+
+      executable.setExecutable(true, false)
+
+      eclipseApp.renameTo(targetApp);
+
+      File plistFile = new File(targetApp, "Contents/Info.plist")
+      XMLPropertyListConfiguration plistConfiguration = new XMLPropertyListConfiguration()
+      plistConfiguration.load(plistFile)
+      plistConfiguration.rootNode.getChildren("CFBundleExecutable")[0].setValue(project.name)
+      plistConfiguration.rootNode.getChildren("CFBundleIdentifier")[0].setValue([project.group, project.name, project.version].collect {it!=null && it!=""}.join(":"))
+      plistConfiguration.rootNode.getChildren("CFBundleName")[0].setValue("${project.name}")
+      plistConfiguration.rootNode.getChildren("CFBundleVersion")[0].setValue("${project.version}")
+      plistConfiguration.rootNode.getChildren("CFBundleShortVersionString")[0].setValue("${project.version}")
+
+      File icon = project.products.macosxIcns;
+      if(icon != null) {
+        project.copy {
+          from icon
+          into new File(targetApp, "Resources")
+        }
+
+        plistConfiguration.rootNode.getChildren("CFBundleIconFile").setValue(icon.name)
+
+        if(iniFile.exists() && iniFile.canWrite()) {
+          StringBuffer buf = new StringBuffer(iniFile.getText("UTF-8"));
+          int pos = buf.indexOf("Eclipse.icns");
+          buf.replace(pos, pos + 12, icon.getName());
+          iniFile.setText(buf.toString(), "UTF-8")
+        }
+      }
+
+      plistConfiguration.save(plistFile)
+    }
+  }
+
+  private class LinuxPlatform extends Platform {
+    private File executable = new File(productOutputDir, "${project.name}")
+    private File iniFile = new File(productOutputDir, "eclipse.ini")
+
+    @Override
+    String getOs() {
+      return "linux"
+    }
+
+    @Override
+    String getWs() {
+      return "gtk"
+    }
+
+    @Override
+    File getIniFile() {
+      return iniFile
+    }
+
+    @Override
+    void applyPlatformSpecificCustomization() {
+      new File(productOutputDir, "launcher").renameTo(executable)
+
+      executable.setExecutable(true, false)
+
       File icon = project.products.linuxXpm;
       if(icon != null) {
         project.copy {
@@ -446,90 +598,5 @@ class EquinoxProductConfigurer {
         }
       }
     }
-  }
-
-  private File getDestinationLauncher() {
-    if(platform == "windows") {
-      return new File(productOutputDir, "${project.name}.exe");
-    }
-
-    if(platform == "linux") {
-      return new File(productOutputDir, project.name);
-    }
-
-    if(platform == "macosx") {
-      // ToDo: the "Info.plist" file must be patched, so that the
-      // property "CFBundleName" has the value of the
-      // launcherName variable
-      return new File(productOutputDir, "eclipse");
-    }
-
-    throw new IllegalArgumentException("Unknow platform '$platform'")
-  }
-
-  private File getSourceLauncher() {
-    if(platform == "windows") {
-      return new File(productOutputDir, "launcher.exe");
-    }
-
-    if(platform == "linux") {
-      return new File(productOutputDir, "launcher");
-    }
-
-    if(platform == "macosx") {
-      return new File(productOutputDir, "Eclipse.app/Contents/MacOS/launcher");
-    }
-
-    throw new IllegalArgumentException("Unknow platform '$platform'")
-  }
-
-  private String getOs() {
-    if(platform == "windows") {
-      return "win32";
-    }
-
-    if(platform == "linux") {
-      return "linux";
-    }
-
-    if(platform == "macosx") {
-      return "macosx";
-    }
-
-    throw new IllegalArgumentException("Unknow platform '$platform'")
-  }
-
-  private String getWs() {
-    if(platform == "windows") {
-      return "win32";
-    }
-
-    if(platform == "linux") {
-      return "gtk";
-    }
-
-    if(platform == "macosx") {
-      return "cocoa";
-    }
-
-    throw new IllegalArgumentException("Unknow platform '$platform'")
-  }
-
-  private String getArch() {
-    if(arch == "x86_32") {
-      return "x86"
-    }
-
-    if(arch == "x86_64") {
-      return "x86_64"
-    }
-
-    throw new IllegalArgumentException("Unknow arch '$platform'")
-  }
-
-  private File getDeltapackDir() {
-    def unpuzzle = project.effectiveUnpuzzle
-    def eclipseSource = project.effectiveUnpuzzle.selectedVersionConfig.sources.find { it.url.contains('delta') }
-    EclipseDeployer.getUnpackDir(unpuzzle.unpuzzleDir, eclipseSource)
   }
 }
