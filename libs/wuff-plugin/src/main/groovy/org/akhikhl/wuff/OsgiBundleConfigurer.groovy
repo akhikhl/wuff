@@ -12,6 +12,7 @@ import org.akhikhl.unpuzzle.PlatformConfig
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang3.StringEscapeUtils
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.tasks.bundling.Jar
 
@@ -324,9 +325,15 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   protected void createConfigurations() {
     super.createConfigurations()
     if(!project.configurations.findByName('privateLib')) {
-      project.configurations {
-        privateLib
-        compile.extendsFrom privateLib
+      Configuration configuration = project.configurations.create('privateLib')
+      project.sourceSets.each { it.compileClasspath += [configuration]}
+
+      if (project.plugins.hasPlugin('idea')) {
+        project.idea.module.scopes.COMPILE.plus += [configuration]
+      }
+
+      if (project.plugins.hasPlugin('eclipse')) {
+        project.eclipse.classpath.plusConfigurations += [configuration]
       }
     }
   }
