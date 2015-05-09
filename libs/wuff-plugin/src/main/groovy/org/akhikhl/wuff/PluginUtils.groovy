@@ -9,6 +9,8 @@ package org.akhikhl.wuff
 
 import java.nio.file.Paths
 import java.util.Properties
+import java.util.jar.Attributes
+import java.util.jar.Manifest
 import java.util.regex.Matcher
 
 import groovy.transform.CompileStatic
@@ -229,12 +231,26 @@ final class PluginUtils {
     return result
   }
 
+  static String getEclipseBundleSymbolicName(Project project){
+    File generatedManifest = getGeneratedManifestFile(project)
+    generatedManifest.withInputStream { is ->
+      Manifest manifest = new Manifest(is);
+      Attributes attributes = manifest.getMainAttributes()
+      String symbolicName = attributes.getValue("Bundle-SymbolicName")
+      if(symbolicName==null){
+        return project.name
+      }
+
+      return symbolicName.split(";")[0].trim()
+    }
+  }
+
   static String getEclipseApplicationId(Project project) {
     String result
     if(project.pluginXml)
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
     if(result)
-      result = "${project.name}.${result}"
+      result = "${getEclipseBundleSymbolicName(project)}.${result}"
     return result
   }
 
@@ -243,7 +259,7 @@ final class PluginUtils {
     if(project.pluginXml)
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
     if(result)
-      result = "${project.name}.$result"
+      result = "${getEclipseBundleSymbolicName(project)}.$result"
     return result
   }
 
@@ -252,7 +268,7 @@ final class PluginUtils {
     if(project.pluginXml)
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
     if(result)
-      result = "${project.name}.$result"
+      result = "${getEclipseBundleSymbolicName(project)}.$result"
     return result
   }
 
@@ -311,4 +327,9 @@ final class PluginUtils {
   static File getWrappedLibsDir(Project project) {
     return new File(project.buildDir, 'wrappedLibs')
   }
+
+  static File getGeneratedManifestFile(Project project) {
+    new File(project.buildDir, 'tmp-osgi/MANIFEST.MF')
+  }
+
 }
