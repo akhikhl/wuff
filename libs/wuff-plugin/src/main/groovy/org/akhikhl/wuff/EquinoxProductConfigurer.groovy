@@ -393,11 +393,11 @@ class EquinoxProductConfigurer {
     platform.applyPlatformSpecificCustomization()
 
     if(!launchParameters.empty || !jvmArgs.empty){
-      customizeIniFile(launchParameters, jvmArgs)
+      customizeIniFile(platform, launchParameters, jvmArgs)
     }
   }
 
-  private void customizeIniFile(List<String> launchParameters, List<String> jvmArgs){
+  private void customizeIniFile(Platform platform, List<String> launchParameters, List<String> jvmArgs){
     File iniFile = platform.iniFile
 
     StringBuffer buf = new StringBuffer()
