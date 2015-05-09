@@ -28,6 +28,20 @@ class EquinoxAppProductsExtension {
 
   List<String> autostartedBundles = []
 
+  boolean nativeLauncher = false;
+
+  File windowsBmp_16_8b
+  File windowsBmp_16_32b
+  File windowsBmp_32_8b
+  File windowsBmp_32_32b
+  File windowsBmp_48_8b
+  File windowsBmp_48_32b
+  File windowsIco
+
+  File macosxIcns
+
+  File linuxXpm
+
   def archiveFile(file) {
     additionalFilesToArchive.add file
   }
