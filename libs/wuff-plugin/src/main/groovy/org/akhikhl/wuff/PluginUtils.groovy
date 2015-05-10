@@ -7,6 +7,8 @@
  */
 package org.akhikhl.wuff
 
+import org.akhikhl.unpuzzle.PlatformConfig
+
 import java.nio.file.Paths
 import java.util.Properties
 import java.util.regex.Matcher
@@ -310,5 +312,50 @@ final class PluginUtils {
 
   static File getWrappedLibsDir(Project project) {
     return new File(project.buildDir, 'wrappedLibs')
+  }
+
+  private static String getProductTaskSuffix(Map product) {
+    String platform = product.platform ?: PlatformConfig.current_os
+    String arch = product.arch ?: PlatformConfig.current_arch
+    String language = product.language ?: ''
+
+    if(product.taskSuffix)
+      product.taskSuffix
+    else {
+      String productNamePrefix = product.name ? "${product.name}_" : ''
+      String languageSuffix = language ? "_${language}" : ''
+      "${productNamePrefix}${platform}_${arch}${languageSuffix}"
+    }
+  }
+
+  static String getProductBuildTaskName(Map product){
+    "buildProduct_${getProductTaskSuffix(product)}"
+  }
+
+  static String getArchiveProductTaskName(Map product){
+    "archiveProduct_${getProductTaskSuffix(product)}"
+  }
+
+  static String getProductFileSuffix(Map product){
+    String platform = product.platform ?: PlatformConfig.current_os
+    String arch = product.arch ?: PlatformConfig.current_arch
+    String language = product.language ?: ''
+
+    if(product.fileSuffix)
+      product.fileSuffix
+    else {
+      String productNamePrefix = product.name ? "${product.name}-" : ''
+      String languageSuffix = language ? "-${language}" : ''
+      "${productNamePrefix}${platform}-${arch}${languageSuffix}"
+    }
+  }
+
+  static File getProductOutputDir(Project project, Map product){
+    String productOutputDirName = "${project.name}-${project.version}"
+    String productFileSuffix = getProductFileSuffix(product)
+    if(productFileSuffix)
+      productOutputDirName += '-' + productFileSuffix
+
+    new File(getProductOutputBaseDir(project), productOutputDirName)
   }
 }

@@ -29,8 +29,6 @@ class EquinoxProductConfigurer {
   private final String platform
   private final String arch
   private final String language
-  private final String productFileSuffix
-  private final String productTaskSuffix
   private final Configuration productConfig
   private final List launchers
   private final File jreFolder
@@ -52,22 +50,6 @@ class EquinoxProductConfigurer {
     language = product.language ?: ''
     if(language && !PlatformConfig.supported_languages.contains(language))
       log.error 'Language {} is not supported', language
-
-    if(product.fileSuffix)
-      productFileSuffix = product.fileSuffix
-    else {
-      String productNamePrefix = product.name ? "${product.name}-" : ''
-      String languageSuffix = language ? "-${language}" : ''
-      productFileSuffix = "${productNamePrefix}${platform}-${arch}${languageSuffix}"
-    }
-
-    if(product.taskSuffix)
-      productTaskSuffix = product.taskSuffix
-    else {
-      String productNamePrefix = product.name ? "${product.name}_" : ''
-      String languageSuffix = language ? "_${language}" : ''
-      productTaskSuffix = "${productNamePrefix}${platform}_${arch}${languageSuffix}"
-    }
 
     String configName
     if(product.configName)
@@ -104,10 +86,7 @@ class EquinoxProductConfigurer {
     }
     this.jreFolder = jreFolder
 
-    String productOutputDirName = "${project.name}-${project.version}"
-    if(productFileSuffix)
-      productOutputDirName += '-' + productFileSuffix
-    productOutputDir = new File(PluginUtils.getProductOutputBaseDir(project), productOutputDirName)
+    productOutputDir = PluginUtils.getProductOutputDir(project, product)
   }
 
   void configure() {
@@ -116,7 +95,7 @@ class EquinoxProductConfigurer {
   }
 
   void configureBuildTask() {
-    project.task("buildProduct_${productTaskSuffix}") { task ->
+    project.task(PluginUtils.getProductBuildTaskName(product)) { task ->
       group = 'wuff'
       if(language)
         description = "builds product for platform $platform, architecture $arch and language $language"
@@ -179,18 +158,18 @@ class EquinoxProductConfigurer {
 
     def archiveType = launchers.contains('windows') ? Zip : Tar
 
-    project.task("archiveProduct_${productTaskSuffix}", type: archiveType) {
+    project.task(PluginUtils.getArchiveProductTaskName(product), type: archiveType) {
       group = 'wuff'
       if(language)
         description = "archives product for platform $platform, architecture $arch and language $language"
       else
         description = "archives product for platform $platform and architecture $arch"
 
-      dependsOn "buildProduct_${productTaskSuffix}"
+      dependsOn PluginUtils.getProductBuildTaskName(product)
       project.tasks.build.dependsOn it
 
       baseName = project.name
-      classifier = productFileSuffix
+      classifier = PluginUtils.getProductFileSuffix(product)
       destinationDir = productOutputDir.parentFile
       if(archiveType == Tar) {
         extension = 'tar.gz'
