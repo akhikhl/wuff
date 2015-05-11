@@ -444,7 +444,7 @@ class EquinoxProductConfigurer {
 
   private class WindowsPlatform extends Platform {
     private File destinationLauncher = new File(productOutputDir, "${project.name}.exe")
-    private File iniFile = new File(productOutputDir, "eclipse.ini")
+    private File iniFile = new File(productOutputDir, "${project.name}.ini")
 
     @Override
     String getOs() {
@@ -488,7 +488,7 @@ class EquinoxProductConfigurer {
     private File eclipseApp = new File(productOutputDir, "Eclipse.app");
     private File executable = new File(eclipseApp, "Contents/MacOS/${project.name}")
     private File targetApp = new File(productOutputDir, "${project.name}.app")
-    private File iniFile = new File(targetApp, "Contents/MacOS/eclipse.ini")
+    private File iniFile = new File(targetApp, "Contents/MacOS/${project.name}.ini")
 
     @Override
     String getOs() {
@@ -545,7 +545,7 @@ class EquinoxProductConfigurer {
 
   private class LinuxPlatform extends Platform {
     private File executable = new File(productOutputDir, "${project.name}")
-    private File iniFile = new File(productOutputDir, "eclipse.ini")
+    private File iniFile = new File(productOutputDir, "${project.name}.ini")
 
     @Override
     String getOs() {
