@@ -233,26 +233,12 @@ final class PluginUtils {
     return result
   }
 
-  static String getEclipseBundleSymbolicName(Project project){
-    File generatedManifest = getGeneratedManifestFile(project)
-    generatedManifest.withInputStream { is ->
-      Manifest manifest = new Manifest(is);
-      Attributes attributes = manifest.getMainAttributes()
-      String symbolicName = attributes.getValue("Bundle-SymbolicName")
-      if(symbolicName==null){
-        return project.name
-      }
-
-      return symbolicName.split(";")[0].trim()
-    }
-  }
-
   static String getEclipseApplicationId(Project project) {
     String result
     if(project.pluginXml)
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.applications' })?.'@id'
     if(result)
-      result = "${getEclipseBundleSymbolicName(project)}.${result}"
+      result = "${project.bundleSymbolicName}.${result}"
     return result
   }
 
@@ -261,7 +247,7 @@ final class PluginUtils {
     if(project.pluginXml)
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.ui.intro' })?.intro?.'@id'
     if(result)
-      result = "${getEclipseBundleSymbolicName(project)}.$result"
+      result = "${project.bundleSymbolicName}.$result"
     return result
   }
 
@@ -270,7 +256,7 @@ final class PluginUtils {
     if(project.pluginXml)
       result = project.pluginXml.extension.find({ it.'@point' == 'org.eclipse.core.runtime.products' })?.'@id'
     if(result)
-      result = "${getEclipseBundleSymbolicName(project)}.$result"
+      result = "${project.bundleSymbolicName}.$result"
     return result
   }
 
