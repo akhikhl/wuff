@@ -390,8 +390,8 @@ class EquinoxProductConfigurer {
     }
 
     if(!jvmArgs.empty){
-      if(!buf.contains("-jvmargs")){
-        buf.append("-jvmargs\n")
+      if(!buf.contains("-vmargs")){
+        buf.append("-vmargs\n")
       }
 
       buf.append(jvmArgs.join("\n"))
