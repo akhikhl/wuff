@@ -550,7 +550,7 @@ class EquinoxProductConfigurer {
           into new File(targetApp, "Resources")
         }
 
-        plistConfiguration.rootNode.getChildren("CFBundleIconFile").setValue(icon.name)
+        plistConfiguration.rootNode.getChildren("CFBundleIconFile")[0].setValue(icon.name)
 
         if(iniFile.exists() && iniFile.canWrite()) {
           StringBuffer buf = new StringBuffer(iniFile.getText("UTF-8"));
