@@ -98,7 +98,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       group = 'wuff'
       description = 'creates OSGi manifest'
 
-      File generatedManifestFile = getGeneratedManifestFile()
+      File generatedManifestFile = PluginUtils.getGeneratedManifestFile(project)
       dependsOn project.tasks.classes
       inputs.property 'projectVersion', { project.version }
       inputs.property 'localizationFiles', { PluginUtils.collectPluginLocalizationFiles(project) }
@@ -139,7 +139,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       dependsOn { project.tasks.createOsgiManifest }
 
-      inputs.files { getGeneratedManifestFile() }
+      inputs.files { PluginUtils.getGeneratedManifestFile(project) }
 
       from { project.configurations.privateLib }
 
@@ -206,7 +206,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
         // attention: call order is important here!
 
-        from getGeneratedManifestFile().absolutePath, mergeManifest
+        from PluginUtils.getGeneratedManifestFile(project).absolutePath, mergeManifest
 
         File userManifestFile = PluginUtils.findPluginManifestFile(project)
         if(userManifestFile != null) {
@@ -481,10 +481,6 @@ class OsgiBundleConfigurer extends JavaConfigurer {
     result.pluginXml = getPluginXmlString()
     result.pluginCustomization = getPluginCustomizationString()
     return result
-  }
-
-  protected final File getGeneratedManifestFile() {
-    new File(project.buildDir, 'tmp-osgi/MANIFEST.MF')
   }
 
   @Override
