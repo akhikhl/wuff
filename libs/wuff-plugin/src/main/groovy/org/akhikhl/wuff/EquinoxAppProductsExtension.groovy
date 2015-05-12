@@ -28,7 +28,7 @@ class EquinoxAppProductsExtension {
 
   List<String> autostartedBundles = []
 
-  boolean nativeLauncher = false;
+  boolean nativeLauncher = true;
 
   File windowsBmp_16_8b
   File windowsBmp_16_32b
