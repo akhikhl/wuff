@@ -56,14 +56,6 @@ wuff {
     }
 
     osgiBundle {
-
-      project.dependencies {
-        compile "${eclipseMavenGroup}:org.eclipse.osgi:+"
-      }
-
-      project.tasks.jar.manifest {
-        instruction 'Require-Bundle', 'org.eclipse.osgi'
-      }
     }
 
     eclipseBundle {
