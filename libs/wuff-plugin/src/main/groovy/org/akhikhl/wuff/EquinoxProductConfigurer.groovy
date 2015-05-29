@@ -17,6 +17,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.Compression
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  *
@@ -24,11 +26,14 @@ import org.gradle.api.tasks.bundling.Zip
  */
 class EquinoxProductConfigurer {
 
+  private static final Logger log = LoggerFactory.getLogger(EquinoxProductConfigurer)
+
   private final Project project
   private final Map product
   private final String platform
   private final String arch
   private final String language
+  private final Configuration productBaseConfig
   private final Configuration productConfig
   private final List launchers
   private final File jreFolder
@@ -51,16 +56,21 @@ class EquinoxProductConfigurer {
     if(language && !PlatformConfig.supported_languages.contains(language))
       log.error 'Language {} is not supported', language
 
+    String languageSuffix = language ? "_${language}" : ''
+    
+    String baseConfigName = "${productConfigPrefix}${platform}_${arch}${languageSuffix}"
+    productBaseConfig = project.configurations.findByName(baseConfigName)
+    
     String configName
     if(product.configName)
       configName = product.configName
     else {
       String productNamePrefix = product.name ? "${product.name}_" : ''
-      String languageSuffix = language ? "_${language}" : ''
       configName = "${productConfigPrefix}${productNamePrefix}${platform}_${arch}${languageSuffix}"
     }
 
-    productConfig = project.configurations.findByName(configName)
+    if(configName != baseConfigName)
+      productConfig = project.configurations.findByName(configName)
 
     if(product.launchers)
       launchers = product.launchers
@@ -108,6 +118,9 @@ class EquinoxProductConfigurer {
 
       inputs.files { project.tasks.jar.archivePath }
       inputs.files { project.configurations.runtime }
+      
+      if(productBaseConfig)
+        inputs.files productBaseConfig.files
 
       if(productConfig)
         inputs.files productConfig.files
@@ -233,7 +246,7 @@ class EquinoxProductConfigurer {
       if(pluginName != PluginUtils.osgiFrameworkPluginName && !pluginName.startsWith(PluginUtils.equinoxLauncherPluginName))
         bundleLaunchList[pluginName] = "reference\\:file\\:${file.name}${launchOption}"
 
-      if(file.name.startsWith(PluginUtils.equinoxLauncherPlatformSpecifiPluginNamePrefix)) {
+      if(file.name.startsWith(PluginUtils.equinoxLauncherPluginName + '.')) {
         String outputDirName = file.name.replaceAll("${PluginUtils.eclipsePluginMask}.jar", '$1_$2')
         project.copy {
           from project.zipTree(file)
@@ -259,6 +272,11 @@ class EquinoxProductConfigurer {
     project.configurations.runtime.each { file ->
       if(ManifestUtils.isBundle(project, file) && !(project.configurations.provided.find { it == file }))
         addBundle file
+    }
+    
+    productBaseConfig?.each {
+      if(ManifestUtils.isBundle(project, it))
+        addBundle it
     }
 
     productConfig?.each {
@@ -359,7 +377,7 @@ class EquinoxProductConfigurer {
     if(!equinoxExecutablePlugins)
       throw new GradleException("Could not build feature: equinox executable not found in ${new File(baseLocation, 'features')}")
     File equinoxExecutablePlugin = equinoxExecutablePlugins[0]
-
+    
     Platform platform = createPlatform()
     File source = new File(equinoxExecutablePlugin, "bin/${platform.ws}/${platform.os}/${platform.arch}")
 
