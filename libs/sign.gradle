@@ -6,7 +6,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org._10ne.gradle:rest-gradle-plugin:0.1.1'
+    classpath 'org._10ne.gradle:rest-gradle-plugin:0.3.2'
   }
 }
 
@@ -22,8 +22,8 @@ if( !hasProperty( 'bintrayUser' ) )
 if( !hasProperty( 'bintrayKey' ) )
   ext.bintrayKey = ''
 
-if( !hasProperty( 'keyPhrase' ) )
-  ext.keyPhrase = ''
+if( !hasProperty( 'bintrayKeyPhrase' ) )
+  ext.bintrayKeyPhrase = ''
 
 task bintraySign(type: RestTask) {
   description 'Push to bintray and sign it.'
@@ -31,7 +31,7 @@ task bintraySign(type: RestTask) {
   uri = "https://api.bintray.com/gpg/${project.developerId}/maven/${project.projectId}/versions/${project.version}"
   username = project.bintrayUser
   password = project.bintrayKey
-  requestBody = [ passphrase: project.keyPhrase ]
+  requestBody = [ passphrase: project.bintrayKeyPhrase ]
   contentType = ContentType.JSON
 }
 
