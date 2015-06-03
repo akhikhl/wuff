@@ -17,9 +17,9 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 - New feature: E(fx)clipse support.
 
-Resolved issue #66: Remove 'Require-Bundle: org.eclipse.osgi'
+- Resolved issue #66: Remove 'Require-Bundle: org.eclipse.osgi'
 
-Resolved issue #56: Invalid product and application in configuration ini file when Manifest provide custom Bundle-SymbolicName
+- Resolved issue #56: Invalid product and application in configuration ini file when Manifest provide custom Bundle-SymbolicName
 
 See complete list of changes in [what's new list](whatsnew.md),
 
