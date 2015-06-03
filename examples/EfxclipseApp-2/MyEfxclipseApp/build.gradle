@@ -1,0 +1,14 @@
+apply plugin: 'java'
+apply plugin: 'org.akhikhl.wuff.efxclipse-app'
+
+dependencies{
+  compile project(':MyPlugin')
+}
+
+wuff {
+  selectedEclipseVersion = 'efxclipse-1.2'
+}
+
+products {
+  nativeLauncher = false
+}
