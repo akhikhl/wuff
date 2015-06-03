@@ -1,5 +1,15 @@
 # What's new in Wuff
 
+### Version 0.0.14
+
+- New feature: support of native launchers. Wuff automatically generates native launcher as soon as you build Eclipse-RCP or Eclipse-IDE product.
+
+- New feature: E(fx)clipse support.
+
+Resolved issue #66: Remove 'Require-Bundle: org.eclipse.osgi'
+
+Resolved issue #56: Invalid product and application in configuration ini file when Manifest provide custom Bundle-SymbolicName
+
 ### Version 0.0.13
 
 - support of Eclipse 4.4.2.

@@ -1,7 +1,7 @@
 /*
  * wuff
  *
- * Copyright 2014  Andrey Hihlovskiy.
+ * Copyright 2014-2015 Andrey Hihlovskiy and contributors.
  *
  * See the file "LICENSE" for copying and usage permission.
  */
