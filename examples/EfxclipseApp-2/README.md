@@ -1,1 +1,2 @@
-See wiki: [Add a plugin to an e(fx)clipse app](../../../../wiki/Add-Plugins-To-Efxclipse-App).
+Currently no tutorial. See wiki: [Create OSGi bundle and use it in Equinox app](../../../../wiki/Create-OSGi-bundle-and-use-it-in-Equinox-app).
+ 
