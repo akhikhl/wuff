@@ -5,8 +5,8 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.4'
-    classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.1'
+    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+    classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.0'
   }
 }
 

@@ -1,40 +1,63 @@
 // include this file in subprojects:
 // apply from: rootProject.file('libs/publish.gradle')
 
+apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 
 def thisProject = project
 
-install.repositories.mavenInstaller.pom*.whenConfigured { pom ->
-  pom.project {
-    name thisProject.name
-    packaging 'jar'
-    description thisProject.description
-    url thisProject.project_website
+def configurePom = {
+  resolveStrategy = Closure.DELEGATE_FIRST
+  name thisProject.name
+  packaging 'jar'
+  description thisProject.description
+  url thisProject.project_website
 
-    scm {
-      url thisProject.project_scm
-      connection thisProject.project_scm
-      developerConnection thisProject.project_scm
+  scm {
+    url thisProject.project_scm
+    connection thisProject.project_scm
+    developerConnection thisProject.project_scm
+  }
+
+  licenses {
+    license {
+      name thisProject.license
+      url thisProject.license_url
+      distribution 'repo'
     }
+  }
 
-    licenses {
-      license {
-        name thisProject.license
-        url thisProject.license_url
-        distribution 'repo'
-      }
+  developers {
+    developer {
+      id thisProject.developerId
+      name thisProject.developerName
     }
+  }
+}
 
-    developers {
-      developer {
-        id thisProject.developerId
-        name thisProject.developerName
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      pom.withXml {
+        asNode().children().last() + configurePom
       }
     }
   }
+}
+
+install.repositories.mavenInstaller.pom*.whenConfigured { pom ->
+  pom.project {
+    name thisProject.name
+    configurePom.rehydrate(delegate, owner, thisObject).call()
+  }
+}
+
+artifactoryPublish {
+  dependsOn { project.tasks.generatePomFileForMavenJavaPublication }
+  publications 'mavenJava'
 }
 
 bintray {
@@ -53,12 +76,3 @@ bintray {
 
 bintrayUpload.dependsOn assemble
 bintrayUpload.finalizedBy parent.tasks.bintraySign
-
-publishing {
-  publications {
-    mavenJava(MavenPublication) {
-      from components.java
-    }
-  }
-}
-
