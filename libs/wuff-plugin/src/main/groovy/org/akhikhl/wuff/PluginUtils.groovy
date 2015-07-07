@@ -135,7 +135,8 @@ final class PluginUtils {
         pluginConfig = new File(pluginConfig)
       pluginConfig = new XmlParser().parse(pluginConfig)
     }
-    def classes = pluginConfig.extension.'**'.findAll({ it.'@class' })*.'@class' + pluginConfig.extension.'**'.findAll({ it.'@contributorClass' })*.'@contributorClass'
+    def classes = pluginConfig.extension.'**'.findAll({ it.hasProperty('@class') })*.'@class' + pluginConfig
+            .extension.'**'.findAll({ it.hasProperty('@contributorClass') })*.'@contributorClass'
     def packages = classes.findResults {
       int dotPos = it.lastIndexOf('.')
       dotPos >= 0 ? it.substring(0, dotPos) : null
