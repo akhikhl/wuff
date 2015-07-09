@@ -108,8 +108,23 @@ class ManifestUtils {
   }
 
   static String mergeRequireBundle(String baseValue, String mergeValue) {
-    if(baseValue && mergeValue)
-      return ((baseValue.split(',') as Set) + (mergeValue.split(',') as Set)).join(',')
+    if(baseValue && mergeValue) {
+      Map bundles = [:]
+      List list = [baseValue, mergeValue].join(',').split(',').toList()
+      list.each { bundle ->
+        List bundleParams = bundle.split(';').toList()
+        String name = bundleParams.get(0)
+        List params = bundles.get(name) ?: []
+        if (bundleParams.size() > 1)
+          params.addAll(bundleParams[1..-1])
+        bundles.put(name, params)
+      }
+      return bundles.collect { it ->
+        List res = [it.key]
+        res.addAll(it.value as Set)
+        return res.join(';')
+      }.join(',')
+    }
     return mergeValue ?: baseValue
   }
 
