@@ -178,6 +178,22 @@ class OsgiBundleConfigurer extends JavaConfigurer {
             String newValue
             if(details.key.equalsIgnoreCase('Require-Bundle')) {
               newValue = ManifestUtils.mergeRequireBundle(details.baseValue, mergeValue)
+              if (!project.wuff.skipRequireBundle.isEmpty()) {
+                String skipValue = ''
+                newValue.split(',').each { bundle ->
+                  boolean skipBundle = false
+                  project.wuff.skipRequireBundle.each { skipped ->
+                    if (bundle && bundle.startsWith(skipped)) {
+                      skipBundle = true
+                      return true
+                    }
+                  }
+                  if (!skipBundle) {
+                    skipValue = skipValue.isEmpty() ? bundle : skipValue + ',' + bundle
+                  }
+                }
+                newValue = skipValue
+              }
             } else if(details.key.equalsIgnoreCase('Export-Package')) {
               newValue = ManifestUtils.mergePackageList(details.baseValue, mergeValue)
             } else if(details.key.equalsIgnoreCase('Import-Package')) {
@@ -189,6 +205,18 @@ class OsgiBundleConfigurer extends JavaConfigurer {
                 } else {
                   newValue = newValue + ',' +project.wuff.eclipseImports
                 }
+              }
+              if (!project.wuff.skipImportPackage.isEmpty()) {
+                Map packages = ManifestUtils.parsePackages(newValue)
+                ManifestUtils.parsePackages(newValue).each { 
+                  project.wuff.skipImportPackage.each { skipped ->
+                    if (it && it.key.startsWith(skipped)) {
+                      packages.remove(it.key)
+                      return true
+                    }
+                  }
+                }
+                newValue = ManifestUtils.packagesToString(packages)
               }
             } else if(details.key.equalsIgnoreCase('Bundle-ClassPath')) {
               newValue = ManifestUtils.mergeClassPath(details.baseValue, mergeValue)
