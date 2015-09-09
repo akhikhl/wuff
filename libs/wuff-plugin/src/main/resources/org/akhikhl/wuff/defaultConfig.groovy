@@ -4,7 +4,7 @@ wuff {
 
   localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
 
-  selectedEclipseVersion = '4.4.2'
+  selectedEclipseVersion = '4.5'
 
   def suffix_os = [ 'linux': 'linux-gtk', 'macosx': 'macosx-cocoa', 'windows': 'win32' ]
   def suffix_arch = [ 'x86_32': '', 'x86_64': '-x86_64' ]
@@ -417,6 +417,25 @@ wuff {
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20141223043836.zip'
     }
   }
+  
+  eclipseVersion('4.5') {
+    
+    extendsFrom '4.4.2'
+
+    eclipseMavenGroup = 'eclipse-mars'
+
+    eclipseMirror = 'http://mirror.netcologne.de'
+
+    eclipseArchiveMirror = 'http://archive.eclipse.org'
+
+    sources {
+
+      source "${eclipseMirror}/eclipse//technology/epp/downloads/release/mars/R/eclipse-jee-mars-R-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
+      source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.5-201506032000/eclipse-SDK-4.5-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
+
+      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.13.0/mars/BabelLanguagePack-eclipse-${language}_4.5.0.v20150804081228.zip'
+    }
+  }  
 
   eclipseVersion('efxclipse-1.2') {
       eclipseMavenGroup = 'efxclipse-1_2'
