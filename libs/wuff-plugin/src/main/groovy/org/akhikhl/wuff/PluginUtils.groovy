@@ -261,7 +261,7 @@ final class PluginUtils {
   }
 
   static File getEquinoxLauncherFile(Project project) {
-    return project.configurations.runtime.find { getPluginName(it.name) == equinoxLauncherPluginName }
+    return project.configurations.runtime.files.find { getPluginName(it.name) == equinoxLauncherPluginName }
   }
 
   static File getExtraDir(Project project) {
