@@ -1,8 +1,8 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
 [![Build Status](https://travis-ci.org/akhikhl/wuff.png?branch=master)](https://travis-ci.org/akhikhl/wuff)
-[![Release](http://img.shields.io/badge/release-0.0.15-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
-[![Snapshot](http://img.shields.io/badge/current-0.0.16--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
+[![Release](http://img.shields.io/badge/release-0.0.16-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
+[![Snapshot](http://img.shields.io/badge/current-0.0.17--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
 [![License](http://img.shields.io/badge/license-MIT-47b31f.svg)](#copyright-and-license)
 
 ### Introduction
@@ -10,6 +10,16 @@
 Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications and plugins *independently* of Eclipse-IDE. If you are familiar with [Eclipse Tycho](https://www.eclipse.org/tycho/), then think of Wuff as a gradle-based alternative.
 
 #### What's new :star:
+
+##### Version 0.0.16
+
+- Now Wuff supports Eclipse Mars 4.5. This is the default Eclipse version used by Wuff. You can always switch to older version of Eclipse by setting a property in your build.gradle:
+
+```groovy
+wuff {
+  selectedEclipseVersion = '4.4.2'
+}
+```
 
 ##### Version 0.0.14
 
