@@ -495,6 +495,8 @@ wuff {
               }
           }
 
+          project.products.nativeLauncher = false
+
           project.dependencies {
               osgiExtension "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"
               osgiExtension "pl.cmil.wuff.bundles:javax.annotation-osgi-extension:1.0"

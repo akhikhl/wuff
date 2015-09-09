@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+    <extension
+            id="product"
+            point="org.eclipse.core.runtime.products">
+        <product
+                application="org.eclipse.fx.ui.workbench.fx.application"
+                name="MyEfxclipseApp">
+            <property
+                    name="appName"
+                    value="e(fx)clipse skeleton">
+            </property>
+            <property
+                    name="applicationXMI"
+                    value="MyEfxclipseApp/Application.e4xmi">
+            </property>
+            <property
+                    name="cssTheme"
+                    value="default">
+            </property>
+        </product>
+    </extension>
+    <extension
+            point="org.eclipse.fx.ui.theme">
+        <theme
+                basestylesheet="css/default.css"
+                id="default"
+                name="Default">
+        </theme>
+    </extension>
+</plugin>
