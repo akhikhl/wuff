@@ -39,10 +39,13 @@ class ArchiveUtils {
       if(!source.isAbsolute() && fromDir != null)
         source = new File(fromDir, source.path).canonicalFile
       String name = source.absolutePath
-      if(File.separator != '/')
+      String dirName = fromDir.absolutePath
+      if(File.separator != '/') {
         name = name.replace(File.separator, '/')
-      if(name.startsWith(fromDir.absolutePath)) {
-        name = name.substring(fromDir.absolutePath.length())
+        dirName = dirName.replace(File.separator, '/')
+      }
+      if(name.startsWith(dirName)) {
+        name = name.substring(dirName.length())
         if(name.startsWith('/'))
           name = name.substring(1)
       }
