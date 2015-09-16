@@ -4,7 +4,7 @@ wuff {
 
   localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
 
-  selectedEclipseVersion = '4.5'
+  selectedEclipseVersion = '4.4.2'
 
   def suffix_os = [ 'linux': 'linux-gtk', 'macosx': 'macosx-cocoa', 'windows': 'win32' ]
   def suffix_arch = [ 'x86_32': '', 'x86_64': '-x86_64' ]
