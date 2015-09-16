@@ -44,7 +44,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   @Override
   protected void configureDependencies() {
-    def addBundle = { bundleName ->
+    def addBundle = { bundleName, bundleVersion = null ->
       if(!project.configurations.compile.dependencies.find { it.name == bundleName }) {
         def proj = project.rootProject.subprojects.find {
           it.ext.has('bundleSymbolicName') && it.ext.bundleSymbolicName == bundleName
@@ -52,13 +52,27 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         if(proj) {
           project.dependencies.add 'compile', proj
         } else {
-          project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
+          if(bundleVersion)
+            project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:$bundleVersion"
+          else
+            project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
         }
       }
     }
     userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
-      def bundleName = bundle.contains(';') ? bundle.split(';')[0] : bundle
-      addBundle bundleName
+      String bundleName
+      String bundleVersion
+      if(bundle.contains(';')) {
+        List bundleParams = bundle.split(';').toList()
+        bundleName = bundleParams[0]
+        bundleVersion = bundleParams.findResult {
+          def m = it =~ 'bundle-version="(.+)"'
+          if(m)
+            m[0][1]
+        }
+      } else
+        bundleName = bundle
+      addBundle bundleName, bundleVersion
     }
     def pluginXml = project.pluginXml
     if(pluginXml) {
