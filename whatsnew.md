@@ -1,5 +1,10 @@
 # What's new in Wuff
 
+### Version 0.0.17
+
+- Set default Eclipse version back to 4.4.2 (4.5 is still supported).
+
+- Fixed bug: bundle-version attribute in MANIFEST.MF/Require-Bundle was not interpreted.
 
 ### Version 0.0.16
 
