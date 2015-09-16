@@ -1,5 +1,16 @@
 # What's new in Wuff
 
+
+### Version 0.0.16
+
+- Now Wuff supports Eclipse Mars 4.5. This is the default Eclipse version used by Wuff. You can always switch to older version of Eclipse by setting a property in your build.gradle:
+
+```groovy
+wuff {
+selectedEclipseVersion = '4.4.2'
+}
+```
+
 ### Version 0.0.14
 
 - New feature: support of native launchers. Wuff automatically generates native launcher as soon as you build Eclipse-RCP or Eclipse-IDE product.
