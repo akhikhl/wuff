@@ -1,5 +1,9 @@
 # What's new in Wuff
 
+### Version 0.0.18
+
+- Using unpuzzle 0.0.22, which incorporates pull request "ArchiveUnpacker now preserves "executable" permissions in Tar and Zip" ( https://github.com/akhikhl/unpuzzle/pull/8 )
+
 ### Version 0.0.17
 
 - Set default Eclipse version back to 4.4.2 (4.5 is still supported).

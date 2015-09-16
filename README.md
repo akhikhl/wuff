@@ -1,8 +1,8 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
 [![Build Status](https://travis-ci.org/akhikhl/wuff.png?branch=master)](https://travis-ci.org/akhikhl/wuff)
-[![Release](http://img.shields.io/badge/release-0.0.17-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
-[![Snapshot](http://img.shields.io/badge/current-0.0.18--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
+[![Release](http://img.shields.io/badge/release-0.0.18-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
+[![Snapshot](http://img.shields.io/badge/current-0.0.19--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
 [![License](http://img.shields.io/badge/license-MIT-47b31f.svg)](#copyright-and-license)
 
 ### Introduction
@@ -10,6 +10,10 @@
 Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications and plugins *independently* of Eclipse-IDE. If you are familiar with [Eclipse Tycho](https://www.eclipse.org/tycho/), then think of Wuff as a gradle-based alternative.
 
 #### What's new :star:
+
+### Version 0.0.18
+
+- Using unpuzzle 0.0.22, which incorporates pull request "ArchiveUnpacker now preserves "executable" permissions in Tar and Zip" ( https://github.com/akhikhl/unpuzzle/pull/8 )
 
 ### Version 0.0.17
 
