@@ -14,9 +14,14 @@ package org.akhikhl.wuff
 class WrappedLibConfig {
 
   List excludedImports = []
+  List requiredBundles = []
 
   void excludeImport(importPattern) {
     excludedImports.add(importPattern)
+  }
+  
+  void requireBundle(bundleName) {
+    requiredBundles.add(bundleName)
   }
 }
 
