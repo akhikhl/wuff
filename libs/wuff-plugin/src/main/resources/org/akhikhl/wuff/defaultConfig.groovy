@@ -32,7 +32,7 @@ wuff {
       project.dependencies {
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
       }
     }
 
@@ -63,7 +63,7 @@ wuff {
       project.dependencies {
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
       }
 
@@ -87,7 +87,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.ds:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.event:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
-        provided "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}${current_arch_suffix}:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
         runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
         runtime "${eclipseMavenGroup}:com.ibm.icu:+"
@@ -121,7 +121,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.core.net:+"
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
         if(hasIntro)
           runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
