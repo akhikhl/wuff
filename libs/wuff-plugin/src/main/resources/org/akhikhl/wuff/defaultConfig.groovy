@@ -432,6 +432,7 @@ wuff {
 
       source "${eclipseMirror}/eclipse//technology/epp/downloads/release/mars/R/eclipse-jee-mars-R-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
       source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.5-201506032000/eclipse-SDK-4.5-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
+      source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.5-201506032000/eclipse-4.5-delta-pack.zip"
 
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.13.0/mars/BabelLanguagePack-eclipse-${language}_4.5.0.v20150804081228.zip'
     }
