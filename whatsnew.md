@@ -1,5 +1,11 @@
 # What's new in Wuff
 
+### Version 0.0.19
+
+- implemented consistent interpretation of 'provided' configuration: all artifacts in provided are visible at compile-time, but excluded from application bundles
+
+- introduced requireBundle mechanism for wrapped libs
+
 ### Version 0.0.18
 
 - Using unpuzzle 0.0.22, which incorporates pull request "ArchiveUnpacker now preserves "executable" permissions in Tar and Zip" ( https://github.com/akhikhl/unpuzzle/pull/8 )
