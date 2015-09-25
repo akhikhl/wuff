@@ -41,6 +41,7 @@ class EclipseBundlePluginTest extends Specification {
   then:
     project.configurations.findByName('compile')
     project.configurations.findByName('provided')
+    project.configurations.findByName('publicLib')
     project.configurations.findByName('privateLib')
   }
 

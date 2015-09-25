@@ -66,6 +66,19 @@ final class PluginUtils {
       null
     } ?: []
   }
+  
+  static List<String> collectPublicLibPackages(Project project) {
+    Set publicPackages = new LinkedHashSet()
+    project.configurations.publicLib.files.each { File lib ->
+      project.zipTree(lib).visit { f ->
+        if(f.isDirectory())
+          publicPackages.add(f.path.replace('/', '.').replace('\\', '.'))
+      }
+    }
+    if(publicPackages)
+      log.info 'Packages {} found in publicLib dependencies of the project {}', publicPackages, project.name
+    return publicPackages as List
+  }
 
   /**
    * Collects list of privateLib packages in the given project.

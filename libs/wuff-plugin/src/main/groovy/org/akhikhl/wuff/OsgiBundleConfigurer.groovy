@@ -155,6 +155,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       inputs.files { PluginUtils.getGeneratedManifestFile(project) }
 
+      from { project.configurations.publicLib }
       from { project.configurations.privateLib }
 
       def namePart1 = [baseName, appendix].findResults { it ?: null }.join('-')
@@ -338,17 +339,25 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   @Override
   protected void createConfigurations() {
     super.createConfigurations()
+    if(!project.configurations.findByName('publicLib')) {
+      Configuration configuration = project.configurations.create('publicLib')
+      project.sourceSets.each { it.compileClasspath += [configuration] }
+
+      if (project.plugins.hasPlugin('idea'))
+        project.idea.module.scopes.COMPILE.plus += [configuration]
+
+      if (project.plugins.hasPlugin('eclipse'))
+        project.eclipse.classpath.plusConfigurations += [configuration]
+    }
     if(!project.configurations.findByName('privateLib')) {
       Configuration configuration = project.configurations.create('privateLib')
-      project.sourceSets.each { it.compileClasspath += [configuration]}
+      project.sourceSets.each { it.compileClasspath += [configuration] }
 
-      if (project.plugins.hasPlugin('idea')) {
+      if (project.plugins.hasPlugin('idea'))
         project.idea.module.scopes.COMPILE.plus += [configuration]
-      }
 
-      if (project.plugins.hasPlugin('eclipse')) {
+      if (project.plugins.hasPlugin('eclipse'))
         project.eclipse.classpath.plusConfigurations += [configuration]
-      }
     }
   }
 
@@ -365,7 +374,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       setName project.name
       setVersion project.version.replace('-SNAPSHOT', snapshotQualifier)
       setClassesDir project.sourceSets.main.output.classesDir
-      setClasspath (project.configurations.runtime - project.configurations.privateLib)
+      setClasspath(project.configurations.runtime - project.configurations.privateLib)
     }
 
     m = m.effectiveManifest
@@ -432,6 +441,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       bundleClasspath = []
     }
     bundleClasspath.add(0, '.')
+
+    project.configurations.publicLib.files.each {
+      bundleClasspath.add(it.name)
+    }
 
     project.configurations.privateLib.files.each {
       bundleClasspath.add(it.name)
