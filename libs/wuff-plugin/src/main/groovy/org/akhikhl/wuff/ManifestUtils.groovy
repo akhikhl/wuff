@@ -70,9 +70,16 @@ class ManifestUtils {
       into tmpFolder
     }
     Manifest manifest
-    manifestFile.withInputStream {
-      manifest = new Manifest(it)
+
+    if(manifestFile.exists()) {
+      manifestFile.withInputStream {
+        manifest = new Manifest(it)
+      }
+      assert manifestFile.delete()
+    } else {
+      manifest = new Manifest()
     }
+
     return manifest
   }
 
