@@ -23,6 +23,3 @@ wuff {
   selectedEclipseVersion = 'efxclipse-1.2'
 }
 
-products {
-  nativeLauncher = false
-}

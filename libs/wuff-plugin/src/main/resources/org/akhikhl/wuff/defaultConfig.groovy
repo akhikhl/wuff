@@ -438,179 +438,188 @@ wuff {
   }  
 
   eclipseVersion('efxclipse-1.2') {
-      eclipseMavenGroup = 'efxclipse-1_2'
-      sources {
-          source "http://download.eclipse.org/efxclipse/runtime-released/1.2.0/site_assembly.zip"
+    eclipseMavenGroup = 'efxclipse-1_2'
+    sources {
+      source "http://download.eclipse.org/efxclipse/runtime-released/1.2.0/site_assembly.zip"
+    }
+
+    osgiBundle {
+      project.dependencies {
+        compile "${eclipseMavenGroup}:javax.inject:+"
+
+        compile "${eclipseMavenGroup}:com.ibm.icu:+"
+
+        compile "${eclipseMavenGroup}:org.eclipse.core.commands:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.contenttype:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding.beans:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding.observable:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding.property:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.expressions:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.filesystem:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.jobs:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.resources:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.commands:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.contexts:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.services:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.model.workbench:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.services:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.workbench:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.jdt.annotation:+"
+
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core.fxml:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.emf.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.emf.edit.ui:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.osgi.util:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.controls:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.dialogs:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.e4:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.generic:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.panes:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.services:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.theme:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.base:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.fx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.base:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.fx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.services:+"
+
+        compile "${eclipseMavenGroup}:org.eclipse.emf.common:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.ecore:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.change:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.xmi:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.edit:+"
+
       }
 
-      osgiBundle {
-          project.dependencies {
-              compile "${eclipseMavenGroup}:javax.inject:+"
+    }
 
-              compile "${eclipseMavenGroup}:com.ibm.icu:+"
+    efxclipseApp {
+      project.ext.osgiExecutionEnvironment = 'JavaSE-1.6,J2SE-1.6,J2SE-1.5,J2SE-1.4,J2SE-1.3,J2SE-1.2,JRE-1.1,CDC-1.1/Foundation-1.1,CDC-1.0/Foundation-1.0,OSGi/Minimum-1.2,OSGi/Minimum-1.1,OSGi/Minimum-1.0'
 
-              compile "${eclipseMavenGroup}:org.eclipse.core.commands:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.contenttype:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding.beans:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding.observable:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding.property:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.expressions:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.filesystem:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.jobs:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.resources:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.commands:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.contexts:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.services:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.model.workbench:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.services:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.workbench:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
-
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core.fxml:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.emf.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.emf.edit.ui:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.osgi.util:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.controls:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.dialogs:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.e4:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.generic:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.panes:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.services:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.theme:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.base:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.fx:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.base:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.fx:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.services:+"
-
-              compile "${eclipseMavenGroup}:org.eclipse.emf.common:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.change:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.xmi:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.edit:+"
-
-          }
-
+      //Used only for the javax.annotation fix
+      project.repositories {
+        maven {
+          url 'http://dl.bintray.com/mcmil/maven'
+        }
       }
 
-      efxclipseApp {
-          project.ext.osgiExecutionEnvironment = 'JavaSE-1.6,J2SE-1.6,J2SE-1.5,J2SE-1.4,J2SE-1.3,J2SE-1.2,JRE-1.1,CDC-1.1/Foundation-1.1,CDC-1.0/Foundation-1.0,OSGi/Minimum-1.2,OSGi/Minimum-1.1,OSGi/Minimum-1.0'
+      project.products.nativeLauncher = false
 
-          //Used only for the javax.annotation fix
-          project.repositories {
-              maven {
-                  url 'http://dl.bintray.com/mcmil/maven'
-              }
-          }
+      project.dependencies {
+        osgiExtension "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"
+        osgiExtension "pl.cmil.wuff.bundles:javax.annotation-osgi-extension:1.0"
 
-          project.products.nativeLauncher = false
+        compile "${eclipseMavenGroup}:org.eclipse.equinox.app:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.equinox.ds:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.equinox.event:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
+        runtime "${eclipseMavenGroup}:com.ibm.icu:+"
+        runtime "${eclipseMavenGroup}:javax.xml:+"
 
-          project.dependencies {
-              osgiExtension "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"
-              osgiExtension "pl.cmil.wuff.bundles:javax.annotation-osgi-extension:1.0"
+        compile "${eclipseMavenGroup}:com.ibm.icu:+"
+        compile "${eclipseMavenGroup}:javax.inject:+"
+        compile "${eclipseMavenGroup}:javax.servlet:+"
+        compile "${eclipseMavenGroup}:javax.xml:+"
 
-              compile "${eclipseMavenGroup}:org.eclipse.equinox.app:+"
-              runtime "${eclipseMavenGroup}:org.eclipse.equinox.ds:+"
-              runtime "${eclipseMavenGroup}:org.eclipse.equinox.event:+"
-              runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
-              runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
-              runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
-              runtime "${eclipseMavenGroup}:com.ibm.icu:+"
-              runtime "${eclipseMavenGroup}:javax.xml:+"
+        compile "${eclipseMavenGroup}:org.apache.commons.lang:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.commands:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.contenttype:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding.beans:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding.observable:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.databinding.property:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.expressions:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.filesystem:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.jobs:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.resources:+"
+        compile "${eclipseMavenGroup}:org.eclipse.core.runtime:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.commands:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.contexts:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.core.services:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.model.workbench:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.services:+"
+        compile "${eclipseMavenGroup}:org.eclipse.e4.ui.workbench:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.jdt.annotation:+"
 
-              compile "${eclipseMavenGroup}:com.ibm.icu:+"
-              compile "${eclipseMavenGroup}:javax.inject:+"
-              compile "${eclipseMavenGroup}:javax.servlet:+"
-              compile "${eclipseMavenGroup}:javax.xml:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.core.fxml:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.emf.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.emf.edit.ui:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.osgi.util:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.controls:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.databinding:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.di:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.dialogs:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.e4:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.generic:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.panes:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.services:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.theme:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.base:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.fx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.base:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.fx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.services:+"
 
-              compile "${eclipseMavenGroup}:org.apache.commons.lang:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.commands:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.contenttype:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding.beans:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding.observable:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.databinding.property:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.expressions:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.filesystem:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.jobs:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.resources:+"
-              compile "${eclipseMavenGroup}:org.eclipse.core.runtime:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.commands:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.contexts:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.core.services:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.model.workbench:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.services:+"
-              compile "${eclipseMavenGroup}:org.eclipse.e4.ui.workbench:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.common:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.ecore:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.change:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.xmi:+"
+        compile "${eclipseMavenGroup}:org.eclipse.emf.edit:+"
 
+        runtime "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"
+        runtime "${eclipseMavenGroup}:org.eclipse.equinox.console:+"
 
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.core.fxml:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.emf.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.emf.edit.ui:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.javafx:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.osgi.util:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.controls:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.databinding:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.di:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.dialogs:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.e4:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.keybindings.generic:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.panes:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.services:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.theme:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.base:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.fx:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.base:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.renderers.fx:+"
-              compile "${eclipseMavenGroup}:org.eclipse.fx.ui.workbench.services:+"
+        runtime "${eclipseMavenGroup}:org.apache.felix.gogo.runtime:+"
+        runtime "${eclipseMavenGroup}:org.apache.felix.gogo.shell:+"
+        runtime "${eclipseMavenGroup}:org.apache.felix.gogo.command:+"
 
-              compile "${eclipseMavenGroup}:org.eclipse.emf.common:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.change:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.ecore.xmi:+"
-              compile "${eclipseMavenGroup}:org.eclipse.emf.edit:+"
-
-              runtime "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"
-              runtime "${eclipseMavenGroup}:org.eclipse.equinox.console:+"
-
-              runtime "${eclipseMavenGroup}:org.apache.felix.gogo.runtime:+"
-              runtime "${eclipseMavenGroup}:org.apache.felix.gogo.shell:+"
-              runtime "${eclipseMavenGroup}:org.apache.felix.gogo.command:+"
-
-              runtime "pl.cmil.wuff.bundles:javax.annotation-osgi-extension:1.0"
-          }
-
-          supported_oses.each { platform ->
-              supported_archs.each { arch ->
-                  String productConfigName = "product_equinox_${platform}_${arch}"
-                  project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
-
-              }
-          }
-
-
-          project.tasks.jar.manifest {
-              instruction 'Require-Bundle', 'org.eclipse.core.runtime'
-          }
+        runtime "pl.cmil.wuff.bundles:javax.annotation-osgi-extension:1.0"
       }
+
+      supported_oses.each { platform ->
+        supported_archs.each { arch ->
+          String productConfigName = "product_equinox_${platform}_${arch}"
+          project.dependencies.add productConfigName, "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
+
+        }
+      }
+
+
+      project.tasks.jar.manifest {
+        instruction 'Require-Bundle', 'org.eclipse.core.runtime'
+      }
+    }
+  }
+
+  eclipseVersion('efxclipse-2.1') {
+    eclipseMavenGroup = 'efxclipse-2_1'
+    extendsFrom 'efxclipse-1.2'
+    sources {
+      source "http://download.eclipse.org/efxclipse/runtime-released/2.1.0/site_assembly.zip"
+    }
   }
 
   wrappedLibs {
