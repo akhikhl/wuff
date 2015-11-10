@@ -30,6 +30,8 @@ class Config {
   boolean filterProperties = false
   boolean filterHtml = false
   String eclipseImports = ''
+  Set<String> skipRequireBundle = new LinkedHashSet()
+  Set<String> skipImportPackage = new LinkedHashSet()
 
   void eclipseVersion(String versionString, Closure closure) {
     List<Closure> closureList = lazyVersions[versionString]
@@ -98,6 +100,10 @@ class Config {
       target.filterProperties = true
     if(source.filterHtml)
       target.filterHtml = true
+    if(source.skipRequireBundle != null)
+      target.skipRequireBundle = source.skipRequireBundle;
+    if(source.skipImportPackage != null)
+      target.skipImportPackage = source.skipImportPackage;
   }
   
   boolean supportsE4() {
