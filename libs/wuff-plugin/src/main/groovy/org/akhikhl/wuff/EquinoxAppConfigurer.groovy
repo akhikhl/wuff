@@ -58,7 +58,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
       dependsOn project.tasks.jar
       dependsOn project.tasks.wrapLibs
       inputs.files { project.tasks.jar.archivePath }
-      inputs.files { project.configurations.runtime }
+      inputs.files { project.configurations.runtime - project.configurations.provided }
       outputs.files runConfigFile
       doLast {
         // need to delete config-subdirs, otherwise osgi uses cached bundles,
@@ -90,7 +90,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
         if(wrappedLibsDir.exists())
           wrappedLibsDir.eachFileMatch(~/.*\.jar/) { addBundle it }
 
-        project.configurations.runtime.each {
+        (project.configurations.runtime - project.configurations.provided).each {
           if(ManifestUtils.isBundle(project, it))
             addBundle it
         }
@@ -101,7 +101,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
               def m = file.name =~ /([\da-zA-Z_.-]+?)/ + "\\.nl_${project.run.language}" + /-((\d+\.)+[\da-zA-Z_.-]*)/
               if(m) {
                 String pluginName = m[0][1]
-                if(project.configurations.runtime.files.find { PluginUtils.getPluginName(it.name) == pluginName })
+                if((project.configurations.runtime - project.configurations.provided).files.find { PluginUtils.getPluginName(it.name) == pluginName })
                   addBundle file
               }
             }
@@ -191,7 +191,7 @@ class EquinoxAppConfigurer extends OsgiBundleConfigurer {
     project.task('wrapLibs') {
       group = 'wuff'
       description = 'wraps non-OSGi libraries as OSGi-bundles'
-      inputs.files { project.configurations.runtime }
+      inputs.files { project.configurations.runtime - project.configurations.provided }
       outputs.dir { PluginUtils.getWrappedLibsDir(project) }
       doLast {
         inputs.files.each { lib ->

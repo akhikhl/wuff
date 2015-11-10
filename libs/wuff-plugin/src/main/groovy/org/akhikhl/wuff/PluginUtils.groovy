@@ -66,6 +66,19 @@ final class PluginUtils {
       null
     } ?: []
   }
+  
+  static List<String> collectPublicLibPackages(Project project) {
+    Set publicPackages = new LinkedHashSet()
+    project.configurations.publicLib.files.each { File lib ->
+      project.zipTree(lib).visit { f ->
+        if(f.isDirectory())
+          publicPackages.add(f.path.replace('/', '.').replace('\\', '.'))
+      }
+    }
+    if(publicPackages)
+      log.info 'Packages {} found in publicLib dependencies of the project {}', publicPackages, project.name
+    return publicPackages as List
+  }
 
   /**
    * Collects list of privateLib packages in the given project.
@@ -135,7 +148,8 @@ final class PluginUtils {
         pluginConfig = new File(pluginConfig)
       pluginConfig = new XmlParser().parse(pluginConfig)
     }
-    def classes = pluginConfig.extension.'**'.findAll({ it.'@class' })*.'@class' + pluginConfig.extension.'**'.findAll({ it.'@contributorClass' })*.'@contributorClass'
+    def classes = pluginConfig.extension.'**'.findAll({ it.hasProperty('@class') })*.'@class' + pluginConfig
+            .extension.'**'.findAll({ it.hasProperty('@contributorClass') })*.'@contributorClass'
     def packages = classes.findResults {
       int dotPos = it.lastIndexOf('.')
       dotPos >= 0 ? it.substring(0, dotPos) : null
@@ -260,7 +274,7 @@ final class PluginUtils {
   }
 
   static File getEquinoxLauncherFile(Project project) {
-    return project.configurations.runtime.find { getPluginName(it.name) == equinoxLauncherPluginName }
+    return project.configurations.runtime.files.find { getPluginName(it.name) == equinoxLauncherPluginName }
   }
 
   static File getExtraDir(Project project) {

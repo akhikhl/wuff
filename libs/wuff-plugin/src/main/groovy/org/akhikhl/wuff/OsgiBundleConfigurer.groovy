@@ -44,7 +44,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
   @Override
   protected void configureDependencies() {
-    def addBundle = { bundleName ->
+    def addBundle = { bundleName, bundleVersion = null ->
       if(!project.configurations.compile.dependencies.find { it.name == bundleName }) {
         def proj = project.rootProject.subprojects.find {
           it.ext.has('bundleSymbolicName') && it.ext.bundleSymbolicName == bundleName
@@ -52,13 +52,27 @@ class OsgiBundleConfigurer extends JavaConfigurer {
         if(proj) {
           project.dependencies.add 'compile', proj
         } else {
-          project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
+          if(bundleVersion)
+            project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:$bundleVersion"
+          else
+            project.dependencies.add 'compile', "${project.ext.eclipseMavenGroup}:$bundleName:+"
         }
       }
     }
     userManifest?.mainAttributes?.getValue('Require-Bundle')?.split(',')?.each { bundle ->
-      def bundleName = bundle.contains(';') ? bundle.split(';')[0] : bundle
-      addBundle bundleName
+      String bundleName
+      String bundleVersion
+      if(bundle.contains(';')) {
+        List bundleParams = bundle.split(';').toList()
+        bundleName = bundleParams[0]
+        bundleVersion = bundleParams.findResult {
+          def m = it =~ 'bundle-version="(.+)"'
+          if(m)
+            m[0][1]
+        }
+      } else
+        bundleName = bundle
+      addBundle bundleName, bundleVersion
     }
     def pluginXml = project.pluginXml
     if(pluginXml) {
@@ -141,6 +155,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
 
       inputs.files { PluginUtils.getGeneratedManifestFile(project) }
 
+      from { project.configurations.publicLib }
       from { project.configurations.privateLib }
 
       def namePart1 = [baseName, appendix].findResults { it ?: null }.join('-')
@@ -352,17 +367,25 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   @Override
   protected void createConfigurations() {
     super.createConfigurations()
+    if(!project.configurations.findByName('publicLib')) {
+      Configuration configuration = project.configurations.create('publicLib')
+      project.sourceSets.each { it.compileClasspath += [configuration] }
+
+      if (project.plugins.hasPlugin('idea'))
+        project.idea.module.scopes.COMPILE.plus += [configuration]
+
+      if (project.plugins.hasPlugin('eclipse'))
+        project.eclipse.classpath.plusConfigurations += [configuration]
+    }
     if(!project.configurations.findByName('privateLib')) {
       Configuration configuration = project.configurations.create('privateLib')
-      project.sourceSets.each { it.compileClasspath += [configuration]}
+      project.sourceSets.each { it.compileClasspath += [configuration] }
 
-      if (project.plugins.hasPlugin('idea')) {
+      if (project.plugins.hasPlugin('idea'))
         project.idea.module.scopes.COMPILE.plus += [configuration]
-      }
 
-      if (project.plugins.hasPlugin('eclipse')) {
+      if (project.plugins.hasPlugin('eclipse'))
         project.eclipse.classpath.plusConfigurations += [configuration]
-      }
     }
   }
 
@@ -379,7 +402,7 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       setName project.name
       setVersion project.version.replace('-SNAPSHOT', snapshotQualifier)
       setClassesDir project.sourceSets.main.output.classesDir
-      setClasspath (project.configurations.runtime - project.configurations.privateLib)
+      setClasspath(project.configurations.runtime - project.configurations.privateLib)
     }
 
     m = m.effectiveManifest
@@ -446,6 +469,10 @@ class OsgiBundleConfigurer extends JavaConfigurer {
       bundleClasspath = []
     }
     bundleClasspath.add(0, '.')
+
+    project.configurations.publicLib.files.each {
+      bundleClasspath.add(it.name)
+    }
 
     project.configurations.privateLib.files.each {
       bundleClasspath.add(it.name)

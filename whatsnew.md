@@ -1,5 +1,35 @@
 # What's new in Wuff
 
+### Version 0.0.20
+
+- introduced publicLib configuration for eclipse bundles and applications.
+
+### Version 0.0.19
+
+- implemented consistent interpretation of 'provided' configuration: all artifacts in provided are visible at compile-time, but excluded from application bundles
+
+- introduced requireBundle mechanism for wrapped libs
+
+### Version 0.0.18
+
+- Using unpuzzle 0.0.22, which incorporates pull request "ArchiveUnpacker now preserves "executable" permissions in Tar and Zip" ( https://github.com/akhikhl/unpuzzle/pull/8 )
+
+### Version 0.0.17
+
+- Set default Eclipse version back to 4.4.2 (4.5 is still supported).
+
+- Fixed bug: bundle-version attribute in MANIFEST.MF/Require-Bundle was not interpreted.
+
+### Version 0.0.16
+
+- Now Wuff supports Eclipse Mars 4.5. This is the default Eclipse version used by Wuff. You can always switch to older version of Eclipse by setting a property in your build.gradle:
+
+```groovy
+wuff {
+selectedEclipseVersion = '4.4.2'
+}
+```
+
 ### Version 0.0.14
 
 - New feature: support of native launchers. Wuff automatically generates native launcher as soon as you build Eclipse-RCP or Eclipse-IDE product.

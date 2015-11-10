@@ -32,7 +32,7 @@ wuff {
       project.dependencies {
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
       }
     }
 
@@ -63,7 +63,7 @@ wuff {
       project.dependencies {
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
       }
 
@@ -87,7 +87,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.ds:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.event:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.launcher:+"
-        provided "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.equinox.launcher.${current_os_suffix}${current_arch_suffix}:+"
         runtime "${eclipseMavenGroup}:org.eclipse.equinox.util:+"
         runtime "${eclipseMavenGroup}:org.eclipse.osgi.services:+"
         runtime "${eclipseMavenGroup}:com.ibm.icu:+"
@@ -121,7 +121,7 @@ wuff {
         runtime "${eclipseMavenGroup}:org.eclipse.core.net:+"
         compile "${eclipseMavenGroup}:org.eclipse.jface:+"
         compile "${eclipseMavenGroup}:org.eclipse.swt:+"
-        provided "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
+        compile "${eclipseMavenGroup}:org.eclipse.swt.${current_os_suffix}${current_arch_suffix}:+"
         compile "${eclipseMavenGroup}:org.eclipse.ui:+"
         if(hasIntro)
           runtime "${eclipseMavenGroup}:org.eclipse.ui.intro:+"
@@ -417,6 +417,25 @@ wuff {
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20141223043836.zip'
     }
   }
+  
+  eclipseVersion('4.5') {
+    
+    extendsFrom '4.4.2'
+
+    eclipseMavenGroup = 'eclipse-mars'
+
+    eclipseMirror = 'http://mirror.netcologne.de'
+
+    eclipseArchiveMirror = 'http://archive.eclipse.org'
+
+    sources {
+
+      source "${eclipseMirror}/eclipse//technology/epp/downloads/release/mars/R/eclipse-jee-mars-R-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
+      source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.5-201506032000/eclipse-SDK-4.5-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
+
+      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.13.0/mars/BabelLanguagePack-eclipse-${language}_4.5.0.v20150804081228.zip'
+    }
+  }  
 
   eclipseVersion('efxclipse-1.2') {
       eclipseMavenGroup = 'efxclipse-1_2'
@@ -494,6 +513,8 @@ wuff {
                   url 'http://dl.bintray.com/mcmil/maven'
               }
           }
+
+          project.products.nativeLauncher = false
 
           project.dependencies {
               osgiExtension "${eclipseMavenGroup}:org.eclipse.fx.osgi:+"

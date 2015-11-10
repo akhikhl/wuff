@@ -58,15 +58,20 @@ class LibWrapper {
     m = m.effectiveManifest
     m.attributes 'Bundle-ClassPath': lib.name
     Map packages = ManifestUtils.parsePackages(m.attributes['Import-Package'])
+    String requireBundle = m.attributes['Require-Bundle']
     // workarounds for dynamically referenced classes
     WrappedLibConfig wrappedLibConfig = wrappedLibsConfig.libConfigs.find { bundleName =~ it.key }?.value
     if(wrappedLibConfig) {
-      log.debug 'found wrappedLibConfig for {}, excludedImports={}', bundleName, wrappedLibConfig.excludedImports
+      log.debug 'found wrappedLibConfig for {}, excludedImports={}, requiredBundles={}', bundleName, wrappedLibConfig.excludedImports, wrappedLibConfig.requiredBundles
       packages = packages.findAll { key, value -> !wrappedLibConfig.excludedImports.find { key =~ it } }
+      requireBundle = ManifestUtils.mergeRequireBundle(requireBundle, wrappedLibConfig.requiredBundles.join(','))
     }
     m.attributes.remove 'Import-Package'
     if(packages)
       m.attributes 'Import-Package': ManifestUtils.packagesToString(packages)
+    m.attributes.remove 'Require-Bundle'
+    if(requireBundle)
+      m.attributes 'Require-Bundle': requireBundle
 
     m.attributes.remove 'Class-Path'
 

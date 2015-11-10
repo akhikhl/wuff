@@ -1,8 +1,8 @@
 ![Wuff logo](media/logo.png "Wuff logo")
 
 [![Build Status](https://travis-ci.org/akhikhl/wuff.png?branch=master)](https://travis-ci.org/akhikhl/wuff)
-[![Release](http://img.shields.io/badge/release-0.0.15-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
-[![Snapshot](http://img.shields.io/badge/current-0.0.16--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
+[![Release](http://img.shields.io/badge/release-0.0.20-47b31f.svg)](https://github.com/akhikhl/wuff/releases/latest)
+[![Snapshot](http://img.shields.io/badge/current-0.0.21--SNAPSHOT-47b31f.svg)](https://github.com/akhikhl/wuff/tree/master)
 [![License](http://img.shields.io/badge/license-MIT-47b31f.svg)](#copyright-and-license)
 
 ### Introduction
@@ -11,17 +11,19 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 
 #### What's new :star:
 
-##### Version 0.0.14
+### Version 0.0.20
 
-- New feature: support of native launchers. Wuff automatically generates native launcher as soon as you build Eclipse-RCP or Eclipse-IDE product.
+- introduced publicLib configuration for eclipse bundles and applications.
 
-- New feature: E(fx)clipse support.
+### Version 0.0.19
 
-- Resolved issue #66: Remove 'Require-Bundle: org.eclipse.osgi'
+- implemented consistent interpretation of 'provided' configuration: all artifacts in provided are visible at compile-time, but excluded from application bundles
 
-- Resolved issue #56: Invalid product and application in configuration ini file when Manifest provide custom Bundle-SymbolicName
+- introduced requireBundle mechanism for wrapped libs
 
-See complete list of changes in [what's new list](whatsnew.md),
+### Version 0.0.18
+
+- Using unpuzzle 0.0.22, which incorporates pull request "ArchiveUnpacker now preserves "executable" permissions in Tar and Zip" ( https://github.com/akhikhl/unpuzzle/pull/8 )
 
 ### Where to start?
 

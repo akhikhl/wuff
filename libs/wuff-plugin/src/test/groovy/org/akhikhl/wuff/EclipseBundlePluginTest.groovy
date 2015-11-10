@@ -41,6 +41,7 @@ class EclipseBundlePluginTest extends Specification {
   then:
     project.configurations.findByName('compile')
     project.configurations.findByName('provided')
+    project.configurations.findByName('publicLib')
     project.configurations.findByName('privateLib')
   }
 
@@ -57,7 +58,7 @@ class EclipseBundlePluginTest extends Specification {
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.swt') }
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.jface') }
     project.configurations.compile.dependencies.find { it.name.startsWith('org.eclipse.ui') }
-    project.configurations.provided.dependencies.find { it.name.startsWith("org.eclipse.swt.${PlatformConfig.current_os_suffix}${PlatformConfig.current_arch_suffix}") }
+    project.configurations.compile.dependencies.find { it.name.startsWith("org.eclipse.swt.${PlatformConfig.current_os_suffix}${PlatformConfig.current_arch_suffix}") }
   }
 }
 
