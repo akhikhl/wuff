@@ -9,22 +9,6 @@
 
 Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications and plugins *independently* of Eclipse-IDE. If you are familiar with [Eclipse Tycho](https://www.eclipse.org/tycho/), then think of Wuff as a gradle-based alternative.
 
-#### What's new :star:
-
-### Version 0.0.20
-
-- introduced publicLib configuration for eclipse bundles and applications.
-
-### Version 0.0.19
-
-- implemented consistent interpretation of 'provided' configuration: all artifacts in provided are visible at compile-time, but excluded from application bundles
-
-- introduced requireBundle mechanism for wrapped libs
-
-### Version 0.0.18
-
-- Using unpuzzle 0.0.22, which incorporates pull request "ArchiveUnpacker now preserves "executable" permissions in Tar and Zip" ( https://github.com/akhikhl/unpuzzle/pull/8 )
-
 ### Where to start?
 
 - If you are new to Wuff, start your acquaintance with [main features](../../wiki/Main-features).
@@ -44,6 +28,24 @@ Wuff is a gradle plugin for developing and assembling OSGi/Eclipse applications 
 - Source code: compile, explore, deploy.
 
 See more information on [prerequisites and usage](../../wiki/Prerequisites-and-usage) wiki page.
+
+#### What's new :star:
+
+### Version 0.0.20
+
+- introduced publicLib configuration for eclipse bundles and applications.
+
+### Version 0.0.19
+
+- implemented consistent interpretation of 'provided' configuration: all artifacts in provided are visible at compile-time, but excluded from application bundles
+
+- introduced requireBundle mechanism for wrapped libs
+
+### Version 0.0.18
+
+- Using unpuzzle 0.0.22, which incorporates pull request "ArchiveUnpacker now preserves "executable" permissions in Tar and Zip" ( https://github.com/akhikhl/unpuzzle/pull/8 )
+
+
 
 ### Copyright and License
 
