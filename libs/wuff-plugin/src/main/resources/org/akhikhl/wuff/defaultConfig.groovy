@@ -362,7 +362,7 @@ wuff {
       source "$eclipseArchiveMirror/eclipse/downloads/drops4/R-4.4-201406061215/eclipse-SDK-4.4-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
       source "$eclipseArchiveMirror/eclipse/downloads/drops4/R-4.4-201406061215/eclipse-4.4-delta-pack.zip"
 
-      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20141223043836.zip'
+      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.13.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20151128080334.zip'
     }
 
     rcpApp {
@@ -395,7 +395,7 @@ wuff {
       source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.4.1-201409250400/eclipse-SDK-4.4.1-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
       source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.4.1-201409250400/eclipse-4.4.1-delta-pack.zip"
 
-      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20141223043836.zip'
+      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.13.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20151128080334.zip'
     }
   }
   
@@ -414,7 +414,7 @@ wuff {
       source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.4.2-201502041700/eclipse-SDK-4.4.2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
       source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.4.2-201502041700/eclipse-4.4.2-delta-pack.zip"
 
-      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20141223043836.zip'
+      languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.13.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20151128080334.zip'
     }
   }
   
