@@ -1,5 +1,14 @@
 wuff {
 
+  // select you mirror
+  // def eclipseMirror = 'http://mirror.switch.ch'
+  
+  def eclipseMirror = 'http://www.eclipse.org/downloads/download.php?file='
+  
+  def eclipseArchiveMirror = 'http://www.eclipse.org/downloads/download.php?file='
+  // old access path:
+  // def eclipseArchiveMirror = 'http://archive.eclipse.org'
+
   wuffDir = new File(System.getProperty('user.home'), '.wuff')
 
   localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
@@ -9,14 +18,10 @@ wuff {
   def suffix_os = [ 'linux': 'linux-gtk', 'macosx': 'macosx-cocoa', 'windows': 'win32' ]
   def suffix_arch = [ 'x86_32': '', 'x86_64': '-x86_64' ]
   def fileExt_os = [ 'linux': 'tar.gz', 'macosx': 'tar.gz', 'windows': 'zip' ]
-
+    
   eclipseVersion('3.7.1') {
 
     eclipseMavenGroup = 'eclipse-indigo-sr1'
-
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
 
     sources {
 
@@ -213,10 +218,6 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-indigo-sr2'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
     sources {
 
       source "${eclipseMirror}/eclipse//technology/epp/downloads/release/indigo/SR2/eclipse-jee-indigo-SR2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
@@ -227,16 +228,28 @@ wuff {
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.11.1/indigo/BabelLanguagePack-rt.equinox-${language}_3.7.0.v20131123061707.zip'
     }
   }
+  
+  eclipseVersion('3.8.0') {
+		
+			extendsFrom '3.7.2'
+
+			eclipseMavenGroup = 'eclipse-juno'
+					
+			sources {
+				source "${eclipseArchiveMirror}/technology/epp/downloads/release/juno/R/eclipse-jee-juno-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"				
+				source "${eclipseArchiveMirror}/eclipse/downloads/drops/R-3.8-201206081200/eclipse-SDK-3.8-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
+				source "${eclipseArchiveMirror}/eclipse/downloads/drops/R-3.8-201206081200/eclipse-3.8-delta-pack.zip"
+
+				//languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.11.1/indigo/BabelLanguagePack-eclipse-${language}_3.7.0.v20131123061707.zip'
+				//languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.11.1/indigo/BabelLanguagePack-rt.equinox-${language}_3.7.0.v20131123061707.zip'
+			}
+		}
 
   eclipseVersion('4.2.1') {
 
     extendsFrom '3.7.2'
 
     eclipseMavenGroup = 'eclipse-juno-sr1'
-
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
 
     sources {
 
@@ -291,10 +304,6 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-juno-sr2'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
     sources {
 
       source "${eclipseMirror}/eclipse//technology/epp/downloads/release/juno/SR2/eclipse-jee-juno-SR2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
@@ -312,10 +321,6 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-kepler-sr1'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
     sources {
 
       source "${eclipseArchiveMirror}/technology/epp/downloads/release/kepler/SR1/eclipse-jee-kepler-SR1-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
@@ -332,15 +337,11 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-kepler-sr2'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
     sources {
 
       source "$eclipseMirror/eclipse//technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
-      source "$eclipseMirror/eclipse//eclipse/downloads/drops4/R-4.3.2-201402211700/eclipse-SDK-4.3.2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
-      source "$eclipseMirror/eclipse//eclipse/downloads/drops4/R-4.3.2-201402211700/eclipse-4.3.2-delta-pack.zip"
+      source "${eclipseArchiveMirror}/eclipse//eclipse/downloads/drops4/R-4.3.2-201402211700/eclipse-SDK-4.3.2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
+      source "${eclipseArchiveMirror}//eclipse/downloads/drops4/R-4.3.2-201402211700/eclipse-4.3.2-delta-pack.zip"
 
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.11.1/kepler/BabelLanguagePack-eclipse-${language}_4.3.0.v20131123020001.zip'
     }
@@ -352,15 +353,11 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-luna'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
     sources {
 
       source "$eclipseMirror/eclipse//technology/epp/downloads/release/luna/R/eclipse-jee-luna-R-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
-      source "$eclipseArchiveMirror/eclipse/downloads/drops4/R-4.4-201406061215/eclipse-SDK-4.4-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
-      source "$eclipseArchiveMirror/eclipse/downloads/drops4/R-4.4-201406061215/eclipse-4.4-delta-pack.zip"
+      source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.4-201406061215/eclipse-SDK-4.4-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
+      source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.4-201406061215/eclipse-4.4-delta-pack.zip"
 
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20141223043836.zip'
     }
@@ -385,10 +382,6 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-luna-sr1'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
     sources {
 
       source "${eclipseMirror}/eclipse//technology/epp/downloads/release/luna/SR1/eclipse-jee-luna-SR1-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
@@ -404,15 +397,14 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-luna-sr2'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
+	// not available on all mirrors, but here:
+	eclipseMirror = 'http://mirror.switch.ch'
+	
     sources {
 
-      source "${eclipseMirror}/eclipse//technology/epp/downloads/release/luna/SR2/eclipse-jee-luna-SR2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
-      source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.4.2-201502041700/eclipse-SDK-4.4.2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
-      source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.4.2-201502041700/eclipse-4.4.2-delta-pack.zip"
+      source "${eclipseMirror}/eclipse/technology/epp/downloads/release/luna/SR2/eclipse-jee-luna-SR2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
+      source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.4.2-201502041700/eclipse-SDK-4.4.2-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
+      source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.4.2-201502041700/eclipse-4.4.2-delta-pack.zip"
 
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.12.1/luna/BabelLanguagePack-eclipse-${language}_4.4.0.v20141223043836.zip'
     }
@@ -424,14 +416,10 @@ wuff {
 
     eclipseMavenGroup = 'eclipse-mars'
 
-    eclipseMirror = 'http://mirror.netcologne.de'
-
-    eclipseArchiveMirror = 'http://archive.eclipse.org'
-
     sources {
 
       source "${eclipseMirror}/eclipse//technology/epp/downloads/release/mars/R/eclipse-jee-mars-R-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}"
-      source "${eclipseMirror}/eclipse//eclipse/downloads/drops4/R-4.5-201506032000/eclipse-SDK-4.5-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
+      source "${eclipseArchiveMirror}/eclipse/downloads/drops4/R-4.5-201506032000/eclipse-SDK-4.5-${suffix_os[current_os]}${suffix_arch[current_arch]}.${fileExt_os[current_os]}", sourcesOnly: true
 
       languagePackTemplate '${eclipseMirror}/eclipse//technology/babel/babel_language_packs/R0.13.0/mars/BabelLanguagePack-eclipse-${language}_4.5.0.v20150804081228.zip'
     }
