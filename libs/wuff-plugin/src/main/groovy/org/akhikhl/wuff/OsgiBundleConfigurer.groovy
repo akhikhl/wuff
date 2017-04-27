@@ -337,27 +337,27 @@ class OsgiBundleConfigurer extends JavaConfigurer {
   }
 
   @Override
-  protected void createConfigurations() {
+  protected void createConfigurations() {	
     super.createConfigurations()
     if(!project.configurations.findByName('publicLib')) {
       Configuration configuration = project.configurations.create('publicLib')
-      project.sourceSets.each { it.compileClasspath += [configuration] }
+      project.sourceSets.each { it.compileClasspath.plus(configuration) }
 
       if (project.plugins.hasPlugin('idea'))
-        project.idea.module.scopes.COMPILE.plus += [configuration]
+        project.idea.module.scopes.COMPILE.plus(configuration)
 
       if (project.plugins.hasPlugin('eclipse'))
-        project.eclipse.classpath.plusConfigurations += [configuration]
+        project.eclipse.classpath.plusConfigurations.plus(configuration)
     }
     if(!project.configurations.findByName('privateLib')) {
       Configuration configuration = project.configurations.create('privateLib')
-      project.sourceSets.each { it.compileClasspath += [configuration] }
+      project.sourceSets.each { it.compileClasspath.plus(configuration) }
 
       if (project.plugins.hasPlugin('idea'))
-        project.idea.module.scopes.COMPILE.plus += [configuration]
+        project.idea.module.scopes.COMPILE.plus(configuration)
 
       if (project.plugins.hasPlugin('eclipse'))
-        project.eclipse.classpath.plusConfigurations += [configuration]
+        project.eclipse.classpath.plusConfigurations.plus(configuration)
     }
   }
 
